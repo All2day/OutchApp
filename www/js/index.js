@@ -22,7 +22,7 @@ var app = {
 
     // Application Constructor
     initialize: function() {
-      if(!window.chrome && navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) { //removed |IEMobile
+      if(navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) { //removed |IEMobile
         console.log('registering deviceready');
         document.addEventListener("deviceready", function(){
           console.log('Got deviceready');
