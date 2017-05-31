@@ -26,4 +26,10 @@
     <plugin name="cordova-plugin-geolocation" spec="~2.4.3" />
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
+
+    <platform name="android">
+    </platform>
+
+    <platform name="ios">
+    </platform>
 </widget>
