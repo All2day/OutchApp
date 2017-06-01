@@ -211,7 +211,7 @@ var app = {
 
 
       if(navigator.compass){
-        console.log('getting heading:'+heading.magneticHeading);
+        //console.log('getting heading:'+heading.magneticHeading);
         var compass_watch_id = navigator.compass.watchHeading(function(heading){
           //console.log('heading:'+heading.magneticHeading);
           if(app.playerPoint){
