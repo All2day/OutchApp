@@ -72,7 +72,7 @@ var app = {
     },
 
     startStatePinging: function(){
-      console.log('starting ping');
+      //console.log('starting ping');
   		var t = new Date().getTime();
   		$.ajax({
   			dataType: "json",
@@ -85,7 +85,8 @@ var app = {
           var time_offset = (this_t - t - r.rt)/2 + r.t + r.rt - this_t;
           app.time_offset = Math.round(0.9*app.time_offset + 0.1*time_offset);
 
-  				console.log('back in '+(this_t - t),r, time_offset, app.time_offset);
+  				//console.log('back in '+(this_t - t),r, time_offset, app.time_offset);
+          app.pingControlDiv.text((this_t - t));
           app.players = r.players;
           app.bombs = r.bombs;
           if(r.cmdQueue){
@@ -144,8 +145,8 @@ var app = {
               app.oldPoints = [];
             }
             app.oldPoints.push(app.playerPoint);
-            if(app.oldPoints.length > 60){
-              app.oldPoints.unshift();
+            if(app.oldPoints.length > 3){
+              app.oldPoints.shift();
             }
           }
           app.playerPoint = new ol.geom.Point(ol.proj.transform(geolocation.getPosition(), 'EPSG:4326', 'EPSG:3857'));
@@ -157,22 +158,24 @@ var app = {
           //app.map.getView().setCenter(ol.proj.transform(geolocation.getPosition(), 'EPSG:4326', 'EPSG:3857'));
           var s = app.map.getSize();
           app.map.getView().centerOn(app.playerPoint.getCoordinates(),s,[s[0]*.5,s[1]*0.66]);
+
         });
         return;
       }
 
 
       var watchId = navigator.geolocation.watchPosition(function(pos){
-        console.log(pos.coords.longitude+","+pos.coords.latitude+","+pos.coords.heading);
+        //console.log(pos.coords.longitude+","+pos.coords.latitude+","+pos.coords.heading);
+
         //app.map.getView().setZoom(12);
-        console.log('got pos change');
+        //console.log('got pos change');
         if(app.playerPoint){
           if(!app.oldPoints){
             app.oldPoints = [];
           }
           app.oldPoints.push(app.playerPoint);
-          if(app.oldPoints.length > 60){
-            app.oldPoints.unshift();
+          if(app.oldPoints.length > 3){
+            app.oldPoints.shift();
           }
         }
 
@@ -181,18 +184,41 @@ var app = {
           //app.map.getView().setCenter(app.playerPoint.getCoordinates());
           var s = app.map.getSize();
           app.map.getView().centerOn(app.playerPoint.getCoordinates(),s,[s[0]*.5,s[1]*0.66]);
+          if(navigator.compass){
+            //console.log('getting heading');
+            navigator.compass.getCurrentHeading(function(heading){
+              //console.log('heading:'+heading.magneticHeading);
+              app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
+            }, function(e){
+              console.log('error while getting compass heading');
+            });
+          }
+          /*if(pos.coords.heading != null){
+            app.map.getView().rotate(pos.coords.heading*Math.PI/180,app.playerPoint.getCoordinates());
+          }*/
         }
         //app.map.getView().setCenter(ol.proj.transform([pos.coords.longitude, pos.coords.latitude], 'EPSG:4326', 'EPSG:3857'));
 
         //app.map.getView().setRotation(pos.coords.heading*Math.PI*2/360);
         //app.map.render();
 
-        console.log('all set');
       },
         function(err){
           console.log(err);
         },
         {enableHighAccuracy: true, timeout:1000,maximumAge:0});
+
+
+
+      if(navigator.compass){
+        //console.log('getting heading');
+        var compass_watch_id = navigator.compass.watchHeading(function(heading){
+          //console.log('heading:'+heading.magneticHeading);
+          app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
+        }, function(e){
+          console.log('error while getting compass heading');
+        });
+      }
 
       return;
 
@@ -217,15 +243,24 @@ var app = {
         })*/
 
       });
-      map.on('pointerdrag',function(e){
+
+      map.on('pointerdown',function(e){
         if(!app.dragPoint){
           var pp = app.map.getPixelFromCoordinate(app.playerPoint.getCoordinates());
           var d_x = pp[0] - e.pixel[0];
           var d_y = pp[1] - e.pixel[1];
           var d = Math.sqrt(d_x*d_x+d_y*d_y);
-          if(d > 15){
+          if(d > 50){
             return;
           }
+        }
+        //console.log(e.coordinate);
+        app.dragPoint = new ol.geom.Point(e.coordinate);
+      });
+
+      map.on('pointerdrag',function(e){
+        if(!app.dragPoint){
+          return;
         }
         //console.log(e.coordinate);
         app.dragPoint = new ol.geom.Point(e.coordinate);
@@ -251,6 +286,17 @@ var app = {
           app.map.getView().centerOn(app.playerPoint.getCoordinates(),s,[s[0]*.5,s[1]*0.66]);
         }
       });
+      var d = $('<div/>',{
+        html:'',
+        css:{
+          position:'absolute',
+          top:0,
+          right:0
+        }
+      });
+      app.pingControlDiv = d;
+      app.pingControl = new ol.control.Control({element:d[0]});
+      map.addControl(app.pingControl);
 
       var imageStyle = new ol.style.Style({
         image: new ol.style.Circle({
@@ -263,7 +309,7 @@ var app = {
 
       var headInnerImageStyle = new ol.style.Style({
         image: new ol.style.Circle({
-          radius: 5,
+          radius: 15,
           snapToPixel: false,
           fill: new ol.style.Fill({color: 'blue'})
         })
@@ -271,7 +317,7 @@ var app = {
 
       var headOuterImageStyle = new ol.style.Style({
         image: new ol.style.Circle({
-          radius: 5,
+          radius: 15,
           snapToPixel: false,
           fill: new ol.style.Fill({color: 'black'})
         })
