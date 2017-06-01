@@ -102,11 +102,12 @@ var app = {
   			},
   			error:function(r,status,error) {
   				//debugger;
-  				console.log(status);
-  				console.log(error);
+  				console.log('status:'+status+' error:'+error);
   				//alert(error);
+          app.pingControlDiv.text('connection error');
+          setTimeout(app.startStatePinging,1000);
   			},
-  			timeout:10000
+  			timeout:2000
   		});
     },
 
@@ -184,7 +185,7 @@ var app = {
           //app.map.getView().setCenter(app.playerPoint.getCoordinates());
           var s = app.map.getSize();
           app.map.getView().centerOn(app.playerPoint.getCoordinates(),s,[s[0]*.5,s[1]*0.66]);
-          if(navigator.compass){
+          /*if(navigator.compass){
             //console.log('getting heading');
             navigator.compass.getCurrentHeading(function(heading){
               //console.log('heading:'+heading.magneticHeading);
@@ -192,7 +193,7 @@ var app = {
             }, function(e){
               console.log('error while getting compass heading');
             });
-          }
+          }*/
           /*if(pos.coords.heading != null){
             app.map.getView().rotate(pos.coords.heading*Math.PI/180,app.playerPoint.getCoordinates());
           }*/
@@ -219,7 +220,7 @@ var app = {
           }
         }, function(e){
           console.log('error while getting compass heading');
-        });
+        },{filter:5});
       }
 
       return;

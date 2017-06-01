@@ -45,9 +45,14 @@ http.createServer(function (request, response) {
                                   };
 
                                   setTimeout(function(){
+                                      try{
                                           //go through the players to find if anyone is hit
                                           Object.keys(players).forEach(function(key){
                                                   var p = players[key];
+                                                  if(!p.pos){
+                                                    return;
+                                                  }
+
                                                   //calculate the distance
                                                   var d_x =p.pos[0]-bombs[bomb_uid].end_pos[0];
                                                   var d_y = p.pos[1]-bombs[bomb_uid].end_pos[1];
@@ -63,6 +68,9 @@ http.createServer(function (request, response) {
 
                                           });
                                           delete(bombs[bomb_uid]);
+                                        } catch(e){
+                                          console.log(e);
+                                        }
                                   },duration);
                                   break;
                     }
