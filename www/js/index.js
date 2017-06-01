@@ -204,17 +204,19 @@ var app = {
 
       },
         function(err){
-          console.log(err);
+          console.log('error in gps:'+err);
         },
         {enableHighAccuracy: true, timeout:1000,maximumAge:0});
 
 
 
       if(navigator.compass){
-        //console.log('getting heading');
+        console.log('getting heading:'+heading.magneticHeading);
         var compass_watch_id = navigator.compass.watchHeading(function(heading){
           //console.log('heading:'+heading.magneticHeading);
-          app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
+          if(app.playerPoint){
+            app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
+          }
         }, function(e){
           console.log('error while getting compass heading');
         });
@@ -456,7 +458,7 @@ var app = {
   	}
 };
 
-app.initialize();
+
 
 
 /**
@@ -619,3 +621,6 @@ app.initialize();
 		});
 	}
 })();
+
+
+app.initialize();
