@@ -17,7 +17,8 @@
  * under the License.
  */
 var app = {
-    server: 'http://royalarena.appvice.dk',
+    //server: 'http://localhost:9615',
+    server: 'http://52.208.48.54:9615',
     time_offset: 0,
 
     // Application Constructor
@@ -76,8 +77,7 @@ var app = {
   		var t = new Date().getTime();
   		$.ajax({
   			dataType: "json",
-  			url: 'http://52.208.48.54:9615?'+JSON.stringify(app.getStateChanges()),
-        //url: 'http://localhost:9615?'+JSON.stringify(app.getStateChanges()),
+        url: app.server+'?'+JSON.stringify(app.getStateChanges()),
   			//url: 'http://localhost:9615',
   			/*data: app.getStateChanges(),*/
   			success: function(r){
@@ -89,11 +89,28 @@ var app = {
           app.pingControlDiv.text((this_t - t));
           app.players = r.players;
           app.bombs = r.bombs;
+
+          var p = app.players[app.getUUID()];
+
+          $('.hits',app.topControlDiv).text(p.hits);
+          $('.dies',app.topControlDiv).text(p.dies);
+          $('.bombs',app.topControlDiv).text(p.bombs);
+
           if(r.cmdQueue){
             for(var i =0;i< r.cmdQueue.length;i++){
+              console.log('got cmd:'+r.cmdQueue[i][0]);
               switch(r.cmdQueue[i][0]){
                 case 'die':
-                  alert('DIE');
+                  $('.info',app.topControlDiv).text('DIE!!!');
+                  if(navigator.vibrate){
+                    navigator.vibrate(500);
+                  }
+                  break;
+                case 'write':
+                  $('.info',app.topControlDiv).text(r.cmdQueue[i][1]);
+                  break;
+                case 'hit':
+                  $('.info',app.topControlDiv).text('Hit another player!');
                   break;
               }
             }
@@ -220,7 +237,7 @@ var app = {
           }
         }, function(e){
           console.log('error while getting compass heading');
-        },{filter:5});
+        });
       }
 
       return;
@@ -301,6 +318,23 @@ var app = {
       app.pingControl = new ol.control.Control({element:d[0]});
       map.addControl(app.pingControl);
 
+      var d = $('<div/>',{
+        html:'<span class="score"><span class="hits">0</span>/<span class="dies" style="color:red">0</span></span>&nbsp;&nbsp;<span class="info">welcome</span>(<span class="bombs">3</span>)',
+        css:{
+          position:'absolute',
+          top:'30px',
+          left:'50px',
+          fontSize:'26px'
+        }
+      });
+      app.topControlDiv = d;
+      app.topControl = new ol.control.Control({element:d[0]});
+      map.addControl(app.topControl);
+
+
+
+      map.addControl(new ol.control.ScaleLine({}));
+
       var imageStyle = new ol.style.Style({
         image: new ol.style.Circle({
           radius: 5,
@@ -336,7 +370,7 @@ var app = {
 
       var dragStyle = new ol.style.Style({
         image: new ol.style.Circle({
-          radius: 30,
+          radius: 60,
           snapToPixel: false,
           fill: new ol.style.Fill({color: 'yellow'})
         })
@@ -410,19 +444,17 @@ var app = {
         }
 
         if(app.bombs){
-          //debugger;
-          //var resolutionAtEquator = map.getView().getResolution();
-          bombStyle.getImage().setRadius(15*(1/map.getView().getResolution()));
-          //bombStyle.getImage().setRadius((15*ol.proj.METERS_PER_UNIT.m)*resolutionAtEquator/map.getView().getProjection().getPointResolution(resolutionAtEquator,map.getView().getCenter()));
+          var resolution = map.getView().getResolution();
+          var projection = map.getView().getProjection();
+          var resolutionAtCoords = ol.proj.getPointResolution(projection,resolution, map.getView().getCenter());
+
+          bombStyle.getImage().setRadius(15/resolutionAtCoords);
 
           $.each(app.bombs, function(uuid,b){
             if(b.end_pos){
 
                 //console.log('drawing:'+uuid);
                 vectorContext.setStyle(bombStyle);
-                //console.log(p.pos);
-                //p.pos[0]= 1*p.pos[0];
-                //p.pos[1] = 1*p.pos[1];
 
 
 

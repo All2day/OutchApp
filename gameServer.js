@@ -17,39 +17,57 @@ http.createServer(function (request, response) {
      var t = new Date().getTime();
      r++;
         var requestUrl = url.parse(request.url,true)
-        console.log(requestUrl);
+        //console.log(requestUrl);
         var json_data = decodeURI(requestUrl.search.substr(1));
         var data = JSON.parse(json_data);
-        console.log(data);
+        //console.log(data);
         var UUID = data.UUID;
         if(!players[UUID]){
-                players[UUID] = {};
+                players[UUID] = {
+                  cmdQueue: [],
+                  bombs:3,
+                  hits:0,
+                  dies:0
+                };
         }
         var player = players[UUID];
 
         player.pos = data['pos'];
         var cmdQueue = null;
         if(cmdQueue = data['cmdQueue']){
+                cmdQueueLoop:
                 for(var i=0;i< cmdQueue.length;i++){
                         console.log('got cmd'+cmdQueue);
                         switch(cmdQueue[i][0]){
                                 case 'createBomb':
-                                        var bomb_uid = uid++;
-                                        var duration = 3000;
-                                        bombs[bomb_uid] = {
-                                          owner:UUID,
-                                          start_pos:player.pos,
-                                          end_pos:cmdQueue[i][2],
-                                          time:cmdQueue[i][1],
-                                          duration: duration
+                                  if(player.bombs <= 0){
+                                    player.cmdQueue.push(['write','No more bombs']);
+                                    continue cmdQueueLoop;
+                                  }
+                                  player.bombs--;
+                                  var bomb_uid = uid++;
+                                  var duration = 6000;
+                                  bombs[bomb_uid] = {
+                                    owner:UUID,
+                                    start_pos:player.pos,
+                                    end_pos:cmdQueue[i][2],
+                                    time:cmdQueue[i][1],
+                                    duration: duration
                                   };
 
                                   setTimeout(function(){
                                       try{
+                                          player.bombs++;
+
                                           //go through the players to find if anyone is hit
                                           Object.keys(players).forEach(function(key){
                                                   var p = players[key];
                                                   if(!p.pos){
+                                                    console.log('player pos missing:'+key);
+                                                    return;
+                                                  }
+                                                  if(!bombs[bomb_uid]){
+                                                    console.log('bomb missing:'+bomb_uid);
                                                     return;
                                                   }
 
@@ -64,6 +82,13 @@ http.createServer(function (request, response) {
                                                                   p.cmdQueue = [];
                                                           }
                                                           p.cmdQueue.push(['die',bombs[bomb_uid].time]);
+                                                          p.dies++;
+
+                                                          if(players[bombs[bomb_uid].owner]){
+                                                            players[bombs[bomb_uid].owner].hits++;
+                                                            players[bombs[bomb_uid].owner].cmdQueue.push(['hit',bombs[bomb_uid].time]);
+
+                                                          }
                                                   }
 
                                           });
@@ -87,9 +112,10 @@ http.createServer(function (request, response) {
     response.setHeader('Content-Type','application/json');
     response.writeHead(200);
     var response_data = {players:players,bombs:bombs,t:t,rt:new Date().getTime() - t};
-    if(player.cmdQueue){
+    if(player.cmdQueue && player.cmdQueue.length){
             response_data.cmdQueue = player.cmdQueue;
-            delete(player.cmdQueue);
+            player.cmdQueue = [];
+            //delete(player.cmdQueue);
     }
     response.write(JSON.stringify(response_data));
     response.end();
