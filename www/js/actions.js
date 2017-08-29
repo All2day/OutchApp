@@ -50,10 +50,21 @@
      var phase_var = this.phase.eval();
      var gs = ScopeRef._getGameState();
      if(phase_var && phase_var._value){
-       gs.loadPhase(phase_var._value);
+       console.log('starting phase',phase_var._name);
+       gs.loadPhase(phase_var._name);
      } else {
        console.log('could not start unknown phase');
      }
+   }
+ });
+
+ ServerAction.extend('ExitAction',{
+   init:function(obj){
+
+   },
+   do:function(){
+     var gs = ScopeRef._getGameState();
+     gs.removePlayer(gs.currentPlayer);
    }
  });
 

@@ -146,7 +146,9 @@ Array.prototype.shuffle = function(){
   */
 
 
- //var TreeObject = Class.extend({
+ /**
+  * Almost everything is a tree object with an owner to navigate downwards
+  */
 Class.extend('TreeObject',{
    owner:null,
    add:function(treeEl){
@@ -154,8 +156,11 @@ Class.extend('TreeObject',{
    }
  });
 
-
- TreeObject.extend('Hookable',{
+/**
+ * A Hookable is an object that can have hooks. A hook is either a Hook object, or a function.
+ * Functions are used internally as events, while Hook objects executes a set of actions defined by the user.
+ */
+TreeObject.extend('Hookable',{
    _hooks:null,
    init:function(obj){
      this._hooks = {};
@@ -204,23 +209,46 @@ Class.extend('TreeObject',{
    triggerHook:function(type){
 
      if(this._hooks[type]){
+       var hs = this._hooks[type]._value || ($.type(this._hooks[type]) == 'array' ? this._hooks[type] : [this._hooks[type]]);
+
+       var that = this;
+       $.each(hs, function(k,hook){
+         if($.type(hook) == "function"){
+           Hookable._triggerQueue.push([hook,that]);//Not done right away
+           //hook.apply(that); //should always be done right away
+         } else {
+           if((window||global)._client && hook.hasServerActions()){
+             //This is a client hook that should trigger on the server to change the server state
+             //collect data and send
+             //TODO: add data collection
+             (window||global)._client.registerRemoteTrigger(k,{});
+             //(window||global)._client.addCmd(hook, that);
+           } else {
+             Hookable._triggerQueue.push([hook,that]);
+           }
+         }
+
+       });
+
+
        //console.log('triggering hook:'+type);
        //console.log(this.hooks[type]);
-       if($.type(this._hooks[type]) == "function"){
+       /*if($.type(this._hooks[type]) == "function"){
          this._hooks[type].apply(this);
        }
        if(this._hooks[type] instanceof Hook){
          Hookable._triggerQueue.push([this._hooks[type],this]);
        } else{
+         var that = this;
          $.each(this._hooks[type]._value || this._hooks[type], function(k,hook){
            if($.type(hook) == "function"){
-             hook.apply(this);
+             hook.apply(that);
            } else {
-             Hookable._triggerQueue.push([hook,this]);
+             Hookable._triggerQueue.push([hook,that]);
            }
 
          });
-       }
+       }*/
      }
    },
    evaluate: function(scope){
@@ -246,12 +274,14 @@ Class.extend('TreeObject',{
  Hookable._nextHookId = 1;
  Hookable._triggerQueue = [];
  Hookable._handleTriggerQueue = function(){
-   console.log('handling trigger queue:'+Hookable._triggerQueue.length);
+   //console.log('handling trigger queue:'+Hookable._triggerQueue.length);
    while(Hookable._triggerQueue.length){
      var h = Hookable._triggerQueue.shift();
-     //console.log(h);
-     //console.log('triggering hook');
-     h[0].trigger(h[1]);
+     if($.type(h[0]) == 'function'){
+        h[0].apply(h[1]);
+     } else {
+       h[0].trigger(h[1]);
+     }
    }
  };
 

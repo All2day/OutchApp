@@ -60,7 +60,12 @@ Hookable.extend('Variable',{
 Variable._nextId = 1;
 Variable._vars = {};
 Variable._registerVar = function(v,id){
+  // Client elements should not be a part of what is transfered and thus not registered
   if(v instanceof ClientElement){
+    return;
+  }
+  //GamestatList that are not changeable should be the same on the client and thus not transfered
+  if(v instanceof GameStateList && !(v instanceof GameStateChangeableList)){
     return;
   }
 
@@ -128,7 +133,17 @@ Variable.extend('PointerVariable',{
     if(val === this._value){
       return;
     }
-    //TODO: if val is changed, remove all functions again
+    var that = this;
+    //if val is changed, remove all functions again
+    if(this._value){
+      $.each(this._value,function(n,f){
+        if(n=='set' || n.match(/^\_.*/) || n=='addHook' || n=='triggerHook'){
+          return;
+        }
+        //console.log(n,$.type(f));
+        delete(that[n]);
+      });
+    }
     //console.log(val.vars);
     this._value = val;
     /*var keys = Object.getOwnPropertyNames(val);
@@ -137,26 +152,28 @@ Variable.extend('PointerVariable',{
       console.log(keys[n],$.type(val[keys[n]]));
     }
     return;*/
-    var that = this;
-    $.each(val,function(n,f){
-      if(n=='set' || n.match(/^\_.*/) || n=='addHook' || n=='triggerHook'){
-        return;
-      }
-      //console.log(n,$.type(f));
-      if($.type(f) == 'function'){
-        that[n] = function(){
-          //console.log(''+n+' called with ',arguments);
-          return f.apply(val,arguments);
-        }
-      } else {
-        Object.defineProperty(that,n,{
-          enumerable:true,
-          get:function(){return that._value[n];},
-          set:function(x){that._value[n] = x;that._value.triggerHook('change');}
-        });
-      }
-    });
 
+    if(val){
+      $.each(val,function(n,f){
+        if(n=='set' || n.match(/^\_.*/) || n=='addHook' || n=='triggerHook'){
+          return;
+        }
+        //console.log(n,$.type(f));
+        if($.type(f) == 'function'){
+          that[n] = function(){
+            //console.log(''+n+' called with ',arguments);
+            return f.apply(val,arguments);
+          }
+        } else {
+          Object.defineProperty(that,n,{
+            enumerable:true,
+            configurable:true,
+            get:function(){return that._value[n];},
+            set:function(x){that._value[n] = x;that._value.triggerHook('change');}
+          });
+        }
+      });
+    }
     this.triggerHook('change');
   },
   triggerHook:function(type){
@@ -193,21 +210,23 @@ PrimitiveVariable.extend('BoolVariable',{
 PrimitiveVariable.extend('PosVariable',{
   _type:'pos',
   init:function(value){
-    this._value = {
-      lat:null,
-      lng:null,
+    this._value = {//TODO: decide on a pos format and method
+      x:null,
+      y:null,
       heading:null
     };
+    this._super();
   },
   set:function(val){
     if(val instanceof PosVariable){
       val = val._value;
     }
     if($.type(val) == 'object'){
-      this._value.lat = val.lat;
-      this._value.lng = val.lng;
+      this._value.x = val.x;
+      this._value.y = val.y;
       this._value.heading = val.heading;
     }
+    this.triggerHook('change');
   }
 
 });
@@ -334,19 +353,27 @@ Variable.extend('TimerVariable',{
     this.triggerHook('start');
     var that = this;
     this.start_time = new Date().getTime();
+    //register this timer on the current phase
+    ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
+      ScopeRef._getGameState().currentPhase.deregisterTimer(this);
       console.log('timer ended');
       that.triggerHook('end');
       //this happens outside normal tick time, thus trigger manually
       Hookable._handleTriggerQueue();
     },this.duration);
+
   },
   stop: function(){
+    ScopeRef._getGameState().currentPhase.deregisterTimer(this);
     clearTimeout(this._timeout);
     this.triggerHook('stop');
   },
   reset: function(){
 
+  },
+  _stop: function(){ //Internal stop
+    clearTimeout(this._timeout);
   }
 });
 
@@ -360,6 +387,7 @@ Variable.extend('TimerVariable',{
 
 Variable.extend('GameStateObject',{
   _type:'object',
+  _name:null, //The name given to this object in its parent
   init:function(inp,type){
     this._super();
     this.fromObject(inp,type);
@@ -431,22 +459,47 @@ GameStateObject.extend('GameStateList',{
       return;
     }
     this._value[name] = variable;
-    variable.owner = this;
+
+    //only define ownership as this if this is the first owner
+    if(!variable.owner){
+      variable._name = name;
+      variable.owner = this;
+    }
     var that = this;
 
     Object.defineProperty(this,name,{
       enumerable:true,
+      configurable:true,
       get:function(){return that.get(name);},
       set:function(x){that.set(name,x);that.triggerHook('change');}
     });
     this._count++;
+
+    this.triggerHook('change');
+  },
+  remove: function(name){
+    if(this._value[name]){
+      delete(this._value[name]);
+      this._count--;
+      //also delete the properties bound to the this object
+      delete(this[name]);
+      this.triggerHook('change');
+    };
+
+
   },
   get:function(name){
-
+    switch(name){
+      case 'length':
+        return this._count;
+    }
     if(this._value !== null){
 
       if(this._value[name] !== undefined){
         return this._value[name];
+      }
+      if(this.vars instanceof GameStateObject){
+        return this.vars.get(name);
       }
       if(this._value.vars instanceof GameStateObject){
 
@@ -491,12 +544,44 @@ GameStateObject.extend('GameStateList',{
 
 GameStateList.extend('GameStateChangeableList',{});
 
-GameStateList.extend('Phase',{
+/**
+ * Special list for players with special filters
+ */
+GameStateChangeableList.extend('PlayerList',{
+  remove:function(ref){
+    if(this.get(ref) == ScopeRef._gs.currentPlayer){
+      //removing self
+
+      alert('exited');
+    }
+    this._super(ref);
+  },
+  get:function(ref){
+    switch(ref){
+      case 'others': //all other players
+        var l = new GameStateList();
+        $.each(this._value,function(n,p){
+          if(p !== ScopeRef._gs.currentPlayer){
+            l.add(n,p);
+          }
+        });
+        return l;
+        break;
+    }
+    return this._super(ref);
+  }
+});
+
+GameStateChangeableList.extend('Phase',{
   _type:'phase',
   //views:null, /*GameStateList*/
   //vars:null,
   _obj:null,
+  _runningTimers:null,
 
+  views:null,
+  vars:null,
+  _hooks:null,
   init:function(obj){
     this._obj = {
       views:obj.views,
@@ -514,18 +599,29 @@ GameStateList.extend('Phase',{
 
     this._super(obj);
 
+    //TODO: why was these props defined as set and get vars of the _value object?
+    this.views = views;
+    this.vars = vars;
+    this._hooks = hooks;
 
-
-    this.add('views',views);
+    /*this.add('views',views);
     this.add('vars',vars);
     this.add('_hooks',hooks);
-
-
+    */
+    this._runningTimers = [];
   },
   load:function(){
     //lazy loading of objects
-    this._hooks.fromObject(this._obj.hooks || {},Hook);
-    this.views.fromObject(this._obj.views || {},ViewElement);
+    if(this._obj.hooks){
+      this._hooks.fromObject(this._obj.hooks || {},Hook);
+      delete(this._obj['hooks']);
+    }
+    if(this._obj.views){
+      this.views.fromObject(this._obj.views || {},ViewElement);
+      delete(this._obj['views']);
+    }
+
+
     //this.vars.fromObject(this._obj.vars || {},Variable);
 
     //this.views.owner = this;
@@ -534,16 +630,28 @@ GameStateList.extend('Phase',{
     //vars.owner = this;
     //this.add('vars',vars);
   },
-  getClientHooks(hooks){
+  unload:function(){
+    $.each(this._runningTimers,function(i,t){
+      t._stop();
+    });
+    this._runningTimers = [];
+  },
+  getClientHooks(hooks){//TODO:why not as a function?
     this._super(hooks);
     this.views.getClientHooks(hooks);
+  },
+  registerTimer:function(timer){
+    this._runningTimers.push(timer);
+  },
+  deregisterTimer:function(timer){
+    this._runningTimers.remove(timer);
   }
 });
 
 
 
 
-GameStateList.extend('ProtoType',{
+/*GameStateChangeableList*/GameStateList.extend('ProtoType',{
   _type:'prototype',
   _name:null,
   init:function(obj,name){
@@ -604,6 +712,28 @@ Variable.extend('ProtoTypeVariable',{
   get:function(ref){
     return this._value !== null ? this._value[ref] : null;
   },
+  add:function(ref,v){
+    if(!ref){
+      return;
+    }
+    if(!this._value){
+      this._value = {};
+    }
+    if(this._value[ref] === undefined){
+      this._value[ref] = v;
+    }
+  },
+  set:function(ref,v){
+    if(!ref){
+      return;
+    }
+    if(!this._value){
+      this._value = {};
+    }
+    if(this._value[ref] === undefined){
+      this._value[ref] = v;
+    }
+  },
   getObject:function(){
     if(this._value === null){
       return null;
@@ -626,17 +756,34 @@ ProtoTypeVariable.extend('Player',{
   pos:null,
   ping:null,
   name:null,
+  id:null,
   gsUpdates:null,
   init:function(type,obj){
     this._super(type,obj ? obj.value:undefined);
     this.gsUpdates = [];
     this.gsUpdates.push(new GameStateUpdate());
 
+    this.pos = new PosVariable();
     //TODO: register on a change hook on all variables and a 'new' hook on
     //gamestate, that is triggered when registering new vars.
   },
   addChange(v,new_v, list_index){
     this.gsUpdates[0].addChange(v,new_v,list_index);
+  },
+  //updates the players position from coordinates in meters*meters
+  updatePosition:function(c){
+    this.pos.set({
+      x:c[0],
+      y:c[1]
+    });
+  },
+  get:function(ref){
+    switch(ref){
+      case 'pos':
+        return this.pos;
+      case 'id':
+        return this._name;
+    }
   }
 });
 
@@ -820,12 +967,30 @@ GameStateObject.extend('GameState',{
     this.currentPhase = new PointerVariable();
 
     //set players
-    this.players = new GameStateChangeableList({},Player);
+    this.players = new PlayerList({},Player);
   },
   addPlayer:function(id){
+    console.log('adding player:'+id);
     var p = this.prototypes.player.create();
     this.players.add(id,p);
   },
+  /**
+   * Removes a player
+   */
+  removePlayer:function(player){
+
+    //TODO: send message to server that the player has exited
+    //TODO: figure out how the player is to react to being exited
+    if(this.players.get(player._name)){
+      this.players.remove(player._name);
+    } else {
+      console.log('no such player:'+player._name);
+    }
+  },
+
+  /**
+   * Unload current phase (if any) and load new phase. Handles triggers etc.
+   */
   loadPhase:function(phase){
     if(!phase){
       phase = this.phases.firstKey();
@@ -833,7 +998,8 @@ GameStateObject.extend('GameState',{
     console.log('loading phase:'+phase);
 
     //if this currentphase trigger hooks for ending the phase
-    if(this.currentPhase){
+    if(this.currentPhase._value){
+      this.currentPhase.unload();
       this.currentPhase.triggerHook('end');
       Hookable._handleTriggerQueue();
     }
@@ -848,6 +1014,8 @@ GameStateObject.extend('GameState',{
     new_phase.load();
     this.currentPhase.set(new_phase);
 
+
+
     //load all hooks
     this.clientHooks = {};
     /*this.clientHooks = */
@@ -859,8 +1027,13 @@ GameStateObject.extend('GameState',{
 
     Hookable._handleTriggerQueue();
   },
+  /**
+   * Called on server game state, triggers a client hook with server functionality, fx setting server var.
+   */
   triggerClientHook: function(player_id,id,vars){
     this.currentPlayer = this.players[player_id];
+
+
     var h = this.clientHooks[id];
     var scp = new GameStateObject({});
 
@@ -877,15 +1050,17 @@ GameStateObject.extend('GameState',{
     var o = {};
 
     $.each(Variable._vars,function(id,v){
+
       var el = {
         type: v._type
       };
 
-      if(v instanceof GameStateList
+      if(!(v instanceof GameStateChangeableList) && (
+          v instanceof GameStateList
           || v instanceof ProtoType
           || v instanceof Phase
           || v instanceof ClientElement
-          || v instanceof GameStateObject){
+          || v instanceof GameStateObject)){
         //ignore these, as they are not mutatable
         return;
       } else

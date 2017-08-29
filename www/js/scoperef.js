@@ -2,6 +2,14 @@ require('./basic');
 /**
  * Defines scope references
  */
+Class.extend('GameProperty',{
+  d: null, //default value to return if there is no result
+  s: null, //string definition
+  init:function(s,d){
+    this.s = s;
+    this.d = d;
+  }
+});
 
 TreeObject.extend('ScopeRef',{
    eval:function(scp /*TreeObject*/, inf /*if pressent fill it with info like touched vars etc.*/){
@@ -102,6 +110,10 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
     return new ScopeNull();
   }
 
+  if($.type(s) == 'array' && s.length == 2 && $.type(s[0]) == 'number' && $.type(s[1])=='number'){
+    return new ScopePos(s);
+  }
+
   if($.type(s) == 'number'){
     return new ScopeNumber(s);
   }
@@ -111,9 +123,13 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
   }
 
   if($.type(s) == 'array'){
-    s = {
-      c:s
-    };
+    if(s.length == 1 && s[0].c){
+      s = s[0];
+    } else {
+      s = {
+        c:s
+      };
+    }
   }
 
   switch(s.type){
@@ -223,7 +239,6 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
         if(s.c.length == 1 && $.type(s.c[0]) == 'string' && s.c[0].match(/^([\d]+)(?:\.[\d])?$/)){
           return new ScopeNumber(s.c[0]);
         }
-
         return new ScopeLookup(s.c[0],null,type);
       }
 
@@ -249,6 +264,9 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
 
 
   var m;
+  if($.type(s) != 'string'){
+    debugger;
+  }
   if(m = s.match(/^([\d]+)(?:\.[\d])?$/)){
     return new ScopeNumber(s);
   }
@@ -260,7 +278,10 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
 };
 
 ScopeRef._evalString = function(s){
-  var inf = {vars:[]};
+  var inf = {
+    vars:[],
+    constant:true
+  };
   var scopeRef = ScopeRef._prepareScopeRef(s);
   //go through the scope reference for all lookups and test if they are constant
 
@@ -448,12 +469,26 @@ ScopeRef.extend('ScopeNumber',{
    }
  });
 
+ ScopeRef.extend('ScopePos',{
+    value:null,
+    init(val){
+      this._value = {
+        x:val[0],
+        y:val[1]
+      }
+      //this._value = val;
+    },
+    eval:function(scp,inf){
+      return this._value;
+    }
+  });
+
 ScopeRef.extend('ScopeLookup',{
   ref:null,
   next:null,
   type:null,
   init:function(ref,next,type){
-    this.ref = ref.trim(),
+    this.ref = ref.trim();
     this.next = next;
     this.type = type;
   },
@@ -496,19 +531,23 @@ ScopeRef.extend('ScopeLookup',{
       case 'players':
         scp = ScopeRef._gs.players;
         break;
-      /*case 'list_el':
-        scp = ScopeRef._getScopeRoot();
-        while(scp && !(scp.owner instanceof ListElement)){scp = scp.owner;}
-        //scp should be a view element used to display a part of a list. Check the el
-        debugger;
-        break;*/
-      case 'element':
+
+      case 'element': //displayable element
         scp = ScopeRef._getScopeRoot();
         while(scp && !(scp instanceof ViewElement)){scp = scp.owner;}
         break;
       case 'timer':
         scp = ScopeRef._getScopeRoot();
         while(scp && !(scp instanceof TimerVariable)){scp = scp.owner;}
+        break;
+      case 'listel': //reference to the object used for this list element, if showing a list of players the listel for a hook fired inside will be the player used to create it.
+        //debugger;
+        scp = ScopeRef._getScopeRoot();
+
+        while(scp && !(scp instanceof ListElElement ||  scp instanceof GeolistElElement)){scp = scp.owner;}
+        if(scp){
+          scp = scp.get('listel');
+        }
         break;
       case 'hand':
         //debugger;
@@ -544,7 +583,9 @@ ScopeRef.extend('ScopeLookup',{
 
       scp = scp.owner;
     }
-
+    if(inf){
+      inf.constant = false;
+    }
     //could not find a base scope
     return null;
   },
@@ -561,7 +602,8 @@ ScopeRef.extend('ScopeLookup',{
     return this.getNext(scp,inf);
   },
   getNext:function(scp,inf){
-    if(inf){
+    if(inf && scp instanceof Variable){
+      inf.constant = false;
       inf.vars.push(scp);
     }
     if(this.next){

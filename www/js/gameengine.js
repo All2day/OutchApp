@@ -18,8 +18,8 @@ Class.extend('GameServer',{
     this.gs = new GameState(gameobject);
 
     //add players
-    this.gs.addPlayer('mads');
-    this.gs.addPlayer('simon');
+    //this.gs.addPlayer('mads');
+    //this.gs.addPlayer('simon');
 
     //load the first game phase which will setup hooks
 
@@ -41,8 +41,8 @@ Class.extend('GameServer',{
       this.r++;
       var requestUrl = url.parse(request.url,true)
       //console.log(this.gs.phases.play.vars.revenge_amount._value);
-      var test_var = this.gs.currentPhase.vars.test_var;
-      console.log('test_var with id:'+test_var._id+'='+test_var._value);
+      //var test_var = this.gs.currentPhase.vars.test_var;
+      //console.log('test_var with id:'+test_var._id+'='+test_var._value);
       var json_data = decodeURI(requestUrl.search.substr(1));
       var data = JSON.parse(json_data);
       //console.log(data);
@@ -54,10 +54,24 @@ Class.extend('GameServer',{
       }
       var player = this.gs.players[UUID];
 
+      //handle data updates from the player
+      if(data.p){
+        console.log('setting player pos:',data.p);
+        player.pos.set(data.p);
+      }
+
       var response_data = {};
       response_data.t = t;
 
       //apply updates from client
+      var that = this;
+
+      //Handl remotely triggered hooks in data
+      $.each(data.rt || [],function(i,hd){
+        console.log('triggering client hook['+UUID+'] with vars',hd.h,hd.v);
+        that.gs.triggerClientHook(UUID,hd.h,hd.v);
+      });
+
 
       //handle change hooks
       Hookable._handleTriggerQueue();
