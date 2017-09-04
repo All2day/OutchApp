@@ -76,12 +76,6 @@ Variable._registerVar = function(v,id){
   }
 
   Variable._vars[v._id] = v;
-
-  /*if(ScopeRef._gs && ScopeRef._gs.players){
-    $.each(ScopeRef._gs.players._value,function(k,p){
-      p.addChange(null,v);
-    });
-  }*/
 };
 Variable.fromObject = function(obj){
   if($.type(obj) == 'string' || $.type(obj) == 'number'){
@@ -250,8 +244,10 @@ Variable.extend('ListVariable',{
     }
   },
   add:function(v){
-    var v_c = v.clone();
-    this._value.push(v_c);
+    //var v_c = v.clone();
+    //this._value.push(v_c);
+    //TODO: check why cloning?
+    this._value.push(v);
     this.triggerHook('change');
 
     /*if(ScopeRef._gs && ScopeRef._gs.players){
@@ -310,7 +306,7 @@ Variable.extend('ListVariable',{
         var el = this._value.pop();
         return el;
       case 'count':
-        return new Variable(this._value.length);
+        return this._value.length;//new Variable(this._value.length);
       default:
         console.log('unknown List ref:`'+ref+'`');
     }
@@ -349,7 +345,7 @@ Variable.extend('TimerVariable',{
     this._super(obj);
   },
   start: function(){
-    console.log('timer started');
+    //console.log('timer started');
     this.triggerHook('start');
     var that = this;
     this.start_time = new Date().getTime();
@@ -357,7 +353,7 @@ Variable.extend('TimerVariable',{
     ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
       ScopeRef._getGameState().currentPhase.deregisterTimer(this);
-      console.log('timer ended');
+      //console.log('timer ended');
       that.triggerHook('end');
       //this happens outside normal tick time, thus trigger manually
       Hookable._handleTriggerQueue();
@@ -551,8 +547,11 @@ GameStateChangeableList.extend('PlayerList',{
   remove:function(ref){
     if(this.get(ref) == ScopeRef._gs.currentPlayer){
       //removing self
-
-      alert('exited');
+      if((window || global).alert){
+        alert('exited');
+      } else {
+        console.log(ref+ ' exited');
+      }
     }
     this._super(ref);
   },
@@ -576,12 +575,12 @@ GameStateChangeableList.extend('Phase',{
   _type:'phase',
   //views:null, /*GameStateList*/
   //vars:null,
-  _obj:null,
-  _runningTimers:null,
+  _obj:null, //store phase object for lazy loading
+  _runningTimers:null, //list of timers started when this phase is loaded. Used to stop timers again when unloading
 
   views:null,
   vars:null,
-  _hooks:null,
+  /*_hooks:null,*/
   init:function(obj){
     this._obj = {
       views:obj.views,
@@ -636,7 +635,11 @@ GameStateChangeableList.extend('Phase',{
     });
     this._runningTimers = [];
   },
-  getClientHooks(hooks){//TODO:why not as a function?
+  /*getClientHooks(hooks){//TODO:why not as a function?
+    this._super(hooks);
+    this.views.getClientHooks(hooks);
+  },*/
+  getClientHooks:function(hooks){//TODO:why not as a function?
     this._super(hooks);
     this.views.getClientHooks(hooks);
   },
@@ -784,6 +787,7 @@ ProtoTypeVariable.extend('Player',{
       case 'id':
         return this._name;
     }
+    return this._super(ref);
   }
 });
 
@@ -1018,8 +1022,11 @@ GameStateObject.extend('GameState',{
 
     //load all hooks
     this.clientHooks = {};
+
     /*this.clientHooks = */
     this.currentPhase.getClientHooks(this.clientHooks);
+
+    console.log('client hooks:',this.clientHooks);
 
     //console.log(this.phases.play._);
     //console.log(this.currentPhase._hooks.start);
@@ -1037,9 +1044,13 @@ GameStateObject.extend('GameState',{
     var h = this.clientHooks[id];
     var scp = new GameStateObject({});
 
+
     $.each(vars||{},function(name,v){
       scp[name] = ScopeRef._evalString(v);
     });
+    //scp['listel'] = Variable._vars[49];
+
+    console.log(scp.get('listel'));
 
     h.trigger(scp);
     this.currentPlayer = null;

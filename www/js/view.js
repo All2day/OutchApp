@@ -10,34 +10,13 @@ Hookable.extend('ClientElement',{
     this._props = {};
     this._attachedHooks = [];
   },
-  registerProp(name,s,d/*default*/){
+  registerProp(name,s,d/*default*/,t/*type*/){
     //only clients should register properties
     if(!(window||global)._client){
       return;
     }
 
-    this._props[name] = new GameProperty(s,d);
-
-    /*if(this._props[name] === null){
-      this._props[name] = new GameProperty(s,d);
-    }*/
-
-    //evaluate the string
-    /*ScopeRef._setScope(this);
-    var r = ScopeRef._evalString(s);
-
-    if(r.inf.vars.length == 0 && r.inf.constant){
-      this._props[name] = r.value;
-    } else {
-      this._props[name] = r.ref;
-      var that = this;
-      $.each(r.inf.vars,function(k,v){
-        v.addHook('change',that._update.bind(that,name));
-      });
-    }
-    if(this._props[name] === null){
-      this._props[name] = d;
-    }*/
+    this._props[name] = new GameProperty(s,d,t);
   },
   _update:function(name){ //internal update
     if(this._destroyed){
@@ -46,6 +25,22 @@ Hookable.extend('ClientElement',{
     var val = this.getProp(name);
 
     this.update({[name]:val});
+  },
+  attachHooks:function(){
+    //Check for special types of hooks
+    if(this._hooks && this._hooks['volumeup']){
+      var ah = {
+        v:ScopeRef._gs.currentPlayer, //the variable
+        t:'volumeup',
+        h:function(){
+          if(this._inside){
+            this.triggerHook('volumeup');
+          }
+        }.bind(this)
+      };
+      ScopeRef._gs.currentPlayer.addHook(ah.t,ah.h);
+      this._attachedHooks.push(ah);
+    }
   },
   update:function(props){
 
@@ -58,25 +53,36 @@ Hookable.extend('ClientElement',{
   },
   getProp:function(name){
     var val = null;
-    if(this._props[name] instanceof GameProperty){
-      //evaluate the string
+    var gp = this._props[name]; //the game property
+    if(gp instanceof GameProperty && gp.r !== null){
+      if(gp.r instanceof ScopeRef){
+        ScopeRef._setScope(this);
+        val = gp.r.eval();
+      } else {
+        val = gp.r;
+      }
+    } else
+    if(gp instanceof GameProperty){
+    //evaluate the string
       //if(name=='pos') debugger;
       ScopeRef._setScope(this);
-      if(this._props[name].s === null || this._props[name].s === undefined){
-        val = this._props[name] = this._props[name].d; //default
 
+      if(gp.s === null || gp.s === undefined){
+        val = gp.r = gp.d; //default
       } else {
-        var r = ScopeRef._evalString(this._props[name].s);
+        var r = ScopeRef._evalString(gp.s, gp.t);
 
         if(r.inf.vars.length == 0 && r.inf.constant){
           if(r.value !== undefined && r.value !== null){
-            this._props[name] = r.value;
+            gp.r = r.value;
             val =  r.value;
           } else {
-            val = this._props[name] = this._props[name].d; //default
+            ScopeRef._evalString(gp.s, gp.t);
+            val = gp.r = gp.d; //default
+
           }
         } else {
-          this._props[name] = r.ref;
+          gp.r = r.ref;
           var that = this;
           $.each(r.inf.vars,function(k,v){
             var ah = {
@@ -119,18 +125,31 @@ Hookable.extend('ClientElement',{
     this._destroyed = true;
   },
   get:function(ref){
-    console.log('get on ClientElement:'+ref);
+    //console.log('get on ClientElement:'+ref);
   },
   clone:function(){
 
+    //clone basic properties
     var c = $.extend(Object.create(Object.getPrototypeOf(this)),this);
-    //c.constructor = this.constructor;
-    //c.elements = c.elements.clone();
 
-    $.each(c.elements._value || {},function(k,el){
+    //now c.elements == this.elemnets, create a new list_var
+    c.elements = new GameStateList();
+    $.each(this.elements._value || {},function(k,el){
       c.elements._value[k] = el.clone();
     });
+    c.elements.owner = c;
+
+    //handle hooks
+    //TODO: check if it is a problem that hooks are actually the same
+    //it matches the idea that the ids are the same
+
+
     c._attachedHooks = [];
+
+    $.each(c._props || {},function(k,p){
+      c._props[k] = $.extend(Object.create(Object.getPrototypeOf(c._props[k])),c._props[k]);;
+    });
+
     //debugger;
     return c;
   }
@@ -142,12 +161,9 @@ ClientElement.extend('ViewElement',{
   type:null,
   dom:null,
   init: function(obj){
-    /*if(obj.hooks){
-      debugger;
-    }*/
     this._super(obj);
 
-    this.type = obj.type; //window[obj.type] || ViewElement;
+    this.type = obj.type;
     var els = [];
 
     $.each(obj.elements||{},function(k,el){
@@ -203,6 +219,7 @@ ViewElement.fromObject = function(obj){
 ViewElement.extend('PageElement',{
   draw:function(c){
     if(!this._dom){
+      this.attachHooks();
       var dom = $('<div></div>').css({
         position:'absolute',
         top:0,
@@ -250,6 +267,7 @@ ViewElement.extend('LabelElement',{
   },
   draw:function(c){
     if(!this._dom){
+      this.attachHooks();
       var dom = $('<span></span>').css({
 
       }).text(this.getProp('text'));
@@ -276,7 +294,7 @@ ViewElement.extend('ListElement',{
   _elements_obj:null,
   init:function(obj){
     this._elements_obj = obj.elements;
-    delete(obj.elements);
+    //delete(obj.elements);
     this._super(obj);
     this.registerProp('list',obj.list);
 
@@ -290,6 +308,7 @@ ViewElement.extend('ListElement',{
   },
   draw:function(c){
     if(!this._dom){
+      this.attachHooks();
       var dom = $('<div></div>').css({
 
       });
@@ -339,13 +358,15 @@ ViewElement.extend('ListElElement',{
   listel:null, //the input object, this element wraps
   list:null, //the listelement containing this element (same as owner)
   init:function(listel, list){
-    this._super({elements:list._elements_obj});
+    //this._super({elements:list._elements_obj});
+    this._super({});
+    this.elements = list.elements;
     this.listel = listel;
     this.list = list;
   },
   draw:function(c){
     if(!this._dom){
-
+      this.attachHooks();
       this._dom = $('<div></div>');
       var that = this;
       $.each(this.elements._value,function(j,el){
@@ -386,6 +407,7 @@ ViewElement.extend('ButtonElement',{
   },
   draw:function(c){
     if(!this._dom){
+      this.attachHooks();
       var dom = $('<button></button>').css({
         width:'80vw',
         display:'inline-block'
@@ -441,6 +463,7 @@ ViewElement.extend('MapElement',{
   },
   draw:function(c){
     if(!this._dom){
+      this.attachHooks();
       var dom = $('<div></div>').css({
         position:'absolute',
         top:0,
@@ -523,6 +546,41 @@ ViewElement.extend('MapElement',{
       //TODO: why is it needed to update all props here?
       this.updateAllProps();
 
+      /**
+       * Method for tracking enter and leaces on elements. Currently only actual elements can be tracked thus fx entering a child element is not the same as entering an element.
+       Every time the pos of the player is changing, a list of features at the new coordinate is used to trigger "enter" hooks. A _inside attr on all the elements is set to a time variable used for all checks in this update. All inside elements are stored in a container array.
+       When done all elements in the this container is checked, and if the _inside attr is less than the current time "leave" hooks are triggered and the inside_elements are updated.
+       */
+      var inside_elements = [];
+      ScopeRef._gs.currentPlayer.get('pos').addHook('change',function(e){
+        //use source.vector.forEachFeatureInExtent
+        //or source.vector.forEachFeatureIntersectingExtent
+        var t = new Date().getTime(); //use current milliseconds to check if still inside an element
+        var fts = that._vectorSource.getFeaturesAtCoordinate([this._value.x,this._value.y]);
+
+        $.each(fts,function(i,ft){
+          if(!ft.el._inside){
+
+            ft.el.triggerHook('enter');
+            ft.el.triggerHook('change');
+            inside_elements.push(ft.el);
+          }
+          ft.el._inside = t;
+        });
+
+        var new_inside_els = [];
+        $.each(inside_elements,function(i,el){
+          if(el._inside < t){
+            el._inside = false;
+            el.triggerHook('leave');
+            el.triggerHook('change');
+          } else {
+            new_inside_els.push(el);
+          }
+        });
+        inside_elements = new_inside_els;
+      }); //End of enter leave tracking
+
     }
     c.append(this._dom);
     this._map.updateSize();
@@ -535,6 +593,7 @@ ViewElement.extend('GeoElement',{
   _geom:null, //The original geometry (or geometry collection) that is cloned and set as the geometry of the feature when changed
   _pos:null, //The relative position based on translation and rotation, relative to its parent, format [x,y,r]
   _realPos:null, //The real position and rotation on the map. This is applied to the original _geom
+  _style:null,
   init: function(obj){
     this._super(obj);
     this.geoElements = new GameStateList(obj.geoElements || {},GeoElement);
@@ -542,6 +601,9 @@ ViewElement.extend('GeoElement',{
     this._pos = [0,0,0];
     this.registerProp('pos',obj.pos);
     this.registerProp('rotation',obj.rotation,0);
+    this.registerProp('text',obj.text,null);
+    this.registerProp('color',obj.color,[0,0,0,0.5],ScopeColor);
+    this.registerProp('fill',obj.fill,[255,0,0,0.3],ScopeColor);
   },
   getClientHooks: function(hooks){
     this._super(hooks);
@@ -558,9 +620,14 @@ ViewElement.extend('GeoElement',{
   },
   draw:function(vl /* vector layer*/){
     if(!this._feature){
-      this.updateAllProps();
+      this.attachHooks();
       this._feature = new ol.Feature();
+      this._feature.el = this;
+      if(this._style){
+        this._feature.setStyle(this._style);
+      }
       vl.addFeature(this._feature);
+      //this.updateAllProps();
     }
 
     $.each(this.geoElements._value,function(key,element){
@@ -568,6 +635,10 @@ ViewElement.extend('GeoElement',{
     });
   },
   redraw:function(){
+    /*if(!this._geom){
+      console.log('redrawing without _geom')
+      return;
+    }*/
     /*if(!this._feature){
       return;
     }*/
@@ -575,8 +646,25 @@ ViewElement.extend('GeoElement',{
     var new_pos = [0,0,0];
     //In tree structure, the owner of this element is a gamestatelist, and thus the real owner is the owner of the gamestatelist
     if(!this.owner || !this.owner.owner || ! this.owner.owner._realPos){
+      debugger;
       return;
     }
+    this.updateStyle();
+
+    var p = this.getProp('pos');
+    var r = this.getProp('rotation');
+    if(p !== undefined && p !== null){
+      if(p._value){
+        p = p._value;
+      }
+      this._pos[0] = p.x;
+      this._pos[1] = p.y;
+
+    }
+    if(r !== undefined && r !== null){
+      this._pos[2] = r;
+    }
+
     var p_pos = this.owner.owner._realPos;
     //if(this._name=='inner') debugger;
     //1: transform the relative position by the rotaiton of the parent
@@ -604,13 +692,60 @@ ViewElement.extend('GeoElement',{
       element.redraw();
     });
   },
+  updateStyle:function(){
+    var text = this.getProp('text');
+    var color = this.getProp('color');
+    var fill = this.getProp('fill');
+
+    if(text && text._value){
+      text = text._value;
+    }
+    if(fill && fill._value && $.type(fill._value) == 'string'){
+      fill = new ScopeColor(fill._value);
+      fill = fill._value;
+    }
+    if(fill && fill._value){
+      fill = fill._value;
+    }
+
+
+    this._style = new ol.style.Style({
+      fill: new ol.style.Fill({color:fill}),
+      stroke: new ol.style.Stroke({
+        color:color,
+        width:2
+      })
+    });
+
+
+    if(text !== null){
+      this._style.setText(new ol.style.Text({
+        text:''+text,
+        font: 'Courier New, monospace',
+        scale:'1'
+      }));
+    } else {
+      this._style.setText(new ol.style.Text({
+
+        font: 'Courier New, monospace',
+        scale:'1'
+      }));
+    }
+
+    if(this._feature){
+      this._feature.setStyle(this._style);
+    }
+
+  },
   update:function(props){ //update the following properties by looking up the values
+
     //if(!this._feature) return;
     //this._super(props);
     var that = this;
     $.each(props,function(prop,val){
       if(val === undefined || val === null){
-        console.log('prop:'+prop+' is '+val+' in '+this._name);
+        debugger;
+        console.log('prop:'+prop+' is '+val+' in '+that._name);
         return;
       }
       val = val._value || val;
@@ -622,10 +757,31 @@ ViewElement.extend('GeoElement',{
         case 'rotation':
           that._pos[2] = val;
           break;
+        case 'text':
+          that.updateStyle();
+          break;
       }
     });
     this.redraw();
   },
+  clone: function(){
+    var c = this._super();
+    c.geoElements = new GameStateList();
+    c.geoElements.owner = c;
+    $.each(this.geoElements._value || {},function(k,el){
+      c.geoElements._value[k] = el.clone();
+      c.geoElements._value[k].owner = c.geoElements;
+    });
+
+    return c;
+  },
+  get:function(ref){
+    switch(ref){
+      case 'isinside':
+        return !!this._inside;
+    }
+    return this._super(ref);
+  }
 });
 GeoElement.fromObject = function(obj){
   switch(obj.type){
@@ -652,33 +808,31 @@ GeoElement.extend('GeolistElement',{
   _elements_obj:null,
   init:function(obj){
     this._elements_obj = obj.elements;
-    delete(obj.elements);
+    //delete(obj.elements);
     this._super(obj);
     this.registerProp('list',obj.list);
 
     this._wrapperels = [];
   },
+  //TODO: should contain a copy of the internal elements to register hooks
+  //This creates a problem if the hooks are recreated when creating a new list element, as these hooks will have new id's not triggerable on the server
+  getClientHooks: function(hooks){
+    this._super(hooks);
+
+    var temp = new GameStateList(this._elements_obj || {},GeoElement);
+    $.each(temp._value,function(key,element){
+      element.getClientHooks(hooks);
+    });
+  },
   update:function(props){
-    this._super(props);
+
     if(props['list'] !== undefined){
-      this.redraw(props['list']);
+      this.setList(props['list']);
     }
+    this._super(props);
   },
-  draw:function(vl){
-    //Dont call super, as this element in itself should NOT have a feature
-    if(!this._geom){
-      this._geom = vl; //Use geom to store vector layer
-      this._update('list');
-    }
-  },
-  redraw:function(new_list){
-
-    if(!this._geom) return;
-    //recalculate the position of the list object
-    this._super();
-
+  setList: function(new_list){
     if(this.list && this.list != new_list){
-
       $.each(this._wrapperels,function(i,k){
         k.destroy();
         k.owner = null;
@@ -686,37 +840,55 @@ GeoElement.extend('GeolistElement',{
       this._wrapperels = [];
       //clear the list
     }
+    this.list = new_list;
+    var that = this;
+    $.each(this.list._value,function(i,k){
+      //if already existing, dont create a new wrapper element
+      for(var l = 0; l < that._wrapperels.length; l++){
+        if(that._wrapperels[l].listel == k){
+          //ignore by returning
+          return;
+        }
+      };
 
-    if(new_list){
-      this.list = new_list;
+      //TODO: how to describe multilevel list elements?
+
+      var wrapper = new GeolistElElement(k,that,i);
+      wrapper.owner = that;
+      wrapper.draw(that._geom /*the vector source*/);
+      /*$.each(that.elements._value,function(j,el){
+        var e = el.clone();
+        e.draw(that._dom);
+      });*/
+      that._wrapperels.push(wrapper);
+    });
+  },
+  draw:function(vl){
+    //console.log('drawing geolist', this.list);
+    //Dont call super, as this element in itself should NOT have a feature
+    if(!this._geom){
+      this.attachHooks();
+      this._geom = vl; //Use geom to store vector layer
+      this.setList(this.getProp('list')); //trigger setting the list
     }
+  },
+  redraw:function(){
+    //console.log('redrawing geolist', this.list);
+    if(!this._geom) return;
 
-    if(this.list){
-      var that = this;
+    //recalculate the position of the list object
+    this._super();
 
-      $.each(this.list._value,function(i,k){
-
-        //if already existing, dont create a new wrapper element
-
-        for(var l = 0; l < that._wrapperels.length; l++){
-          if(that._wrapperels[l].listel == k){
-            debugger;
-            return;
-          }
-        };
-
-        //TODO: how to describe multilevel list elements?
-
-        var wrapper = new GeolistElElement(k,that);
-        wrapper.owner = that;
-        wrapper.draw(that._geom /*the vector source*/);
-        /*$.each(that.elements._value,function(j,el){
-          var e = el.clone();
-          e.draw(that._dom);
-        });*/
-        that._wrapperels.push(wrapper);
-      });
+    $.each(this._wrapperels || [],function(i,w){
+      w.redraw();
+    });
+  },
+  get:function(ref){
+    switch(ref){
+      case 'count':
+        return this.list ? this.list.get('count') : null;
     }
+    return this._super(ref);
   }
 });
 /**
@@ -725,13 +897,25 @@ GeoElement.extend('GeolistElement',{
 ViewElement.extend('GeolistElElement',{
   listel:null, //the input object, this element wraps
   list:null, //the listelement containing this element (same as owner)
-  init:function(listel, list){
-    this._super({elements:list._elements_obj});
+  geoels:null, // list of actual geoelements belonging to this element
+  index: null, // the index in the list of this elemets
+  init:function(listel, list, index){
+
+    //initially the elements is a reference to the parents elements. When drawn they will be cloned (hooks not)
+    this._super({});
+    this.elements = list.elements;
+
+    //Old solution was to redo all the elements when creating a wrapper element here
+    //this._super({elements:list._elements_obj});
+
     this.listel = listel;
     this.list = list;
+    this.geoels = [];
+    this.index = index;
   },
   draw:function(vl){
     if(!this._geom){
+      this.attachHooks();
       this._geom = vl; //store it instead of geometry as we dont need an actual wrapper
       var that = this;
       $.each(this.elements._value,function(j,el){
@@ -739,14 +923,26 @@ ViewElement.extend('GeolistElElement',{
         var e = el.clone();
         e.owner = that;
 
-        e.draw(that._geom);
+        e.draw(that._geom); //where _geom is a vector layer
+        that.geoels.push(e);
       });
+
     }
+  },
+  redraw:function(){
+    $.each(this.geoels,function(i,e){
+      e.redraw();
+    })
+    //console.log('redrawing geolist el',this._geom);
   },
   get:function(name){
     switch(name){
       case 'listel':
         return this.listel;
+      case 'index':
+        return this.index;
+      case 'list':
+        return this.list;
     }
   }
 });
@@ -755,7 +951,7 @@ ViewElement.extend('GeolistElElement',{
 
 GeoElement.extend('CircleElement',{
   //radius:null,
-  _geom:null,
+  /*_geom:null,*/
   init:function(obj){
     /*if(!window.circles) window.circles = [];
     window.circles.push(this);*/
@@ -779,25 +975,18 @@ GeoElement.extend('CircleElement',{
   },
   update:function(props){ //update the following properties by looking up the values
 
-    this._super(props);
-
     var that = this;
     $.each(props,function(prop,val){
       //val = val !== null ? val._value || val : null;
       val = val && val._value ? val._value : val;
       switch(prop){
-        /*case 'pos':
-          that._geom.setCenter([val.x,val.y]);
-          that._feature.changed();
-          break;*/
         case 'radius':
           if(!this._geom) return;
           that._geom.setRadius(val);
           break;
       }
     });
-
-
+    this._super(props);
   },
 });
 
@@ -807,7 +996,7 @@ GeoElement.extend('CircleElement',{
  */
  GeoElement.extend('BoxElement',{
    //radius:null,
-   _geom:null,
+   /*_geom:null,*/
    init:function(obj){
      /*if(!window.circles) window.circles = [];
      window.circles.push(this);*/
@@ -820,15 +1009,24 @@ GeoElement.extend('CircleElement',{
      this._sourceObj = obj;
    },
    draw:function(vl /* vector layer*/){
-     //if(this._name=='inner') debugger;
-     this._super(vl);
-
+     //create the geom first
      if(!this._geom){
        //var pos = this.getProp('pos');
        var w = this.getProp('width');
        var h = this.getProp('height');
        this._geom = new ol.geom.Polygon(this._calculateCoordinates(w,h));
      }
+
+     //call super to create the feature
+     this._super(vl);
+
+
+     //console.log('drawing box', this._geom, this._feature);
+   },
+   redraw:function(){
+
+     this._super();
+     //console.log('redrawing box', this._geom, this._feature);
    },
    update:function(props){ //update the following properties by looking up the values
 
@@ -837,9 +1035,9 @@ GeoElement.extend('CircleElement',{
      var that = this;
 
      if(props['width'] !== undefined || props['height'] !== undefined){
-       var w = props['width'] || this.get('width');
-       var h = props['height'] || this.get('height');
-
+       var w = props['width'] || this.getProp('width');
+       var h = props['height'] || this.getProp('height');
+       //console.log('drawing');
        if(this._geom){
          this._geom.setCoordinates(this._calculateCoordinates(w,h));
          this.redraw();

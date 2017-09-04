@@ -220,7 +220,16 @@ TreeObject.extend('Hookable',{
            if((window||global)._client && hook.hasServerActions()){
              //This is a client hook that should trigger on the server to change the server state
              //collect data and send
+
              //TODO: add data collection
+             var data = [];
+             var collect_data = function(scoperef){
+
+             };
+             $.each(hook.actions,function(i,a){
+               a.traverseInputs(collect_data);
+             });
+
              (window||global)._client.registerRemoteTrigger(k,{});
              //(window||global)._client.addCmd(hook, that);
            } else {
@@ -229,26 +238,6 @@ TreeObject.extend('Hookable',{
          }
 
        });
-
-
-       //console.log('triggering hook:'+type);
-       //console.log(this.hooks[type]);
-       /*if($.type(this._hooks[type]) == "function"){
-         this._hooks[type].apply(this);
-       }
-       if(this._hooks[type] instanceof Hook){
-         Hookable._triggerQueue.push([this._hooks[type],this]);
-       } else{
-         var that = this;
-         $.each(this._hooks[type]._value || this._hooks[type], function(k,hook){
-           if($.type(hook) == "function"){
-             hook.apply(that);
-           } else {
-             Hookable._triggerQueue.push([hook,that]);
-           }
-
-         });
-       }*/
      }
    },
    evaluate: function(scope){
@@ -262,7 +251,10 @@ TreeObject.extend('Hookable',{
 
        $.each(this._hooks._value,function(key,hook){
          $.each(hook._value,function(k,h){
+           //The hasServerActions traverse should on its way collect client based references to send to the server when triggering the hook.
            if(h.hasServerActions()){
+
+             debugger;
              //hooks[Hookable._nextHookId++] = h;
              hooks[k] = h;
            }
@@ -294,6 +286,10 @@ TreeObject.extend('Hookable',{
      this._super();
      this.fromObject(obj);
      this.vars = {};
+
+     //When creating a hook all the client based variables should be registered
+     //This hook should be set as root scope and while building for all sub actions named containers should be pushed to the scope and popped.
+     //From insie the _prepareScopeRef it should check references are based on client references and register them possibly multiple per scope reference
    },
    fromObject:function(obj){
      var actions = obj.actions || {};

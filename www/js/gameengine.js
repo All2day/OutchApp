@@ -8,6 +8,15 @@ var baseDirectory = __dirname   // or whatever base directory you want
 require('./gamestate');
 
 
+if((window || global).alert){
+  var alert = function(txt){
+    console.log(txt);
+  }
+  if(global){
+    global.alert = alert;
+  }
+}
+
 Class.extend('GameServer',{
   players:null,
   gs:null,

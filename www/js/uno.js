@@ -37,7 +37,7 @@ exports.game = {
     cardtypes: { //card types in each color
       type: "list",
       prototype: "number",
-      els: [11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+      els: [1,2,3,4,5,6,7,8,9,10,11]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     }
   },
   phases:{
@@ -51,6 +51,10 @@ exports.game = {
         '_1':{
           type:'page',
           elements:{
+            'gamename':{
+              type:"label",
+              text:"'spillets navn:'+game.name"
+            },
             'exit':{
               type:'button',
               text:'"exit"',
@@ -69,8 +73,19 @@ exports.game = {
               list:'players',
               elements:{
                 0:{
-                  type:"label",
-                  text:"listel.id"
+                  type:"button",
+                  text:"listel.id",
+                  hooks:{
+                    click:{
+                      actions:{
+                        '_set':{
+                          type:"set",
+                          target:"game.name",
+                          source:"listel.id"
+                        }
+                      }
+                    }
+                  }
                 }
               }
             },
@@ -233,7 +248,9 @@ exports.game = {
             'player':{
               type:"circle",
               radius:"2",
-              pos:"player.pos"
+              pos:"player.pos",
+              color:[0,0,255,1],
+              fill:[0,0,255,0.4]
             },
             'list of players':{ //The player cards
               type:"geolist",
@@ -242,7 +259,9 @@ exports.game = {
                 1:{
                   type:"circle",
                   radius:"1",
-                  pos:"listel.pos"
+                  pos:"listel.pos",
+                  color:[0,255,0,1],
+                  fill:[0,255,0,0.4]
                 }
               }
             },
@@ -251,48 +270,71 @@ exports.game = {
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"25",
               rotation:0,
+              fill:[0,0,0,0],
               pos:"game.center",
               geoElements:{
-                /*'box':{
-                  type:"box",
-                  pos:[-5,25], //go half the card to the left, and the radius of the circle down
-                  width:"10",
-                  height:"15"
-                  //stroke:"5px rgba(100,100,100,0.5)",
-                  //fill:"color",
-                  //text:"value",
-                  //textColor:"white",
-                },*/
                 '_playercards':{ //The player cards
                   type:"geolist",
                   list:"player.hand",
                   elements:{
-                    'box':{
-                      type:"box",
-                      pos:[-10,25], //go half the card to the left, and the radius of the circle down
-                      width:"10",
-                      height:"15"
-                      //stroke:"5px rgba(100,100,100,0.5)",
-                      //fill:"color",
-                      //text:"value",
-                      //textColor:"white",
-                    },
+                    'boxlist':{
+                      type:"GeoElement",
+                      pos:[0,0],
+                      rotation:"(index - list.count/2)/2", //*20
+                      geoElements:{
+                        'box':{
+                          type:"box",
+                          pos:[0,32.5], //go half the card to the left, and the radius of the circle down
+                          width:"10",
+                          height:"15",
+                          text:"listel.value",
+                          fill:"listel.color",
+                          color:"element.isinside?'white':(player.currentCard=listel?'red':'black')",
+                          hooks:{
+                            enter:{
+                              actions:{
+                                1:{
+                                  type:"vibrate",
+                                  duration:100
+                                }
+                              }
+                            },
+                            volumeup:{
+                              actions:{
+                                1:{
+                                  type:"vibrate",
+                                  duration:100
+                                },
+                                2:{
+                                  type:"set",
+                                  source:"player.currentCard",
+                                  target:"listel"
+                                }
+                              }
+                            }
+                          }
+                        },
+                      }
+                    }
                   }
                 },
                 'inner':{
                   type:"circle",
-                  pos:[10,10],
+                  pos:[0,0],
                   //stroke:"5px rgba(100,100,100,0.5)",
-                  radius:"7"/*,
-                  fill:null,
+                  radius:"7",
+                  //fill:[0,0,0,0],
+                  color:"element.isinside?'white':'black'",
+                  fill:"phase.stack.last.color",
+                  text:"phase.stack.last.value",
                   hooks:{
                     enter:{
                       actions:{
-                        1:{
+                        /*1:{
                           type:"set",
                           target:"element.fill",
                           source:"rgba(255,255,255,0.5)"
-                        },
+                        },*/
                         2:{
                           type:"vibrate",
                           duration:500 //ms
@@ -301,13 +343,13 @@ exports.game = {
                     },
                     leave:{
                       actions:{
-                        1:{
+                        /*1:{
                           type:"set",
                           target:"element.fill",
                           source:null
-                        }
+                        }*/
                       }
-                    },
+                    }/*,
                     volumeup:{
                       putdown:{ //named hook
                         actions:{
@@ -348,7 +390,7 @@ exports.game = {
                               },
                               '_5':{ //if the card is a plus card,
                                 type:"if",
-                                condition:"phase.stack.last.value = -2 || phas.stack.last.value = 11",
+                                condition:"phase.stack.last.value = -2 || phase.stack.last.value = 11",
                                 actions:{
                                   '_1':{
                                     type:"stop", //if already started, will trigger the stop hook
@@ -405,8 +447,8 @@ exports.game = {
                             }
                           }
                         }
-                      }//volume up handling
-                    }*/
+                      }//volume up handling*/
+                    }
                   }
                 }, //end of center element
                 /*'_playercards':{ //The player cards
@@ -527,10 +569,10 @@ exports.game = {
         start:{
           actions:{
 
-            /*'_0':{
+            '_0':{
               type:"alert",
               text:"'setting up deck'"
-            },*/
+            },
             //add playercards
             color_loop: {
               type:"each",
@@ -547,12 +589,12 @@ exports.game = {
                       actions:{
                         1:{
                           type:"set",
-                          target:"color",
+                          target:"card.color",
                           source:"color_loop.el"
                         },
                         2:{
                           type:"set",
-                          target:"value",
+                          target:"card.value",
                           source:"value_loop.el"
                         }
                       }
@@ -625,18 +667,18 @@ exports.game = {
               list:"phase.stack",
               target:"phase.deck.pop"
             },
-            '_5':{ // add cards to player hands
+            '_player_loop':{ // add cards to player hands
               type:"each",
               list:"game.players",
               actions:{
                 'card_loop':{
                   type:"each",
-                  list:"1:1",
+                  list:"1:5",
                   prototype:"number",
                   actions:{
                     1:{
                       type:"add",
-                      list:"hand",
+                      list:"_player_loop.el.hand",
                       target:"phase.deck.pop"
                     }
                   }

@@ -25,11 +25,19 @@ Class.extend('GameClient',{
       }
 
       this.currentPhase = this.gs.currentPhase._value;
-      console.log('loading phase');
+      console.log('loading phase:'+this.currentPhase._name);
+
+
+
+
       this.gs.currentPhase.load();
       //get the first view
       var view_name = this.gs.currentPhase.views.firstKey();
       var view = this.gs.currentPhase.views[view_name];
+
+      debugger;
+      this.gs.clientHooks = {};
+      this.gs.currentPhase.getClientHooks(this.gs.clientHooks);
 
       if(view._dom){
         view._dom.show(); //if hidden ensure that it is shown
@@ -76,6 +84,7 @@ Class.extend('GameClient',{
     });
   },
   fullUpdate:function(update){
+    //debugger;
     //first go is simply to check the existance of all the variables
     $.each(update,function(id,u){
       if(Variable._vars[id] === undefined){
@@ -97,7 +106,7 @@ Class.extend('GameClient',{
 
     //set the value of all variables
     $.each(update,function(id,u){
-      //if(id==54) debugger;
+      //if(id==32) debugger;
       if(p && id == p.pos._id){
         return; //ignore updates of position
       }
@@ -217,6 +226,14 @@ Class.extend('GameClient',{
       v:vars
     });
     //dont wait for the next ping, send right away or wait a bit for the current ping to get back and then send
-    //TODO:diret triggering
-  }
+    //TODO:direct triggering
+  },
+  /**
+   * Trigger volume up
+   */
+  triggerVolumeUp: function(){
+    //debugger;
+    this.gs.currentPlayer.triggerHook('volumeup');
+    Hookable._handleTriggerQueue();
+  },
 });

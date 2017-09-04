@@ -6,13 +6,14 @@
    type:'noop',
    init:function(obj){
    },
-   do:function(){}
+   do:function(){},
+   traverseInputs:function(f){} //traverse all inputs
  });
 
- Action.fromObject = function(obj,name){
-   switch(obj.type){
-     case 'set':
-       return new SetAction(obj.target,obj.source);
+Action.fromObject = function(obj,name){
+  switch(obj.type){
+    case 'set':
+      return new SetAction(obj.target,obj.source);
     case 'vibrate':
       return new VibrateAction(obj.duration);
     case 'if':
@@ -55,6 +56,9 @@
      } else {
        console.log('could not start unknown phase');
      }
+   },
+   traverseInputs:function(f){
+     f(this.phase);
    }
  });
 
@@ -84,6 +88,10 @@
      if(list_var instanceof ListVariable && target_var){
        list_var.remove(target_var);
      }
+   },
+   traverseInputs:function(f){
+     f(this.list);
+     f(this.target);
    }
  });
 
@@ -112,6 +120,10 @@
        debugger;
        console.log('could not find list');
      }
+   },
+   traverseInputs:function(f){
+     f(this.list);
+     f(this.target);
    }
  });
 
@@ -127,6 +139,9 @@
      if(list_var instanceof ListVariable){
        list_var.shuffle();
      }
+   },
+   traverseInputs:function(f){
+     f(this.list);
    }
  });
 
@@ -143,6 +158,9 @@
      if(timer_var instanceof TimerVariable){
        timer_var.stop();
      }
+   },
+   traverseInputs:function(f){
+     f(this.timer);
    }
  });
  ServerAction.extend('ResetAction',{
@@ -157,6 +175,9 @@
      if(timer_var instanceof TimerVariable){
        timer_var.reset();
      }
+   },
+   traverseInputs:function(f){
+     f(this.timer);
    }
  });
 
@@ -178,6 +199,10 @@
      } else {
        console.log('could not find target');
      }
+   },
+   traverseInputs:function(f){
+     f(this.src);
+     f(this.target);
    }
  });
 
@@ -191,7 +216,7 @@
      this.timer.owner =this;
    },
    do:function(){
-     console.log('start action');
+     //console.log('start action');
      var timer_var = this.timer.eval();
      if(timer_var){
        timer_var.start();
@@ -199,6 +224,9 @@
        debugger;
        console.log('could not find timer');
      }
+   },
+   traverseInputs:function(f){
+     f(this.timer);
    }
  });
 
@@ -218,7 +246,9 @@
      });
    },
    do:function(){
+     console.log('creating:'+this.prototype._name);
      var new_obj = this.prototype.create();
+     new_obj._name = this.prototype._name;
      ScopeRef._pushScope(new_obj);
      for(var i=0;i<this.actions.length;i++){
        this.actions[i].do();
@@ -232,6 +262,12 @@
      } else
      if(target_var instanceof ListVariable){
        target_var.add(new_obj);
+     }
+   },
+   traverseInputs:function(f){
+     f(this.target);
+     for(var i=0;i<this.actions.length;i++){
+       this.actions[i].traverseInputs(f);
      }
    }
  });
@@ -248,7 +284,13 @@
      if(text_var instanceof Variable){
        text_var = text_var._value;
      }
-     alert(text_var);
+     if((window || global).alert){
+       alert(text_var);
+     } else {
+       console.log(text_var);
+     }
+   },traverseInputs:function(f){
+     f(this.text);
    }
  });
 
@@ -259,7 +301,11 @@
      this.duration.owner = this;
    },
    do:function(scope){
+     console.log('vvvvvviiiiibbbbrrraaattteee');
+     //alert('vibrate...');
      //vibrate...
+   },traverseInputs:function(f){
+     f(this.duration);
    }
  });
 
@@ -308,6 +354,14 @@
        }
      }
      return false;
+   },traverseInputs:function(f){
+     f(this.condition);
+     for(var i=0;i<this.actions.length;i++){
+       this.actions[i].traverseInputs(f);
+     }
+     for(var i=0;i<this.else.length;i++){
+       this.actions[i].traverseInputs(f);
+     }
    }
  });
 
@@ -317,8 +371,11 @@ Action.extend('ShowAction',{
      this.view = ScopeRef._prepareScopeRef(obj.view,ViewElement);
    },
    do:function(scp){
-     var view_var = this.view.eval(scp);
+     var view_var = this.view.eval();
      //TODO:show it
+   },
+   traverseInputs:function(f){
+     f(this.view);
    }
  });
 
@@ -330,6 +387,9 @@ Action.extend('HideAction',{
    do:function(){
      var view_var = this.view.eval();
      //TODO:hide it
+   },
+   traverseInputs:function(f){
+     f(this.view);
    }
  });
 
@@ -363,6 +423,12 @@ Action.extend('RepeatAction',{
       }
     }
     return false;
+  },
+  traverseInputs:function(f){
+    f(this.times);
+    for(var i=0;i<this.actions.length;i++){
+      this.actions[i].traverseInputs(f);
+    }
   }
 });
 
@@ -388,11 +454,13 @@ Action.extend('EachAction',{
 
      var gso = new GameStateObject({});
 
-     if(this.name){
 
-       var o = new GameStateObject({});
-       o[this.name] = gso;
-       ScopeRef._pushScope(o);
+     if(this.name){
+       gso._name = this.name;
+       //var o = new GameStateObject({});
+       //o[this.name] = gso;
+       //ScopeRef._pushScope(o);
+       ScopeRef._pushScope(gso);
      }
      if(list_var instanceof GameStateList){
        var that = this;
@@ -406,7 +474,7 @@ Action.extend('EachAction',{
        });
      } else if (list_var instanceof ListVariable) {
        var that = this;
-       $.each(list_var.els,function(k,v){
+       $.each(list_var._value,function(k,v){
          for(var i=0;i<that.actions.length;i++){
            gso.el = v;
            ScopeRef._pushScope(v);
@@ -427,6 +495,12 @@ Action.extend('EachAction',{
        }
      }
      return false;
+   },
+   traverseInputs:function(f){
+     f(this.list);
+     for(var i=0;i<this.actions.length;i++){
+       this.actions[i].traverseInputs(f);
+     }
    }
  });
 
