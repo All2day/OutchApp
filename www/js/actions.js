@@ -195,7 +195,11 @@ Action.fromObject = function(obj,name){
    do:function(){
      var target_var = this.target.eval();
      if(target_var){
-       target_var.set(this.src.eval());
+       var src_var = this.src.eval();
+       if(src_var === null){
+         console.log('setting to null');
+       }
+       target_var.set(src_var);
      } else {
        console.log('could not find target');
      }
@@ -238,15 +242,21 @@ Action.fromObject = function(obj,name){
      this.target = ScopeRef._prepareScopeRef(obj.target);
      this.prototype = ProtoType.prototypes[obj.prototype];
      this.actions = [];
+
+     var new_obj = this.prototype.create();
+     new_obj._name = this.prototype._name;
+     ScopeRef._pushScope(new_obj);
+
      var that = this;
      $.each(obj.actions,function(i,a){
        var new_a = Action.fromObject(a,i);
        new_a.owner = that;
        that.actions.push(new_a);
      });
+     ScopeRef._popScope();
    },
    do:function(){
-     console.log('creating:'+this.prototype._name);
+     //console.log('creating:'+this.prototype._name);
      var new_obj = this.prototype.create();
      new_obj._name = this.prototype._name;
      ScopeRef._pushScope(new_obj);
@@ -368,7 +378,7 @@ Action.fromObject = function(obj,name){
 Action.extend('ShowAction',{
    view:null,
    init:function(obj){
-     this.view = ScopeRef._prepareScopeRef(obj.view,ViewElement);
+     this.view = ScopeRef._prepareScopeRef('views.'+obj.view,ViewElement);
    },
    do:function(scp){
      var view_var = this.view.eval();
@@ -382,7 +392,7 @@ Action.extend('ShowAction',{
 Action.extend('HideAction',{
    view:null,
    init:function(obj){
-     this.view = ScopeRef._prepareScopeRef(obj.view,ViewElement);
+     this.view = ScopeRef._prepareScopeRef('views.'+obj.view,ViewElement);
    },
    do:function(){
      var view_var = this.view.eval();
@@ -435,17 +445,25 @@ Action.extend('RepeatAction',{
 Action.extend('EachAction',{
    actions:null,
    list:null,
-   name:null,
+   _name:null,
    init:function(obj,name){
      this.actions = [];
-     this.name = name;
+     this._name = name;
 
+     var gso = new GameStateObject({});
+     if(this._name){
+       gso._name = this._name;
+       ScopeRef._pushScope(gso);
+     }
      var that = this;
      $.each(obj.actions,function(i,a){
        var new_a = Action.fromObject(a,i);
        new_a.owner = that;
        that.actions.push(new_a);
      });
+     if(this._name){
+       ScopeRef._popScope();
+     }
 
      this.list = ScopeRef._prepareScopeRef(obj.list,[ListVariable,GameStateList]);
    },
@@ -455,35 +473,39 @@ Action.extend('EachAction',{
      var gso = new GameStateObject({});
 
 
-     if(this.name){
-       gso._name = this.name;
-       //var o = new GameStateObject({});
-       //o[this.name] = gso;
-       //ScopeRef._pushScope(o);
+     if(this._name){
+       //console.log('setting named loop:'+this._name);
+       gso._name = this._name;
        ScopeRef._pushScope(gso);
      }
      if(list_var instanceof GameStateList){
        var that = this;
+       var j = 0;
        $.each(list_var._value,function(k,v){
          for(var i=0;i<that.actions.length;i++){
            gso.el = v;
+           gso.index = j;
            ScopeRef._pushScope(v);
            that.actions[i].do();
            ScopeRef._popScope();
          }
+         j++;
        });
      } else if (list_var instanceof ListVariable) {
        var that = this;
+       var j = 0;
        $.each(list_var._value,function(k,v){
          for(var i=0;i<that.actions.length;i++){
            gso.el = v;
+           gso.index = j;
            ScopeRef._pushScope(v);
            that.actions[i].do();
            ScopeRef._popScope();
          }
+         j++;
        });
      }
-     if(this.name){
+     if(this._name){
        ScopeRef._popScope();
      }
 

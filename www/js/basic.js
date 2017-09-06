@@ -221,16 +221,32 @@ TreeObject.extend('Hookable',{
              //This is a client hook that should trigger on the server to change the server state
              //collect data and send
 
-             //TODO: add data collection
+             //Data collection
              var data = [];
-             var collect_data = function(scoperef){
+             $.each(hook.vars,function(i,d){
+               ScopeRef._setScope(that);
 
-             };
-             $.each(hook.actions,function(i,a){
-               a.traverseInputs(collect_data);
+               var inf = {
+                 vars:[]
+               };
+               var res = d.r.eval(null,inf);
+               var p_id = null;
+               for(var i=0;i<inf.vars.length;i++){
+                 if(inf.vars[i]._id){
+                   p_id = inf.vars[i]._id;
+                   break;
+                 }
+               }
+
+               data[i] = {
+                 v:p_id !== null ? p_id : res
+               };
              });
 
-             (window||global)._client.registerRemoteTrigger(k,{});
+             console.log(data);
+             //debugger;
+
+             (window||global)._client.registerRemoteTrigger(k,data);
              //(window||global)._client.addCmd(hook, that);
            } else {
              Hookable._triggerQueue.push([hook,that]);
@@ -254,7 +270,7 @@ TreeObject.extend('Hookable',{
            //The hasServerActions traverse should on its way collect client based references to send to the server when triggering the hook.
            if(h.hasServerActions()){
 
-             debugger;
+             //debugger;
              //hooks[Hookable._nextHookId++] = h;
              hooks[k] = h;
            }
@@ -284,8 +300,12 @@ TreeObject.extend('Hookable',{
    init:function(obj){
      this.actions = [];
      this._super();
+     this.vars = [];
+
+     //Set this as scope root
+     ScopeRef._setScope(this);
      this.fromObject(obj);
-     this.vars = {};
+
 
      //When creating a hook all the client based variables should be registered
      //This hook should be set as root scope and while building for all sub actions named containers should be pushed to the scope and popped.

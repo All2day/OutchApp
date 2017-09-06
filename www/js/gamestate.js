@@ -215,12 +215,20 @@ PrimitiveVariable.extend('PosVariable',{
     if(val instanceof PosVariable){
       val = val._value;
     }
+    var changed = false;
+
     if($.type(val) == 'object'){
+
+      if(this._value.x != val.x || this._value.y != val.y || this._value.heading != val.heading){
+        changed = true;
+      }
       this._value.x = val.x;
       this._value.y = val.y;
       this._value.heading = val.heading;
     }
-    this.triggerHook('change');
+    if(changed){
+      this.triggerHook('change');
+    }
   }
 
 });
@@ -244,27 +252,38 @@ Variable.extend('ListVariable',{
     }
   },
   add:function(v){
-    //var v_c = v.clone();
-    //this._value.push(v_c);
-    //TODO: check why cloning?
+    //check prototype of v
+    //TODO: add check for prototype
+    if(!v){
+      console.log('not prototype or not the correct type');
+      return;
+    }
+
+    while(v._p){
+      v = Variable._vars[v._p];
+    }
     this._value.push(v);
     this.triggerHook('change');
 
-    /*if(ScopeRef._gs && ScopeRef._gs.players){
-      var that = this;
-      $.each(ScopeRef._gs.players._value,function(k,p){
-        p.addChange(that,v_c,that._value.length-1);
-      });
-    }*/
   },
   remove:function(v){
-    var i = this._value.indexOf(v);
-    this._value.remove(v);
+    //check prototype of v
+    if(!v){
+      console.log('not prototype or not the correct type');
+      return;
+    }
 
-    /*var that = this;
-    $.each(ScopeRef._gs.players._value,function(k,p){
-      p.addChange(that,null,i);
-    });*/
+    while(v._p){
+      v = Variable._vars[v._p];
+    }
+
+    var i = this._value.indexOf(v);
+    if(i < 0){
+      console.log('could not find object to remove from list');
+      return;
+    }
+
+    this._value.remove(v);
 
     this.triggerHook('change');
   },
@@ -277,7 +296,7 @@ Variable.extend('ListVariable',{
     v._value = value;
     return v;
   },
-  set:function(i,val){
+  set:function(i,v){
     if(i instanceof Variable || i === null){
       return this._super(i);
     }
@@ -288,7 +307,10 @@ Variable.extend('ListVariable',{
       console.log('cannot set i in list');
       return;
     }
-    this._value[i] = val;
+    while(v._p){
+      v = Variable._vars[v._p];
+    }
+    this._value[i] = v;
   },
   get:function(ref){
     switch(ref){
@@ -304,6 +326,7 @@ Variable.extend('ListVariable',{
         return this._value[Math.floor(Math.random()*this._value.length)];
       case 'pop':
         var el = this._value.pop();
+        this.triggerHook('change');
         return el;
       case 'count':
         return this._value.length;//new Variable(this._value.length);
@@ -400,7 +423,7 @@ Variable.extend('GameStateObject',{
     })*/
   },
   get:function(ref){
-    if(this[ref]){
+    if(this[ref] !== undefined){
       return this[ref];
     }
     if(this.vars){
@@ -488,6 +511,8 @@ GameStateObject.extend('GameStateList',{
     switch(name){
       case 'length':
         return this._count;
+      case 'count':
+        return this._count
     }
     if(this._value !== null){
 
@@ -587,6 +612,8 @@ GameStateChangeableList.extend('Phase',{
     //  vars:obj.vars,
       hooks:obj.hooks
     };
+
+    ScopeRef._setScope(this);
 
     var hooks = new GameStateList({},Hook);
     var views = new GameStateList({},ViewElement);
@@ -727,13 +754,33 @@ Variable.extend('ProtoTypeVariable',{
     }
   },
   set:function(ref,v){
+    var old_value =this._value;
     if(!ref){
+      //console.log('setting to null in protovar '+this.prototype.name);
+      this._value = null;
+      delete(this._p);
+
+      if(this._value !== old_value){
+        this.triggerHook('change');
+      }
+      return;
+    }
+    if(ref instanceof ProtoTypeVariable && ref.prototype == this.prototype){
+      this._value = ref._value;
+      this._p = ref._id; //register a pointer for this
+      //TODO: if pointing to an object that are later changed in this same update this may not chnage
+      //It does not matter that much, only when creating objects
+
+      if(this._value !== old_value){
+        this.triggerHook('change');
+      }
       return;
     }
     if(!this._value){
       this._value = {};
     }
     if(this._value[ref] === undefined){
+      console.log('setting '+ref+' to '+v+' in protovar '+this.prototype._name);
       this._value[ref] = v;
     }
   },
@@ -1026,7 +1073,7 @@ GameStateObject.extend('GameState',{
     /*this.clientHooks = */
     this.currentPhase.getClientHooks(this.clientHooks);
 
-    console.log('client hooks:',this.clientHooks);
+    //console.log('client hooks:',this.clientHooks);
 
     //console.log(this.phases.play._);
     //console.log(this.currentPhase._hooks.start);
@@ -1039,20 +1086,20 @@ GameStateObject.extend('GameState',{
    */
   triggerClientHook: function(player_id,id,vars){
     this.currentPlayer = this.players[player_id];
-
-
+    if(!this.clientHooks[id]){
+      console.log(this.clientHooks);
+      console.log('client hook missing:'+id);
+    }
     var h = this.clientHooks[id];
-    var scp = new GameStateObject({});
 
 
-    $.each(vars||{},function(name,v){
-      scp[name] = ScopeRef._evalString(v);
+    //Set the reference for each of the client based variables
+    $.each(vars||{},function(i,v){
+      h.vars[i].v = Variable._vars[v.v];
     });
-    //scp['listel'] = Variable._vars[49];
 
-    console.log(scp.get('listel'));
-
-    h.trigger(scp);
+    ScopeRef._setScope(h);
+    h.trigger(h);
     this.currentPlayer = null;
     Hookable._handleTriggerQueue();
 
@@ -1095,6 +1142,10 @@ GameStateObject.extend('GameState',{
       if(v instanceof ProtoTypeVariable){
         el.value = {};
         $.each(v._value||{},function(k,element){
+          if(!element){
+            console.log('error while getting prototype content of v');
+            console.log(v);
+          }
           el.value[k]=element._id;
         });
 

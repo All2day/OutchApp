@@ -504,29 +504,6 @@ ViewElement.extend('MapElement',{
       map.addLayer(this._vectorLayer);
       this._map = map;
 
-      //add the players point as a geom.circle
-
-      /*this._geomCollection = new ol.geom.GeometryCollection([      ]);
-      //var t1 = new ol.geom.GeometryCollection([new ol.geom.Circle([1,1],100000)]);
-      //var gs = this._geomCollection.getGeometries();
-      //this._geomCollection.setGeometries(gs);
-      var test_c = new ol.geom.Circle([0,0],100000);
-
-      var test_f = new ol.Feature({
-        geometry:test_c
-      });
-      this._vectorSource.addFeature(test_f);
-
-      this._vectorLayer.on('precompose',function(evt){
-        //console.log('precompose');
-        //this._map.render();
-        //test_c.translate(100,100);
-      },this);
-
-      this._vectorSource.addFeature(new ol.Feature({
-        geometry: this._geomCollection
-      }));*/
-
       var that = this;
       //debugger;
       $.each(this.geoElements ? this.geoElements._value ||{}: {},function(n,el){
@@ -546,47 +523,64 @@ ViewElement.extend('MapElement',{
       //TODO: why is it needed to update all props here?
       this.updateAllProps();
 
-      /**
-       * Method for tracking enter and leaces on elements. Currently only actual elements can be tracked thus fx entering a child element is not the same as entering an element.
-       Every time the pos of the player is changing, a list of features at the new coordinate is used to trigger "enter" hooks. A _inside attr on all the elements is set to a time variable used for all checks in this update. All inside elements are stored in a container array.
-       When done all elements in the this container is checked, and if the _inside attr is less than the current time "leave" hooks are triggered and the inside_elements are updated.
-       */
-      var inside_elements = [];
-      ScopeRef._gs.currentPlayer.get('pos').addHook('change',function(e){
-        //use source.vector.forEachFeatureInExtent
-        //or source.vector.forEachFeatureIntersectingExtent
-        var t = new Date().getTime(); //use current milliseconds to check if still inside an element
-        var fts = that._vectorSource.getFeaturesAtCoordinate([this._value.x,this._value.y]);
 
-        $.each(fts,function(i,ft){
-          if(!ft.el._inside){
-
-            ft.el.triggerHook('enter');
-            ft.el.triggerHook('change');
-            inside_elements.push(ft.el);
-          }
-          ft.el._inside = t;
-        });
-
-        var new_inside_els = [];
-        $.each(inside_elements,function(i,el){
-          if(el._inside < t){
-            el._inside = false;
-            el.triggerHook('leave');
-            el.triggerHook('change');
-          } else {
-            new_inside_els.push(el);
-          }
-        });
-        inside_elements = new_inside_els;
+      //register method for checking if inside any elements
+      ScopeRef._gs.currentPlayer.get('pos').addHook('change',function(){
+        that.checkInside(this);
       }); //End of enter leave tracking
 
+      //fire it the first time
+      this.checkInside(ScopeRef._gs.currentPlayer.get('pos'));
     }
     c.append(this._dom);
     this._map.updateSize();
+
+    var c = this.getProp('center');
+    this.update({center:c});
+
+  },
+  /**
+   * Method for tracking enter and leaces on elements. Currently only actual elements can be tracked thus fx entering a child element is not the same as entering an element.
+   Every time the pos of the player is changing, a list of features at the new coordinate is used to trigger "enter" hooks. A _inside attr on all the elements is set to a time variable used for all checks in this update. All inside elements are stored in a container array.
+   When done all elements in the this container is checked, and if the _inside attr is less than the current time "leave" hooks are triggered and the inside_elements are updated.
+   */
+  _inside_elements :null,
+  checkInside: function(pos){
+    if(this._inside_elements === null){
+      this._inside_elements = [];
+    }
+    //use source.vector.forEachFeatureInExtent
+    //or source.vector.forEachFeatureIntersectingExtent
+    var t = new Date().getTime(); //use current milliseconds to check if still inside an element
+    var fts = this._vectorSource.getFeaturesAtCoordinate([pos._value.x,pos._value.y]);
+    var that = this;
+    $.each(fts,function(i,ft){
+      if(!ft.el._inside){
+
+        ft.el.triggerHook('enter');
+        ft.el.triggerHook('change');
+        that._inside_elements.push(ft.el);
+      }
+      ft.el._inside = t;
+    });
+
+    var new_inside_els = [];
+    $.each(this._inside_elements,function(i,el){
+      if(el._inside < t){
+        el._inside = false;
+        el.triggerHook('leave');
+        el.triggerHook('change');
+      } else {
+        new_inside_els.push(el);
+      }
+    });
+    this._inside_elements = new_inside_els;
   }
 });
 
+/**
+ * General definition of vector based geo element
+ */
 ViewElement.extend('GeoElement',{
   geoElements:[],
   _feature:null, //The actual feature being displayed for this geoelement, added to the vector layer
@@ -613,6 +607,15 @@ ViewElement.extend('GeoElement',{
   },
   destroy:function(){
     this._super();
+    if(this._feature && this._vl){
+      //remove it
+      //console.log('removing feature');
+      this._vl.removeFeature(this._feature);
+      delete(this._feature.el);
+      this._feature = null;
+      this._geom = null;
+    }
+
     $.each(this.geoElements._value,function(key,element){
       element.destroy();
       element.owner = null;
@@ -626,6 +629,7 @@ ViewElement.extend('GeoElement',{
       if(this._style){
         this._feature.setStyle(this._style);
       }
+      this._vl = vl;
       vl.addFeature(this._feature);
       //this.updateAllProps();
     }
@@ -744,7 +748,7 @@ ViewElement.extend('GeoElement',{
     var that = this;
     $.each(props,function(prop,val){
       if(val === undefined || val === null){
-        debugger;
+        //debugger;
         console.log('prop:'+prop+' is '+val+' in '+that._name);
         return;
       }
@@ -833,6 +837,7 @@ GeoElement.extend('GeolistElement',{
   },
   setList: function(new_list){
     if(this.list && this.list != new_list){
+      //a new list, clean it all
       $.each(this._wrapperels,function(i,k){
         k.destroy();
         k.owner = null;
@@ -840,13 +845,16 @@ GeoElement.extend('GeolistElement',{
       this._wrapperels = [];
       //clear the list
     }
+
     this.list = new_list;
+    var t = new Date().getTime();
     var that = this;
     $.each(this.list._value,function(i,k){
       //if already existing, dont create a new wrapper element
       for(var l = 0; l < that._wrapperels.length; l++){
         if(that._wrapperels[l].listel == k){
-          //ignore by returning
+          that._wrapperels[l].updated_time = t;
+          //By returning this wrapper el will stay the same
           return;
         }
       };
@@ -860,8 +868,21 @@ GeoElement.extend('GeolistElement',{
         var e = el.clone();
         e.draw(that._dom);
       });*/
+      wrapper.updated_time = t;
       that._wrapperels.push(wrapper);
     });
+
+    //clean out old wrapper els not used
+    var new_wrapper_els = [];
+    for(var l = 0; l < this._wrapperels.length; l++){
+      if(this._wrapperels[l].updated_time < t){
+        //remove it
+        this._wrapperels[l].destroy();
+      } else {
+        new_wrapper_els.push(this._wrapperels[l]);
+      }
+    }
+    this._wrapperels = new_wrapper_els;
   },
   draw:function(vl){
     //console.log('drawing geolist', this.list);
@@ -889,6 +910,12 @@ GeoElement.extend('GeolistElement',{
         return this.list ? this.list.get('count') : null;
     }
     return this._super(ref);
+  },
+  destroy:function(){
+    for(var i = 0;i<this._wrapperels.length;i++){
+      this._wrapperels.destroy();
+    }
+    this._wrapperels = null;
   }
 });
 /**
@@ -944,6 +971,17 @@ ViewElement.extend('GeolistElElement',{
       case 'list':
         return this.list;
     }
+  },
+  destroy:function(){
+
+    //this._super();
+    for(var i = 0;i<this.geoels.length;i++){
+      this.geoels[i].destroy();
+    }
+    this.geoels = null;
+    this.listel = null;
+    this.list = null;
+
   }
 });
 

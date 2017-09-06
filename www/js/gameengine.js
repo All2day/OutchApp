@@ -65,7 +65,7 @@ Class.extend('GameServer',{
 
       //handle data updates from the player
       if(data.p){
-        console.log('setting player pos:',data.p);
+        //console.log('setting player pos:',data.p);
         player.pos.set(data.p);
       }
 
@@ -95,7 +95,7 @@ Class.extend('GameServer',{
       //var response_data = {players:players,bombs:bombs,t:t,rt:new Date().getTime() - t};
 
       response_data.u = this.gs.getFullState();
-
+      //console.log(response_data.u);
       response_data.rt = new Date().getTime() - t;
 
       var response_txt = JSON.stringify(response_data);

@@ -35,7 +35,7 @@ Class.extend('GameClient',{
       var view_name = this.gs.currentPhase.views.firstKey();
       var view = this.gs.currentPhase.views[view_name];
 
-      debugger;
+      //debugger;
       this.gs.clientHooks = {};
       this.gs.currentPhase.getClientHooks(this.gs.clientHooks);
 
@@ -51,10 +51,11 @@ Class.extend('GameClient',{
       tracking: true
     });
     geolocation.on('change',function(evt){
-
+      //TODO: this is for tesing, should be removes
+      window.loc = geolocation.getPosition();
       var pp = new ol.geom.Point(ol.proj.transform(geolocation.getPosition(), 'EPSG:4326', 'EPSG:3857'));
       //console.log('got pos change');
-      //TODO: update current player position
+
       if(this.gs.currentPlayer){
         var c = pp.getCoordinates();
         this.gs.currentPlayer.updatePosition(c);
@@ -106,7 +107,6 @@ Class.extend('GameClient',{
 
     //set the value of all variables
     $.each(update,function(id,u){
-      //if(id==32) debugger;
       if(p && id == p.pos._id){
         return; //ignore updates of position
       }
@@ -132,13 +132,14 @@ Class.extend('GameClient',{
               Variable._vars[id].add(n,Variable._vars[p]);
             } else {
               //existing variable, set using the set function
-              Variable._vars[id]._value[n] = Variable._vars[p];
+              //Variable._vars[id]._value[n] = Variable._vars[p];
+              Variable._vars[id].set(n,Variable._vars[p]);
             }
           });
           //add cleanup removing nonexisting entries
           $.each(old_keys,function(i,n){
             Variable._vars[id].remove(n);
-          })
+          });
         }
       } else
       if($.type(u.value) == 'array'){
@@ -146,6 +147,7 @@ Class.extend('GameClient',{
           Variable._vars[id]._value = [];
         }
         var max_i = 0;
+        //go through the update and change
         $.each(u.value,function(i,p){
           if(i == Variable._vars[id]._value.length){
             Variable._vars[id].add(Variable._vars[p]);
@@ -154,8 +156,10 @@ Class.extend('GameClient',{
           }
           max_i = Math.max(max_i,i);
         });
+        //remove extra values if any and trigger change if necessary
         if(max_i < Variable._vars[id]._value.length-1){
-          Variable._vars[id]._value = Variable._vars[id]._value.slice(0,max_i);
+          Variable._vars[id]._value = Variable._vars[id]._value.slice(0,max_i+1);
+          Variable._vars[id].triggerHook('change');
         }
 
       } else {

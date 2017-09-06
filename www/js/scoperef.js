@@ -25,7 +25,7 @@ TreeObject.extend('ScopeRef',{
 
 ScopeRef._stringSplit = function(s /*string*/){
   //use regex to split the string into object types and names
-var els = s.split(/(\?|\^|!=|=|\&\&|\|\||[\{\[\]\}\)\(\'\"\+\-\*\/\>\<\.\:])/g);
+var els = s.split(/(\?|\^|!=|=|\&\&|\|\||[\{\[\]\}\)\(\'\"\+\-\*\/\>\<\.\:\,])/g);
 
   var struct = {
     c:[],
@@ -93,11 +93,18 @@ var els = s.split(/(\?|\^|!=|=|\&\&|\|\||[\{\[\]\}\)\(\'\"\+\-\*\/\>\<\.\:])/g);
           console.log('mismatched }');
         }
         break;
-
+      case ""://empty string, ignore
+        break;
       default:
-        struct.c.push(els[i]);
+        if(struct.type != '"' && struct.type !="'"){
+          var e = els[i].trim();
+          if(e){
+            struct.c.push(els[i].trim());
+          }
+        } else {
+          struct.c.push(els[i]);
+        }
     }
-
   }
   if(struct.p){
     console.log('mismatched '+struct.type);
@@ -110,7 +117,7 @@ var els = s.split(/(\?|\^|!=|=|\&\&|\|\||[\{\[\]\}\)\(\'\"\+\-\*\/\>\<\.\:])/g);
   return struct;
 };
 
-ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
+ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 /* if >0 this should be a ScopeLookup*/){
 
   if(s===null){
     return new ScopeNull();
@@ -124,8 +131,17 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
     return new ScopePos(s);
   }
 
-  if(type == ScopeColor && $.type(s) == 'array' && s.length >= 3){
-    return new ScopeColor(s);
+  if(type == ScopeColor && $.type(s) == 'array' && s.length >= 3 && s.length <= 4){
+    //all should be numeric
+    var all_numeric = true;
+    for(var i = 0;i< s.length && all_numeric;i++){
+      if(s[i]*1 != s[i]){
+        all_numeric = false;
+      }
+    }
+    if(all_numeric){
+      return new ScopeColor(s);
+    }
   }
 
   if($.type(s) == 'number'){
@@ -157,9 +173,24 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
       return new ScopeString(concat_s);
       break;
     case '[':
+      //split based on commas
+      var a = [];
+      for(var i=0,j=0;i<s.c.length;i++){
+        if(s.c[i]==","){
+          a.push(ScopeRef._prepareScopeRef(s.c.slice(j,i)));
+          j=i+1;
+        }
+      }
+      //the last
+      a.push(ScopeRef._prepareScopeRef(s.c.slice(j)));
+      if(a.length ==3 || a.length == 4){
+        return new ScopeColor(a);
+      }
+
+      debugger;
       console.log('mis starting [');
       return new ScopeNull();
-    case '[':
+
     default:
       if(s.c.length ==0){
         return null;
@@ -181,7 +212,7 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
               );
             }
           }
-          conole.log('unmatched if then else in scope');
+          console.log('unmatched if then else in scope');
         }
       }
 
@@ -273,18 +304,40 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null){
         if(s.c.length == 1 && $.type(s.c[0]) == 'string' && s.c[0].match(/^([\d]+)(?:\.[\d])?$/)){
           return new ScopeNumber(s.c[0]);
         }
-        return new ScopeLookup(s.c[0],null,type);
+
+        if(lookup_depth){
+          return new ScopeLookup(s.c[0],null,type);
+        } else {
+          return new ScopeRootLookup(s.c[0],null,type);
+        }
+
       }
 
       //check if the next is a .
       if(s.c[1] == '.'){
-        return new ScopeLookup(s.c[0],ScopeRef._prepareScopeRef(s.c.slice(2)),type);
+        //check for special case where both s.c[0] and s.c[2] is numbers, then create a number
+
+        if(s.c.length == 3 && s.c[0].match(/^\d+$/) && s.c[2].match(/^\d+$/)){
+
+          return new ScopeNumber((s.c[0]+"."+s.c[2])*1);
+        }
+
+        var next = ScopeRef._prepareScopeRef(s.c.slice(2),type,lookup_depth+1);
+        if(lookup_depth){
+          return new ScopeLookup(s.c[0],next,type);
+        } else {
+          return new ScopeRootLookup(s.c[0],next,type);
+        }
       }
 
       if(s.c[1].type == '['){
-        return new ScopeLookup(s.c[0],
-          new ScopeFilter(ScopeRef._prepareScopeRef(s.c[1].c),ScopeRef._prepareScopeRef(s.c.slice(3)),type)
-        );
+        var next = new ScopeFilter(ScopeRef._prepareScopeRef(s.c[1].c),ScopeRef._prepareScopeRef(s.c.slice(3),type,lookup_depth+1));
+
+        if(lookup_depth){
+          return new ScopeLookup(s.c[0],next,type);
+        } else {
+          return new ScopeRootLookup(s.c[0],next,type);
+        }
       }
 
       //check for colors
@@ -533,13 +586,34 @@ ScopeRef.extend('ScopeNumber',{
 /**
  * nested lookup in the game state
  */
-ScopeRef.extend('ScopeLookup',{
+ScopeRef.extend('ScopeRootLookup',{
   ref:null,
   next:null,
   type:null,
   init:function(ref,next,type){
     this.ref = ref.trim();
+
     this.next = next;
+
+    //if the lookup is not game state based (or from scope stack) register it
+    if(this.ref !='phase' && this.ref!='player' && !this.gameStateLookup()){
+      //get the hook
+      var h = ScopeRef._getScopeRoot();
+
+      //register on the hook, that this is a client variable
+      if(h instanceof Hook){
+        h.vars.push({
+          d:1, //depth
+          r:this //pointer to this root lookup
+        });
+      } else {
+        //this lookup is not based on a hook, just ignore
+
+      }
+    }
+
+
+
     this.type = type;
   },
   traverse:function(f){
@@ -548,8 +622,8 @@ ScopeRef.extend('ScopeLookup',{
       this.next.traverse(f);
     }
   },
-  //Called on the top level scope lookup
-  eval:function(other_scp,inf /*if set will be used to collect info on the execution*/){
+  //First lookup based on gameState. Returns null if the lookup is not game state based
+  gameStateLookup: function(){
     var scp;
     switch(this.ref){
       case 'game':
@@ -557,6 +631,17 @@ ScopeRef.extend('ScopeLookup',{
         break;
       case 'phase':
         scp = ScopeRef._gs.currentPhase;
+        //if currentPhase is not set, go through ownership
+        if(!scp){
+          scp = ScopeRef._getScopeRoot();
+          while(scp && !(scp instanceof Phase)){
+            scp = scp.owner;
+          }
+        }
+        if(!scp){
+          //should always be
+          debugger;
+        }
         break;
       case 'phases':
         scp = ScopeRef._gs.phases;
@@ -583,22 +668,31 @@ ScopeRef.extend('ScopeLookup',{
         break;
       case 'el':
         //scope stack lookups for a container with an 'el'
+        //TODO:check that it is on purpose, that it does NOT check the root?
         for(var i=ScopeRef._scp.length-1;i>0;i--){
           if(ScopeRef._scp[i].get('el')){
             scp = ScopeRef._scp[i].get('el');
           }
         }
         break;
+      default:
+        //checked for named elements in the scope stack
+        //or for prototypes with that name
+        //TODO:check that it is on purpose, that it does NOT check the root?
+        for(var i=ScopeRef._scp.length-1;i>0;i--){
+          if(ScopeRef._scp[i]._name == this.ref){
+            scp = ScopeRef._scp[i];
+            //console.log('found named object in scope:'+this.ref+' index:'+scp.get('index'));
+          }
+        }
+        break;
     }
 
-    //checked for named elements in the scope stack
-    //or for prototypes with that name
-    for(var i=ScopeRef._scp.length-1;i>0;i--){
-      if(ScopeRef._scp[i]._name == this.ref){
-        scp = ScopeRef._scp[i];
-      }
-    }
-
+    return scp;
+  },
+  //Called on the top level scope lookup
+  eval:function(other_scp,inf /*if set will be used to collect info on the execution*/){
+    var scp = this.gameStateLookup();
 
     //if a specific scope is found by the first reference use it
     if(scp){
@@ -609,6 +703,17 @@ ScopeRef.extend('ScopeLookup',{
     if(!(global || window)._client){
       //server execution. A stored variable should be available to lookup
       //if multiple levels of client variables are used, fx. view.elements.named_element.some_reference_var
+
+      //get hook, should be scope root
+      var h = ScopeRef._getScopeRoot();
+      for(var i=0;i<h.vars.length;i++){
+        if(h.vars[i].r == this){
+          console.log('using var '+i+' in hook');
+          scp = h.vars[i].v;
+          return this.getNext(scp,inf);
+        }
+      }
+
       console.log('Hit something that seems to be a client element on the server? '+this.ref);
       return;
     }
@@ -667,7 +772,7 @@ ScopeRef.extend('ScopeLookup',{
     //could not find a base scope
     return null;
   },
-  _eval:function(scp,inf){
+  /*_eval:function(scp,inf){
     if(!scp){
      return null;
     }
@@ -678,14 +783,14 @@ ScopeRef.extend('ScopeLookup',{
     }
 
     return this.getNext(scp,inf);
-  },
+  },*/
   getNext:function(scp,inf){
     if(inf && (scp instanceof Variable || scp instanceof ClientElement)){
       inf.constant = false;
       inf.vars.push(scp);
     }
     if(this.next){
-      scp = this.next._eval(scp,inf);
+      scp = this.next.eval(scp,inf);
     }
 
     if(this.type){
@@ -700,6 +805,32 @@ ScopeRef.extend('ScopeLookup',{
     }
 
     return scp;
+  }
+});
+/**
+ * Lookups into reference
+ */
+ScopeRootLookup.extend('ScopeLookup',{
+  ref:null,
+  next:null,
+  type:null,
+  init:function(ref,next,type){
+    this.ref = ref.trim();
+    this.next = next;
+    this.type = type;
+  },
+  //evaluates this scope reference based on the scp
+  eval:function(scp,inf /*if set will be used to collect info on the execution*/){
+    if(!scp){
+     return null;
+    }
+
+    scp = scp.get(this.ref);
+    if(!scp || !scp.get){
+      return scp;
+    }
+
+    return this.getNext(scp,inf);
   }
 });
 
@@ -747,6 +878,11 @@ ScopeRef.extend('ScopeColor',{
 
   init:function(inp){
     if($.type(inp) == 'array'){
+      for(var i=0;i<inp.length;i++){
+        if(inp[i] instanceof Variable || inp[i] instanceof ScopeNumber){
+          inp[i] = inp[i]._value;
+        }
+      }
       if(inp.length == 3){
         this._value = [inp[0],inp[1],inp[2],1];
       } else {
@@ -789,7 +925,9 @@ ScopeRef.extend('ScopeIfThenElse',{
   },
   eval:function(scp,inf){
     var c = this.condition.eval(scp,inf);
-    if(c && c._value){
+
+    //if the result is a variable, take its value
+    if(c && c instanceof Variable){
       c = c._value;
     }
     var r = null;

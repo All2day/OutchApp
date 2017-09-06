@@ -188,10 +188,11 @@ exports.game = {
                   type:"if",
                   condition:"phase.revenge_target!=player",
                   actions:{
-                    1:{
+                    //TODO: this does not work as this is server code showing client view?
+                    /*1:{
                       type:"show",
                       view:"waitforrevenge"
-                    }
+                    }*/
                   }
                 }
               }
@@ -202,10 +203,11 @@ exports.game = {
                   type:"if",
                   condition:"phase.revenge_target!=player",
                   actions:{
-                    1:{
+                    //TODO: this does not work as this is server code showing client view?
+                    /*1:{
                       type:"hide",
                       view:"waitforrevenge"
-                    }
+                    }*/
                   }
                 }
               ]
@@ -250,7 +252,9 @@ exports.game = {
               radius:"2",
               pos:"player.pos",
               color:[0,0,255,1],
-              fill:[0,0,255,0.4]
+              //fill:[0,0,255,0.4]
+              fill:"player.currentCard ? player.currentCard.color : [0,0,0,0]",
+              text:"player.currentCard ? player.currentCard.value : ''",
             },
             'list of players':{ //The player cards
               type:"geolist",
@@ -269,7 +273,7 @@ exports.game = {
               type:"circle",
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"25",
-              rotation:0,
+              rotation:"player.dir*2*3.1415/players.count",
               fill:[0,0,0,0],
               pos:"game.center",
               geoElements:{
@@ -280,7 +284,7 @@ exports.game = {
                     'boxlist':{
                       type:"GeoElement",
                       pos:[0,0],
-                      rotation:"(index - list.count/2)/2", //*20
+                      rotation:"((1/2) + index - list.count/2)*2/5", //*20
                       geoElements:{
                         'box':{
                           type:"box",
@@ -289,7 +293,7 @@ exports.game = {
                           height:"15",
                           text:"listel.value",
                           fill:"listel.color",
-                          color:"element.isinside?'white':(player.currentCard=listel?'red':'black')",
+                          color:"element.isinside ? 'white' : (player.currentCard = listel ? 'red' : 'black')",
                           hooks:{
                             enter:{
                               actions:{
@@ -307,8 +311,8 @@ exports.game = {
                                 },
                                 2:{
                                   type:"set",
-                                  source:"player.currentCard",
-                                  target:"listel"
+                                  target:"player.currentCard",
+                                  source:"listel"
                                 }
                               }
                             }
@@ -349,16 +353,16 @@ exports.game = {
                           source:null
                         }*/
                       }
-                    }/*,
+                    },
                     volumeup:{
                       putdown:{ //named hook
                         actions:{
                           1:{
                             type:"if",
                             //condition is based on the color must match, possibly with a color changing card underneath OR the value must match OR it is a color changing card
-                            condition:"player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0",
+                            condition:"player.currentCard || player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0",
                             actions:{
-                              1:{//remove the card from the user
+                              '_1':{//remove the card from the user
                                 type:"remove",
                                 list:"player.hand",
                                 target: "player.currentCard"
@@ -374,11 +378,11 @@ exports.game = {
                                 actions:{
                                   1:{
                                     type:"startphase",
-                                    phase:"'scoreboard'"
+                                    phase:"scoreboard"
                                   }
                                 }
                               },
-                              '_4':{ //if the card is a color choosing card ask for the color
+                              /*'_4':{ //if the card is a color choosing card ask for the color
                                 type:"if",
                                 condition:"phase.stack.last.value < 0",
                                 actions:{
@@ -433,23 +437,23 @@ exports.game = {
                                     }
                                   }
                                 }
-                              },
+                              },*/
                               '_6':{//reset the current card in the players hand by not setting a source
                                 type:"set",
                                 target:"player.currentCard"
-                              },
-                            }, // end of if actions
+                              }
+                            }, // end of if true actions
                             else:{
                               '_1':{
                                 type:"alert",
                                 text:"'does not match'"
                               }
                             }
-                          }
-                        }
-                      }//volume up handling*/
-                    }
-                  }
+                          } //end of IfAction
+                        } //actions
+                      }//end of put down named hook
+                    } //end of vulume up
+                  } //end of inner hooks
                 }, //end of center element
                 /*'_playercards':{ //The player cards
                   type:"geolist",
@@ -517,12 +521,12 @@ exports.game = {
                   fill:"phase.stack.last.color",
                   text:"phase.stack.last.value",
                   textColor:"white"
-                }
+                }*/
               } //end of circel geo elements
-              */
-            } // end of circle
 
-          } //end of geo elements
+            } // end of outer circle
+
+          } //end of map view geo elements
         }, //End of map view
         /*choosecolor:{
           type:"dialog",
@@ -656,12 +660,6 @@ exports.game = {
               type:"shuffle",
               list:"phase.deck"
             },
-            /*'_4':{
-              //add the first card to stack
-              type:"add",
-              list:"phase.stack",
-              target:"phase.deck.pop"
-            },*/
             '_add first to stack':{
               type:"add",
               list:"phase.stack",
@@ -682,6 +680,17 @@ exports.game = {
                       target:"phase.deck.pop"
                     }
                   }
+                },
+                'set_dir':{
+                  type:"set",
+                  target:"_player_loop.el.dir",
+                  source:"_player_loop.index"
+                },
+                'asdf':{
+                  type:"set",
+                  target:"_player_loop.el.currentCard",
+                  source:"_player_loop.el.hand.last"
+                  //source:"phase.deck.last"
                 }
               }
             }
@@ -690,7 +699,42 @@ exports.game = {
       }
     },
     scoreboard:{
+      views:{
+        '_1':{
+          type:'page',
+          elements:{
+            'gamename':{
+              type:"label",
+              text:"'spillets navn:'+game.name"
+            },
 
+            'players':{
+              type:'list',
+              list:'players',
+              elements:{
+                0:{
+                  type:"label",
+                  text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser')",
+                }
+              }
+            },
+            'exit':{
+              type:'button',
+              text:'"exit"',
+              hooks:{
+                click:{
+                  actions:{
+                    '_1':{
+                      type:"exit"
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+        }//end of page
+      }
     }
   }
-};
+}; //end of game
