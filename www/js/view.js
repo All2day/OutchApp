@@ -433,7 +433,9 @@ ViewElement.extend('ButtonElement',{
         display:'inline-block'
         //height:'100vh',
       }).text(this.getProp('text'));
-
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
       var that = this;
       dom.on('click',function(e){
         that.triggerHook('click');
@@ -468,7 +470,8 @@ ViewElement.extend('InputElement',{
         width:'80vw',
         display:'inline-block'
 
-      }).val(this.getProp('default',true));
+      });
+
       if(!this.getProp('show',true)){
         dom.hide();
       }
@@ -481,14 +484,88 @@ ViewElement.extend('InputElement',{
     }
 
     c.append(this._dom);
+    var d = this.getProp('default',true);
+    if(d!==null){
+      this._dom.val(d);
+      this.triggerHook('change');
+    }
+  },
+  get:function(ref){
+    if(ref == 'value'){
+      return this._dom.val();
+    }
+    return this._super(ref);
   }
 });
 
-
+/**
+ * Element displaying a timer and how far it is
+ */
 ViewElement.extend('TimerElement',{
-  timer:null,
+  _timer:null,
+  _barDiv:null,
   init:function(obj){
     this._super(obj);
+    this.registerProp('timer',obj.timer);
+  },
+  draw:function(c){
+
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div></div>').css({
+        width:'80vw',
+        height:'10px',
+        display:'inline-block',
+        position:'relative',
+        background:'white',
+        border:'1px solid black'
+      });
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      this._barDiv = $('<div></div>').css({
+        position:'absolute',
+        height:'100%',
+        width:'50%',
+        background:'blue',
+        left:0,
+        top:0
+      });
+      dom.append(this._barDiv);
+
+      this._timer = this.getProp('timer');
+      this._dom = dom;
+    }
+    this.updateBar();
+    c.append(this._dom);
+  },
+  updateBar:function(){
+    if(!this._timer){
+      this._barDiv.css({
+        width:'100%',
+        background:'gray'
+      });
+    } else {
+      //debugger;
+      var ratioDone = this._timer.get('ratioDone');
+      //console.log(''+(100*ratioDone)+'%');
+      this._barDiv.stop().css({
+        width:''+(100*ratioDone)+'%',
+        background:'blue'
+      }).animate({
+        width:'100%'
+      },(1-ratioDone)*this._timer.get('duration'),'linear');
+
+    }
+  },
+  update:function(props){
+    if(props['timer'] !== undefined){
+      this._timer = props['timer'];
+      this.updateBar();
+      delete(props['timer']);
+    }
+    this._super(props);
   }
 });
 
@@ -505,6 +582,7 @@ ViewElement.extend('MapElement',{
     this.registerProp('width',obj.width,100);
     this.registerProp('height',obj.height,100);
     this.registerProp('zoom',obj.zoom,20);
+    //this.registerProp('minzoom',obj.minzoom,19);
   },
   getClientHooks: function(hooks){
     this._super(hooks);
@@ -525,12 +603,20 @@ ViewElement.extend('MapElement',{
           break;
         case 'zoom':
           if(val == 'fit'){
+            var ext = ol.extent.createEmpty();
+            that._vectorSource.forEachFeature(function(ft){
+              var g = ft.getGeometry();
+              if(g){
 
-            var ext = that._vectorSource.getExtent();
-            that._map.getView().fit(ext,{
+                ol.extent.extend(ext,g.getExtent());
+                //console.log('added:'+ft.el._name,ext);
+              }
+            });
+            //var ext = that._vectorSource.getExtent();
+            /*that._map.getView().fit(ext,{
               constrainResolution:false,
               size:that._map.getSize()
-            });
+            });*/
           } else {
             that._map.getView().setZoom(val);
           }
@@ -542,7 +628,15 @@ ViewElement.extend('MapElement',{
     if(!this._dom){
       this.attachHooks();
       var dom = $('<div></div>');
-
+      dom.css({
+        verticalAlign:'middle',
+        textAlign:'center',
+        display:'flex',
+        alignItems:'center',
+        justifyContent:'center',
+        alignContent:'center',
+        flexWrap:'wrap'
+      });
       if(this.owner instanceof ViewElement){
         var w = this.getProp('width');
         var h = this.getProp('height');
@@ -580,7 +674,10 @@ ViewElement.extend('MapElement',{
       window.m = this;
 
       //create the vector layers
-      this._vectorSource = new ol.source.Vector();
+      this._vectorSource = new ol.source.Vector({
+        //TODO:cannot dissable the spatial index? This is caused byt the call to getExtend, that does not work correctly:-)
+        //useSpatialIndex:false //sometimes the rbush used for the spatial tree fails
+      });
       this._vectorLayer = new ol.layer.Vector({
         source:this._vectorSource
       });
@@ -621,6 +718,19 @@ ViewElement.extend('MapElement',{
 
       //fire it the first time
       this.checkInside(ScopeRef._gs.currentPlayer.get('pos'));
+
+
+      //draw normal elements
+
+      $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
+        var d = $('<div></div>').css({
+          position:'absolute',
+          top:0
+        });
+        el.draw(d);
+        var c = new ol.control.Control({element: d[0]});
+        that._map.addControl(c);
+      });
     }
 
 
@@ -632,34 +742,69 @@ ViewElement.extend('MapElement',{
    * Method for tracking enter and leaces on elements. Currently only actual elements can be tracked thus fx entering a child element is not the same as entering an element.
    Every time the pos of the player is changing, a list of features at the new coordinate is used to trigger "enter" hooks. A _inside attr on all the elements is set to a time variable used for all checks in this update. All inside elements are stored in a container array.
    When done all elements in the this container is checked, and if the _inside attr is less than the current time "leave" hooks are triggered and the inside_elements are updated.
+
+   forEachFeatureInExtent - can be used with the last point to find all elements that has been touched since.
+
+   getFeaturesAtCoordinate
+   forEachFeatureAtCoordinateDirect
+   forEachFeatureInExtent
+   gets the geometry and:
+   intersectsCoordinate (geometry)
+   calls containsXY
+   on circle this seems to be correct?
+
    */
   _inside_elements :null,
   checkInside: function(pos){
     if(this._inside_elements === null){
       this._inside_elements = [];
     }
+    console.log('checking inside for post:',pos);
+    var t = new Date().getTime(); //use current milliseconds to check if still inside an element
+
+    //Fix since it seems that the rbush algorithm does not correctly find all elements
+    //var fts = this._vectorSource.getFeaturesAtCoordinate([pos._value.x,pos._value.y]);
+    var fts = [];
+    var all_fts = this._vectorSource.getFeatures();
+    for(var i = 0;i<all_fts.length;i++){
+      var g = all_fts[i].getGeometry();
+      if(!g){
+        console.log('no geometry for feature');
+      } else
+      if (g.intersectsCoordinate([pos._value.x,pos._value.y])) {
+        fts.push(all_fts[i]);
+        //console.log('intersects:'+fts[i].el._name);
+      } else {
+        //console.log('not intersects:'+fts[i].el._name);
+      }
+    }
+
     //use source.vector.forEachFeatureInExtent
     //or source.vector.forEachFeatureIntersectingExtent
-    var t = new Date().getTime(); //use current milliseconds to check if still inside an element
-    var fts = this._vectorSource.getFeaturesAtCoordinate([pos._value.x,pos._value.y]);
+
+
     var that = this;
     $.each(fts,function(i,ft){
       if(!ft.el){
+        console.log('feature without el');
         return;
       }
       if(!ft.el._inside){
-
+        console.log('entering feature:'+ft.el._name);
         ft.el.triggerHook('enter');
         ft.el.triggerHook('change');
         that._inside_elements.push(ft.el);
+      } else {
+        console.log('moving inside feature:'+ft.el._name);
       }
-      ft.el._inside = t;
+      ft.el._inside = t; //update inside time
     });
 
     var new_inside_els = [];
     $.each(this._inside_elements,function(i,el){
       if(el._inside < t){
         el._inside = false;
+        console.log('leaving feature:'+el._name);
         el.triggerHook('leave');
         el.triggerHook('change');
       } else {
@@ -742,7 +887,7 @@ ViewElement.extend('GeoElement',{
     var new_pos = [0,0,0];
     //In tree structure, the owner of this element is a gamestatelist, and thus the real owner is the owner of the gamestatelist
     if(!this.owner || !this.owner.owner || ! this.owner.owner._realPos){
-      debugger;
+      //debugger;
       return;
     }
     this.updateStyle();
@@ -782,6 +927,18 @@ ViewElement.extend('GeoElement',{
       g.translate(this._realPos[0],this._realPos[1]);
       g.rotate(this._realPos[2],this._realPos);
       this._feature.setGeometry(g);
+      /*var ext = g.getExtent();
+
+      var new_g = new ol.geom.Polygon(
+        [[ext[0],ext[1]],
+        [ext[0],ext[3]],
+        [ext[2],ext[3]],
+        [ext[2],ext[1]],
+        [ext[0],ext[1]]]);
+      debugger;
+      this._feature.setGeometry(
+        new_g
+      );*/
     }
 
     $.each(this.geoElements._value,function(key,element){

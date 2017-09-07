@@ -107,6 +107,7 @@ Class.extend('GameClient',{
 
     //set the value of all variables
     $.each(update,function(id,u){
+      //if(id==47) debugger;
       if(p && id == p.pos._id){
         return; //ignore updates of position
       }
@@ -120,6 +121,8 @@ Class.extend('GameClient',{
           Variable._vars[id]._value = {};
         }
         if(Variable._vars[id] instanceof PosVariable){
+          Variable._vars[id].set(u.value);
+        } else if(Variable._vars[id] instanceof TimerVariable){
           Variable._vars[id].set(u.value);
         } else {
           var old_keys = Object.keys(Variable._vars[id]._value);

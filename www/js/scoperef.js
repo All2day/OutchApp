@@ -648,6 +648,19 @@ ScopeRef.extend('ScopeRootLookup',{
         break;
       case 'player':
         scp = ScopeRef._gs.currentPlayer;
+        //it may be that the hook originates from a timer, search for prototype vars
+        if(!scp){
+          //console.log('searching for '+this.ref);
+          scp = ScopeRef._getScopeRoot();
+          while(scp && !(scp instanceof ProtoTypeVariable && scp._type == this.ref)){
+            //console.log('are at '+scp._type+' with name '+scp._name+' and id:'+scp._id);
+            scp = scp.owner;
+          }
+          if(!scp){
+            //console.log('did not find anything');
+          }
+          break;
+        }
         break;
       case 'hook':
         //go back from scope to find first hook
@@ -685,6 +698,19 @@ ScopeRef.extend('ScopeRootLookup',{
             //console.log('found named object in scope:'+this.ref+' index:'+scp.get('index'));
           }
         }
+        //if still no result go through the ownership chain but only for game state elements
+        if(!scp){
+          //console.log('searching for '+this.ref);
+          scp = ScopeRef._getScopeRoot();
+          while(scp && !(scp instanceof ProtoTypeVariable && scp._type == this.ref)){
+            //console.log('are at '+scp._type+' with name '+scp._name);
+            scp = scp.owner;
+          }
+          if(!scp){
+            //console.log('did not find anything');
+          }
+          break;
+        }
         break;
     }
 
@@ -706,11 +732,16 @@ ScopeRef.extend('ScopeRootLookup',{
 
       //get hook, should be scope root
       var h = ScopeRef._getScopeRoot();
-      for(var i=0;i<h.vars.length;i++){
-        if(h.vars[i].r == this){
-          console.log('using var '+i+' in hook');
-          scp = h.vars[i].v;
-          return this.getNext(scp,inf);
+      if(h instanceof Hook){
+        for(var i=0;i<h.vars.length;i++){
+          if(h.vars[i].r == this){
+            console.log('using var '+i+' in hook value:'+h.vars[i].v);
+            scp = h.vars[i].v;
+            if(!scp || !scp.get){
+              return scp;
+            }
+            return this.getNext(scp,inf);
+          }
         }
       }
 

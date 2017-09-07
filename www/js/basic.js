@@ -231,16 +231,21 @@ TreeObject.extend('Hookable',{
                };
                var res = d.r.eval(null,inf);
                var p_id = null;
-               for(var i=0;i<inf.vars.length;i++){
-                 if(inf.vars[i]._id){
-                   p_id = inf.vars[i]._id;
+               for(var j=0;j<inf.vars.length;j++){
+                 if(inf.vars[j]._id){
+                   p_id = inf.vars[j]._id;
                    break;
                  }
                }
-
-               data[i] = {
-                 v:p_id !== null ? p_id : res
-               };
+               if(p_id !== null){
+                 data[i] = {
+                   p:p_id
+                 };
+               } else {
+                 data[i] = {
+                   v: res
+                 };
+               }
              });
 
              console.log(data);
@@ -341,5 +346,9 @@ TreeObject.extend('Hookable',{
    },
    get:function(ref){
      return this.vars[ref];
+   },
+   clone:function(){
+     var h = $.extend(Object.create(Object.getPrototypeOf(this)),this);
+     return h;
    }
  });

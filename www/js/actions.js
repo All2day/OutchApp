@@ -99,6 +99,9 @@ Action.fromObject = function(obj,name){
    target:null,
    list:null,
    init:function(obj){
+     if(!obj.list || !obj.target){
+       console.log('warning add action without list or target');
+     }
      this.list = ScopeRef._prepareScopeRef(obj.list,ListVariable);
      this.list.owner = this;
      /*TODO: add list prototype as required type*/

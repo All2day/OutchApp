@@ -11,6 +11,25 @@ exports.game = {
       },
       dir: {
         type:"number" //The rotation of this player, either 0 or 180 degrees
+      },
+      nextCard: {
+        type:"timer",
+        duration:300000,
+        hooks:{
+          end:{
+            actions:{
+              '_1':{
+                type:"add",
+                list:"player.hand",
+                target:"phase.deck.pop"
+              },
+              '_2':{
+                type:"start",
+                timer:"timer"
+              }
+            }
+          }
+        }
       }
     },
     card: {
@@ -53,25 +72,29 @@ exports.game = {
         '_1':{
           type:'page',
           elements:{
+            't':{
+              type:"timer",
+              timer:"phase.test_timer"
+            },
             'map':{
               type:'MapView',
               width:80,
               height:20,
               zoom:"'fit'",
-              center:"player.pos",
+              center:"players.gameowner.pos",
               geoElements:{
                 'outer':{
                   type:"circle",
                   radius:"game.size+game.cardHeight",
                   fill:[0,0,0,0],
-                  pos:"player.pos",
+                  pos:"players.gameowner.pos",
                 },
                 'inner':{
                   type:"circle",
                   radius:"7",
                   fill:[0,0,0,0],
-                  pos:"player.pos",
-                },
+                  pos:"players.gameowner.pos",
+                }/*,
                 'players':{
                   type:"geolist",
                   list:"players",
@@ -83,7 +106,7 @@ exports.game = {
                       pos:"listel.pos"
                     }
                   }
-                }
+                }*/
               }
             },//end of map
             'gamename':{
@@ -106,16 +129,27 @@ exports.game = {
             'input':{
               show:"player = players.gameowner",
               type:"input",
-              default:"'fedt navn'"
+              default:"'fedt navn'",
+              hooks:{
+                change:{
+                  actions:{
+                    '_1':{
+                      type:"set",
+                      target:"game.name",
+                      source:"element.value"
+                    }
+                  }
+                }
+              }
             },
             'players':{
               type:'list',
               list:'players',
               elements:{
                 0:{
-                  type:"button",
+                  type:"label",
                   text:"listel.id",
-                  hooks:{
+                  /*hooks:{
                     click:{
                       actions:{
                         '_set':{
@@ -125,7 +159,7 @@ exports.game = {
                         }
                       }
                     }
-                  }
+                  }*/
                 }
               }
             },
@@ -147,6 +181,7 @@ exports.game = {
             '_1':{
               type:'button',
               text:"'Start game in '+phase.test_var",
+              show:"player = players.gameowner",
               hooks:{
                 click:{
                   actions:{
@@ -286,6 +321,12 @@ exports.game = {
           zoom:"'fit'",
           center:"game.center",
           rotation:"game.center.heading + player.dir",
+          elements:{
+            'test':{
+              type:"timer",
+              timer:"player.nextCard"
+            }
+          },
           geoElements:{
             'player':{
               type:"circle",
@@ -324,7 +365,7 @@ exports.game = {
                     'boxlist':{
                       type:"GeoElement",
                       pos:[0,0],
-                      rotation:"((1/2) + index - list.count/2)*2/5", //*20
+                      rotation:"index*2/5+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
                       geoElements:{
                         'box':{
                           type:"box",
@@ -483,6 +524,10 @@ exports.game = {
                               '_6':{//reset the current card in the players hand by not setting a source
                                 type:"set",
                                 target:"player.currentCard"
+                              },
+                              '_7':{//reset the timer for this player
+                                type:"reset",
+                                timer:"player.nextCard"
                               }
                             }, // end of if true actions
                             else:{
@@ -713,7 +758,7 @@ exports.game = {
               actions:{
                 'card_loop':{
                   type:"each",
-                  list:"1:5",
+                  list:"1:1",
                   prototype:"number",
                   actions:{
                     1:{
@@ -732,7 +777,11 @@ exports.game = {
                   type:"set",
                   target:"_player_loop.el.currentCard",
                   source:"_player_loop.el.hand.last"
-                  //source:"phase.deck.last"
+
+                },
+                'start timer for next card':{
+                  type:"start",
+                  timer:"_player_loop.el.nextCard"
                 }
               }
             }
@@ -756,7 +805,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser')",
+                  text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser:'+listel.hand.count)",
                 }
               }
             },

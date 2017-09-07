@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' https://openlayers.org 'unsafe-inline'; script-src 'self' https://cdn.polyfill.io https://openlayers.org 'unsafe-inline' 'unsafe-eval'; worker-src * blob:;">
+
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link rel="stylesheet" type="text/css" href="css/index.css">
+        <link rel="stylesheet" href="https://openlayers.org/en/v4.3.1/css/ol.css" type="text/css">
+        <title>Hello World</title>
+        <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+        <script src="https://openlayers.org/en/v4.3.1/build/ol.js"></script>
+    </head>
+    <body>
+        <div id="map" class="map" style="width:100%;height:100%"></div>
+
+        <!-- 3rd party libraries -->
+        <script type="text/javascript" src="js/require.min.js"></script>
+        <!--<script type="text/javascript" src="js/uno.js"></script>-->
+        <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+        <!--<script type="text/javascript" src="js/basic.js"></script>
+        <script type="text/javascript" src="js/scoperef.js"></script>
+        <script type="text/javascript" src="js/actions.js"></script>
+        <script type="text/javascript" src="js/gamestate.js"></script>
+        <script type="text/javascript" src="js/view.js"></script>
+        <script type="text/javascript" src="js/gameengine.js"></script>
+        <script type="text/javascript" src="js/client.js"></script>-->
+
+        <!--<script type="text/javascript" src="js/risk.js"></script>-->
+        <!--<script type="text/javascript" src="js/test_game.js"></script>-->
+        <script type="text/javascript">
+
+require('js/gamestate');
+
+var uno = require('js/uno');
+
+var gs = new GameState(uno.game);
+
+//add players
+gs.addPlayer('mads');
+//this.gs.addPlayer('simon');
+
+//load the first game phase which will setup hooks
+
+gs.loadPhase(/*default to first*/);
+
+
+
+</script>
+
+
+    </body>
+</html>

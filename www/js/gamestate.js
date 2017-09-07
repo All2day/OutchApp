@@ -46,6 +46,8 @@ Hookable.extend('Variable',{
 
     Variable._registerVar(v,id);
 
+    //TODO: clone hooks?
+
 
     return v;
   },
@@ -366,33 +368,78 @@ Variable.extend('TimerVariable',{
     this.duration = obj.duration;
 
     this._super(obj);
+    this._value = {
+      duration:this.duration,
+      status:null,
+      start_time:0
+    };
   },
   start: function(){
-    //console.log('timer started');
+    //console.log('timer with id '+this._id+' started');
     this.triggerHook('start');
     var that = this;
     this.start_time = new Date().getTime();
+
+    this._value.status = 'started';
+    this._value.start_time = this.start_time;
+
     //register this timer on the current phase
     ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
       ScopeRef._getGameState().currentPhase.deregisterTimer(this);
       //console.log('timer ended');
+      that._value.status = 'ended';
       that.triggerHook('end');
       //this happens outside normal tick time, thus trigger manually
       Hookable._handleTriggerQueue();
     },this.duration);
 
+    this.triggerHook('change');
   },
   stop: function(){
     ScopeRef._getGameState().currentPhase.deregisterTimer(this);
     clearTimeout(this._timeout);
+    this._value.status = 'stopped';
     this.triggerHook('stop');
+    this.triggerHook('change');
   },
   reset: function(){
-
+    this.triggerHook('change');
   },
   _stop: function(){ //Internal stop
     clearTimeout(this._timeout);
+    this._value = null;
+  },
+  set:function(val){
+
+    //if(val !== null) debugger;
+    this._super(val);
+    //console.log('setting timer to:'+val + 'r:'+this.get('ratioDone')+' d:'+this._value.duration);
+  },
+  clone: function(){
+    //when cloning a timer, all hooks must be cloned as well
+    var v = this._super();
+    console.log('cloning timer');
+    v._hooks = new GameStateList();
+    $.each(this._hooks._value, function(ht,hs){
+      var v_hs = new GameStateList();
+      $.each(hs._value,function(n,h){
+        v_hs.add(n,h.clone());
+      });
+      v._hooks.add(ht,v_hs);
+    });
+    return v;
+  },
+  get:function(ref){
+
+    switch(ref){
+      case 'ratioDone': //between 0 and 1
+        if(!this._value || this._value.status != 'started') return 0;
+        var t = new Date().getTime();
+        return Math.min(1,(t - this._value.start_time)/this._value.duration);
+      case 'duration':
+        return this._value === null ? Infinity : this._value.duration;
+    }
   }
 });
 
@@ -512,7 +559,7 @@ GameStateObject.extend('GameStateList',{
       case 'length':
         return this._count;
       case 'count':
-        return this._count
+        return this._count;
     }
     if(this._value !== null){
 
@@ -736,6 +783,7 @@ Variable.extend('ProtoTypeVariable',{
         } else {
           value[name] = v.clone();
         }
+        value[name].owner = that;
       });
       this._value = value;
     }
@@ -1092,13 +1140,18 @@ GameStateObject.extend('GameState',{
     if(!this.clientHooks[id]){
       console.log(this.clientHooks);
       console.log('client hook missing:'+id);
+      //TODO: if a clien has not gone through all the same phases as the server it may have a different set of ids for its functions and thus calling will fail. All ids should be forced through somehow
     }
     var h = this.clientHooks[id];
 
 
     //Set the reference for each of the client based variables
     $.each(vars||{},function(i,v){
-      h.vars[i].v = Variable._vars[v.v];
+      if(v.v){
+        h.vars[i].v = v.v;
+      } else {
+        h.vars[i].v = Variable._vars[v.p];
+      }
     });
 
     ScopeRef._setScope(h);
