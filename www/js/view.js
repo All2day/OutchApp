@@ -51,7 +51,7 @@ Hookable.extend('ClientElement',{
       that._update(k);
     });
   },
-  getProp:function(name){
+  getProp:function(name,primitive /* is the returned value forced to be primitive */){
     var val = null;
     var gp = this._props[name]; //the game property
     if(gp instanceof GameProperty && gp.r !== null){
@@ -62,8 +62,8 @@ Hookable.extend('ClientElement',{
         val = gp.r;
       }
     } else
-    if(gp instanceof GameProperty){
-    //evaluate the string
+    if(gp instanceof GameProperty){ //if first time and reference (r) not set
+      //evaluate the string
       //if(name=='pos') debugger;
       ScopeRef._setScope(this);
 
@@ -106,6 +106,11 @@ Hookable.extend('ClientElement',{
     } else {
       val = this._props[name];
     }
+
+    if(primitive && val instanceof Variable){
+      val = val._value;
+    }
+
     return val;
 
     /*if(this._props[name] instanceof ScopeRef){
@@ -165,11 +170,15 @@ ClientElement.extend('ViewElement',{
 
     this.type = obj.type;
     var els = [];
-
+    var that = this;
     $.each(obj.elements||{},function(k,el){
-      els.push(ViewElement.fromObject(el));
+      var element = ViewElement.fromObject(el);
+      element.owner = that;
+      els.push(element);
     });
     this.elements = {_value:els};//new GameStateList(obj.elements || {},ViewElement);
+
+    this.registerProp('show',obj.show,true);
   },
   destroy:function(){
     this._super();
@@ -183,6 +192,15 @@ ClientElement.extend('ViewElement',{
     $.each(this.elements._value,function(key,element){
       element.getClientHooks(hooks);
     });
+  },
+  update:function(props){
+    if(this._dom && props['show'] != undefined){
+      if(props['show']){
+        this._dom.show();
+      } else {
+        this._dom.hide();
+      }
+    }
   }
 });
 
@@ -235,14 +253,16 @@ ViewElement.extend('PageElement',{
         alignContent:'center',
         flexWrap:'wrap'
       });
+      this._dom = dom;
+      c.append(this._dom);
 
       $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
         el.draw(dom);
       });
-      this._dom = dom;
+
     }
 
-    c.append(this._dom);
+
   }
 });
 
@@ -425,6 +445,46 @@ ViewElement.extend('ButtonElement',{
   }
 });
 
+ViewElement.extend('InputElement',{
+  init:function(obj){
+    this._super(obj);
+    this.registerProp('default',obj.default,'');
+  },
+  update:function(props){ //update the following properties by looking up the values
+    if(!this._dom) return;
+    var that = this;
+    $.each(props,function(prop,val){
+      val = val._value || val;
+      switch(prop){
+        case 'text':
+          that._dom.text(val);
+      }
+    });
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<input type="text" />').css({
+        width:'80vw',
+        display:'inline-block'
+
+      }).val(this.getProp('default',true));
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      var that = this;
+      dom.on('change',function(e){
+        that.triggerHook('change');
+      });
+      this._dom = dom;
+    }
+
+    c.append(this._dom);
+  }
+});
+
+
 ViewElement.extend('TimerElement',{
   timer:null,
   init:function(obj){
@@ -435,12 +495,16 @@ ViewElement.extend('TimerElement',{
 
 ViewElement.extend('MapElement',{
   geoElements:[],
-  _realPos: [0,0,0], //x,y,r clockwise in radians
+  _realPos: null, //x,y,r clockwise in radians
   init: function(obj){
+    this._realPos = [0,0,0];
     this._super(obj);
     this.geoElements = new GameStateList(obj.geoElements || {},GeoElement);
     this.geoElements.owner = this;
     this.registerProp('center',obj.center);
+    this.registerProp('width',obj.width,100);
+    this.registerProp('height',obj.height,100);
+    this.registerProp('zoom',obj.zoom,20);
   },
   getClientHooks: function(hooks){
     this._super(hooks);
@@ -456,7 +520,20 @@ ViewElement.extend('MapElement',{
       switch(prop){
         case 'center':
           var s = that._map.getSize();
-          that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.66]);
+          //that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.66]);
+          that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.5]);
+          break;
+        case 'zoom':
+          if(val == 'fit'){
+
+            var ext = that._vectorSource.getExtent();
+            that._map.getView().fit(ext,{
+              constrainResolution:false,
+              size:that._map.getSize()
+            });
+          } else {
+            that._map.getView().setZoom(val);
+          }
           break;
       }
     });
@@ -464,21 +541,24 @@ ViewElement.extend('MapElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div></div>').css({
-        position:'absolute',
-        top:0,
-        left:0,
-        //background:'white',
-        width:'100vw',
-        height:'100vh',
-        /*verticalAlign:'middle',
-        textAlign:'center',
-        display:'flex',
-        alignItems:'center',
-        justifyContent:'center',
-        alignContent:'center',
-        flexWrap:'wrap'*/
-      });
+      var dom = $('<div></div>');
+
+      if(this.owner instanceof ViewElement){
+        var w = this.getProp('width');
+        var h = this.getProp('height');
+        dom.css({
+          width:''+w+'vw',
+          height:''+h+'vh'
+        });
+      } else {
+        dom.css({
+          position:'absolute',
+          top:0,
+          left:0,
+          width:'100vw',
+          height:'100vh',
+        });
+      }
 
       var map = new ol.Map({
         layers: [
@@ -496,6 +576,9 @@ ViewElement.extend('MapElement',{
         })*/
       });
 
+      //TODO:remove this, as it is for debug
+      window.m = this;
+
       //create the vector layers
       this._vectorSource = new ol.source.Vector();
       this._vectorLayer = new ol.layer.Vector({
@@ -503,16 +586,23 @@ ViewElement.extend('MapElement',{
       });
       map.addLayer(this._vectorLayer);
       this._map = map;
+      c.append(dom);
+
+      /* Test feature
+      var test_c = new ol.geom.Circle([0,0],10);
+      var test_f = new ol.Feature({
+        geometry:test_c
+      });
+      this._vectorSource.addFeature(test_f);
+      */
+      this._map.updateSize();
 
       var that = this;
-      //debugger;
+
       $.each(this.geoElements ? this.geoElements._value ||{}: {},function(n,el){
-        //debugger;
-        //el.draw(that._vectorSource);
         el.draw(that._vectorSource);
         el.redraw(); //fire twice, the first on initialises geometries, the second the position
       });
-
 
 
       /*$.each(this.elements ? this.elements._value ||{}: {},function(n,el){
@@ -532,8 +622,7 @@ ViewElement.extend('MapElement',{
       //fire it the first time
       this.checkInside(ScopeRef._gs.currentPlayer.get('pos'));
     }
-    c.append(this._dom);
-    this._map.updateSize();
+
 
     var c = this.getProp('center');
     this.update({center:c});
@@ -555,6 +644,9 @@ ViewElement.extend('MapElement',{
     var fts = this._vectorSource.getFeaturesAtCoordinate([pos._value.x,pos._value.y]);
     var that = this;
     $.each(fts,function(i,ft){
+      if(!ft.el){
+        return;
+      }
       if(!ft.el._inside){
 
         ft.el.triggerHook('enter');
@@ -1007,7 +1099,9 @@ GeoElement.extend('CircleElement',{
     if(!this._geom){
       //var pos = this.getProp('pos');
       var r = this.getProp('radius');
-
+      if(r instanceof Variable){
+        r = r._value;
+      }
       this._geom = new ol.geom.Circle([0,0],r);
     }
   },
@@ -1084,6 +1178,12 @@ GeoElement.extend('CircleElement',{
 
    },
    _calculateCoordinates:function(w,h){
+     if(w instanceof Variable){
+       w = w._value;
+     }
+     if(h instanceof Variable){
+       h = h._value;
+     }
      //returns an array of an array with array coordinates
      return [[[-.5*w,-.5*h],[.5*w,-.5*h],[.5*w,.5*h],[-.5*w,.5*h],[-.5*w,-.5*h]]];
    }

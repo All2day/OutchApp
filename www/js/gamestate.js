@@ -591,6 +591,9 @@ GameStateChangeableList.extend('PlayerList',{
         });
         return l;
         break;
+      case 'gameowner':
+        //the owner is the first one in the list
+        return this._value[this.firstKey()];
     }
     return this._super(ref);
   }

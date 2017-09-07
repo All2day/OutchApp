@@ -38,7 +38,9 @@ exports.game = {
       type: "list",
       prototype: "number",
       els: [1,2,3,4,5,6,7,8,9,10,11]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
-    }
+    },
+    size:25,
+    cardHeight:15
   },
   phases:{
     /*create:{
@@ -51,6 +53,39 @@ exports.game = {
         '_1':{
           type:'page',
           elements:{
+            'map':{
+              type:'MapView',
+              width:80,
+              height:20,
+              zoom:"'fit'",
+              center:"player.pos",
+              geoElements:{
+                'outer':{
+                  type:"circle",
+                  radius:"game.size+game.cardHeight",
+                  fill:[0,0,0,0],
+                  pos:"player.pos",
+                },
+                'inner':{
+                  type:"circle",
+                  radius:"7",
+                  fill:[0,0,0,0],
+                  pos:"player.pos",
+                },
+                'players':{
+                  type:"geolist",
+                  list:"players",
+                  elements:{
+                    'p':{
+                      type:"circle",
+                      radius:"2",
+                      fill:"'blue'",
+                      pos:"listel.pos"
+                    }
+                  }
+                }
+              }
+            },//end of map
             'gamename':{
               type:"label",
               text:"'spillets navn:'+game.name"
@@ -67,6 +102,11 @@ exports.game = {
                   }
                 }
               }
+            },
+            'input':{
+              show:"player = players.gameowner",
+              type:"input",
+              default:"'fedt navn'"
             },
             'players':{
               type:'list',
@@ -243,7 +283,7 @@ exports.game = {
       views:{
         1:{
           type:"MapView",
-          //center:"game.center",
+          zoom:"'fit'",
           center:"game.center",
           rotation:"game.center.heading + player.dir",
           geoElements:{
@@ -272,7 +312,7 @@ exports.game = {
             'outer':{
               type:"circle",
               //stroke:"5px rgba(100,100,100,0.5)",
-              radius:"25",
+              radius:"game.size",
               rotation:"player.dir*2*3.1415/players.count",
               fill:[0,0,0,0],
               pos:"game.center",
@@ -288,9 +328,11 @@ exports.game = {
                       geoElements:{
                         'box':{
                           type:"box",
+                          //TODO:make it possible to have position referenced to the game
                           pos:[0,32.5], //go half the card to the left, and the radius of the circle down
                           width:"10",
-                          height:"15",
+                          //height:"15",
+                          height:"game.cardHeight",
                           text:"listel.value",
                           fill:"listel.color",
                           color:"element.isinside ? 'white' : (player.currentCard = listel ? 'red' : 'black')",
