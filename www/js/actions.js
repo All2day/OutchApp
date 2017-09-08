@@ -314,9 +314,13 @@ Action.fromObject = function(obj,name){
      this.duration.owner = this;
    },
    do:function(scope){
-     console.log('vvvvvviiiiibbbbrrraaattteee');
-     //alert('vibrate...');
-     //vibrate...
+
+     if(navigator && navigator.vibrate){
+        navigator.vibrate(this.duration || 300);
+     } else {
+       console.log('no vibration:vvvvvviiiiibbbbrrraaattteee');
+     }
+
    },traverseInputs:function(f){
      f(this.duration);
    }

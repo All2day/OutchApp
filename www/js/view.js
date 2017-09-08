@@ -785,7 +785,7 @@ ViewElement.extend('MapElement',{
       this._inside_elements = [];
     }
     console.log('checking inside for post:',pos);
-    var t = new Date().getTime(); //use current milliseconds to check if still inside an element
+    var t = ScopeRef._gs.getTime(); //use current milliseconds to check if still inside an element
 
     //Fix since it seems that the rbush algorithm does not correctly find all elements
     //var fts = this._vectorSource.getFeaturesAtCoordinate([pos._value.x,pos._value.y]);
@@ -1126,7 +1126,7 @@ GeoElement.extend('GeolistElement',{
     }
 
     this.list = new_list;
-    var t = new Date().getTime();
+    var t = ScopeRef._gs.getTime();
     var that = this;
     $.each(this.list._value,function(i,k){
       //if already existing, dont create a new wrapper element

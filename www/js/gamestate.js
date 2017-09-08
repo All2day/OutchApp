@@ -378,7 +378,7 @@ Variable.extend('TimerVariable',{
     //console.log('timer with id '+this._id+' started');
     this.triggerHook('start');
     var that = this;
-    this.start_time = new Date().getTime();
+    this.start_time = ScopeRef._gs.getTime();
 
     this._value.status = 'started';
     this._value.start_time = this.start_time;
@@ -435,7 +435,7 @@ Variable.extend('TimerVariable',{
     switch(ref){
       case 'ratioDone': //between 0 and 1
         if(!this._value || this._value.status != 'started') return 0;
-        var t = new Date().getTime();
+        var t = ScopeRef._gs.getTime();
         return Math.min(1,(t - this._value.start_time)/this._value.duration);
       case 'duration':
         return this._value === null ? Infinity : this._value.duration;
@@ -1075,6 +1075,13 @@ GameStateObject.extend('GameState',{
     console.log('adding player:'+id);
     var p = this.prototypes.player.create();
     this.players.add(id,p);
+  },
+  /**
+   * Basic time function. Can be overwritten in clients
+   * To adjust for time differences
+   */
+  getTime:function(){
+    return new Date().getTime();
   },
   /**
    * Removes a player

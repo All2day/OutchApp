@@ -32,4 +32,5 @@
     </platform>
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />
+    <plugin name="com.manueldeveloper.volume-buttons" spec="https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git" />
 </widget>

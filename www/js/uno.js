@@ -51,12 +51,12 @@ exports.game = {
     colors: { // colors available in the game, except the none color
       type: "list",
       prototype: "string",
-      els:["red","blue"]//"green","yellow"]
+      els:["red","blue","green","yellow"]
     },
     cardtypes: { //card types in each color
       type: "list",
       prototype: "number",
-      els: [1,1,1,2,2,2,3,3,3,4,4,4]//5,6,7,8,9,10,11]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+      els: [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     },
     size:25,
     cardHeight:15
@@ -758,7 +758,7 @@ exports.game = {
               actions:{
                 'card_loop':{
                   type:"each",
-                  list:"1:5",
+                  list:"1:7",
                   prototype:"number",
                   actions:{
                     1:{

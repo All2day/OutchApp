@@ -13,6 +13,10 @@ Class.extend('GameClient',{
     this.UUID = UUID;
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);
+
+    //register time function
+    this.gs.getTime = this.getServerTime.bind(this);
+
     //this.gs.getFullState();
     this.gs.currentPhase.addHook('change',function(){
       if(this.currentPhase){
@@ -78,7 +82,7 @@ Class.extend('GameClient',{
           //console.log('space');
           break;
         default:
-          console.log('e'+e.key);
+          //console.log('e'+e.key);
           return;
       }
       that.gs.currentPlayer.updatePosition(window.pos);

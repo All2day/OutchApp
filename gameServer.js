@@ -6,7 +6,7 @@ var path = require('path')
 var baseDirectory = __dirname   // or whatever base directory you want
 
 var jsdom = require('jsdom');
-const dom = new jsdom.JSDOM(`<!DOCTYPE html>`);
+const dom = new jsdom.JSDOM('<!DOCTYPE html>');
 global.$ = require("jquery")(dom.window);
 
 global.window = null; //required to be able to make (window || global)
