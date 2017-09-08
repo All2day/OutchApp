@@ -4,7 +4,7 @@ Class.extend('GameClient',{
   gs:null,
   server:null,
   time_offset: 0,
-  min_send_frequency:1000,
+  min_send_frequency:100,
   UUID:'mads',
   remoteTriggerQueue:[],//{nextId:1}, //using integers for indexing
   currentPhase:null,
@@ -36,7 +36,7 @@ Class.extend('GameClient',{
       var view = this.gs.currentPhase.views[view_name];
 
       //debugger;
-      this.gs.clientHooks = {};
+      this.gs.clientHooks = [];
       this.gs.currentPhase.getClientHooks(this.gs.clientHooks);
 
       if(view._dom){
@@ -50,13 +50,51 @@ Class.extend('GameClient',{
     var geolocation = new ol.Geolocation({
       tracking: true
     });
+
+    //manual control of position
+    that = this;
+    $(window).on('keydown',function(e){
+      if(!window.pos){
+
+        var p = that.gs.currentPlayer.pos._value;
+        window.pos = [p.x,p.y];
+      }
+      switch(e.key){
+        case 'ArrowUp':
+          window.pos[1]+=1;
+          break;
+        case 'ArrowDown':
+          window.pos[1]-=1;
+          break;
+        case 'ArrowLeft':
+          window.pos[0]-=1;
+          break;
+        case 'ArrowRight':
+          window.pos[0]+=1;
+          break;
+        case ' ':
+          that.triggerVolumeUp();
+          //console.log('space');
+          break;
+        default:
+          console.log('e'+e.key);
+          return;
+      }
+      that.gs.currentPlayer.updatePosition(window.pos);
+      //Trigger hooks affected by the changed position
+      Hookable._handleTriggerQueue();
+
+
+    });
+
     geolocation.on('change',function(evt){
       //TODO: this is for tesing, should be removes
+
       window.loc = geolocation.getPosition();
       var pp = new ol.geom.Point(ol.proj.transform(geolocation.getPosition(), 'EPSG:4326', 'EPSG:3857'));
       //console.log('got pos change');
 
-      if(this.gs.currentPlayer){
+      if(this.gs.currentPlayer && !window.pos){
         var c = pp.getCoordinates();
         this.gs.currentPlayer.updatePosition(c);
         //Trigger hooks affected by the changed position
@@ -225,7 +263,21 @@ Class.extend('GameClient',{
       timeout:2000
     });
   },
-  registerRemoteTrigger: function(hook_id,vars){
+  registerRemoteTrigger: function(hook,vars){
+    var hook_id = null;
+
+    for(var i=0;i< this.gs.clientHooks.length;i++){
+      if(hook == this.gs.clientHooks[i]){
+        hook_id = i;
+        break;
+      }
+    }
+    if(hook_id === null){
+      console.log('could not find client hook?');
+      return;
+    }
+
+
     //add to remote trigger queue
     this.remoteTriggerQueue.push({
       t:this.getServerTime(),

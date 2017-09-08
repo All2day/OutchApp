@@ -49,6 +49,9 @@ var qs = (function(a) {
 
 var uno = require('js/uno');
 
+$.each(qs,function(k,v){
+  window[k] = v;
+});
 
 window._client = new GameClient(uno.game,qs['UUID']||'mads');
 

@@ -14,7 +14,7 @@ exports.game = {
       },
       nextCard: {
         type:"timer",
-        duration:300000,
+        duration:15000,
         hooks:{
           end:{
             actions:{
@@ -51,12 +51,12 @@ exports.game = {
     colors: { // colors available in the game, except the none color
       type: "list",
       prototype: "string",
-      els:["red","blue","green","yellow"]
+      els:["red","blue"]//"green","yellow"]
     },
     cardtypes: { //card types in each color
       type: "list",
       prototype: "number",
-      els: [1,2,3,4,5,6,7,8,9,10,11]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+      els: [1,1,1,2,2,2,3,3,3,4,4,4]//5,6,7,8,9,10,11]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     },
     size:25,
     cardHeight:15
@@ -318,7 +318,7 @@ exports.game = {
       views:{
         1:{
           type:"MapView",
-          zoom:"'fit'",
+          zoom:"19.5",
           center:"game.center",
           rotation:"game.center.heading + player.dir",
           elements:{
@@ -443,7 +443,7 @@ exports.game = {
                           1:{
                             type:"if",
                             //condition is based on the color must match, possibly with a color changing card underneath OR the value must match OR it is a color changing card
-                            condition:"player.currentCard || player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0",
+                            condition:"player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0",
                             actions:{
                               '_1':{//remove the card from the user
                                 type:"remove",
@@ -758,7 +758,7 @@ exports.game = {
               actions:{
                 'card_loop':{
                   type:"each",
-                  list:"1:1",
+                  list:"1:5",
                   prototype:"number",
                   actions:{
                     1:{

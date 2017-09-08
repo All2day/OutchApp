@@ -52,8 +52,10 @@ Hookable.extend('ClientElement',{
     });
   },
   getProp:function(name,primitive /* is the returned value forced to be primitive */){
+
     var val = null;
     var gp = this._props[name]; //the game property
+
     if(gp instanceof GameProperty && gp.r !== null){
       if(gp.r instanceof ScopeRef){
         ScopeRef._setScope(this);
@@ -84,6 +86,7 @@ Hookable.extend('ClientElement',{
         } else {
           gp.r = r.ref;
           var that = this;
+
           $.each(r.inf.vars,function(k,v){
             var ah = {
               v:v, //the variable
@@ -150,10 +153,13 @@ Hookable.extend('ClientElement',{
 
 
     c._attachedHooks = [];
-
+    var props = {};
     $.each(c._props || {},function(k,p){
-      c._props[k] = $.extend(Object.create(Object.getPrototypeOf(c._props[k])),c._props[k]);;
+      props[k] = $.extend(Object.create(Object.getPrototypeOf(c._props[k])),c._props[k]);
+
+      delete(props[k].r);
     });
+    c._props = props;
 
     //debugger;
     return c;
@@ -485,7 +491,7 @@ ViewElement.extend('InputElement',{
 
     c.append(this._dom);
     var d = this.getProp('default',true);
-    if(d!==null){
+    if(d!==null && this.getProp('show',true)){
       this._dom.val(d);
       this.triggerHook('change');
     }
@@ -612,11 +618,30 @@ ViewElement.extend('MapElement',{
                 //console.log('added:'+ft.el._name,ext);
               }
             });
+            if(window.draw_extent){
+              var new_g = new ol.geom.Polygon(
+                [[[ext[0],ext[1]],
+                [ext[0],ext[3]],
+                [ext[2],ext[3]],
+                [ext[2],ext[1]],
+                [ext[0],ext[1]]]]);
+              //debugger;
+              if(!that._extentfeature){
+                that._extentfeature = new ol.Feature({
+                  geometry:new_g
+                });
+                that._vectorSource.addFeature(that._extentfeature);
+              }
+
+              that._extentfeature.setGeometry(
+                new_g
+              );
+            }
             //var ext = that._vectorSource.getExtent();
-            /*that._map.getView().fit(ext,{
+            that._map.getView().fit(ext,{
               constrainResolution:false,
               size:that._map.getSize()
-            });*/
+            });
           } else {
             that._map.getView().setZoom(val);
           }
@@ -791,6 +816,7 @@ ViewElement.extend('MapElement',{
       }
       if(!ft.el._inside){
         console.log('entering feature:'+ft.el._name);
+
         ft.el.triggerHook('enter');
         ft.el.triggerHook('change');
         that._inside_elements.push(ft.el);
@@ -812,6 +838,7 @@ ViewElement.extend('MapElement',{
       }
     });
     this._inside_elements = new_inside_els;
+    Hookable._handleTriggerQueue();
   }
 });
 
@@ -927,18 +954,21 @@ ViewElement.extend('GeoElement',{
       g.translate(this._realPos[0],this._realPos[1]);
       g.rotate(this._realPos[2],this._realPos);
       this._feature.setGeometry(g);
-      /*var ext = g.getExtent();
 
-      var new_g = new ol.geom.Polygon(
-        [[ext[0],ext[1]],
-        [ext[0],ext[3]],
-        [ext[2],ext[3]],
-        [ext[2],ext[1]],
-        [ext[0],ext[1]]]);
-      debugger;
-      this._feature.setGeometry(
-        new_g
-      );*/
+      if(window.draw_extent){
+        //overwrite the geometry with its extent
+        var ext = g.getExtent();
+        var new_g = new ol.geom.Polygon(
+          [[[ext[0],ext[1]],
+          [ext[0],ext[3]],
+          [ext[2],ext[3]],
+          [ext[2],ext[1]],
+          [ext[0],ext[1]]]]);
+        //debugger;
+        this._feature.setGeometry(
+          new_g
+        );
+      }
     }
 
     $.each(this.geoElements._value,function(key,element){

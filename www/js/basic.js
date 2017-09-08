@@ -251,7 +251,7 @@ TreeObject.extend('Hookable',{
              console.log(data);
              //debugger;
 
-             (window||global)._client.registerRemoteTrigger(k,data);
+             (window||global)._client.registerRemoteTrigger(hook,data);
              //(window||global)._client.addCmd(hook, that);
            } else {
              Hookable._triggerQueue.push([hook,that]);
@@ -277,7 +277,7 @@ TreeObject.extend('Hookable',{
 
              //debugger;
              //hooks[Hookable._nextHookId++] = h;
-             hooks[k] = h;
+             hooks.push(h); //now pushes so that it will be reset each time a phase is reloadet.
            }
          });
        });

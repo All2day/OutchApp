@@ -1119,7 +1119,7 @@ GameStateObject.extend('GameState',{
 
 
     //load all hooks
-    this.clientHooks = {};
+    this.clientHooks = [];
 
     /*this.clientHooks = */
     this.currentPhase.getClientHooks(this.clientHooks);
