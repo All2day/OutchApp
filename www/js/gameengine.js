@@ -22,10 +22,12 @@ Class.extend('GameServer',{
   gs:null,
   hooks:null,
   port: 9615,
-  init:function(gameobject){
+  game_id:null,
+  init:function(gameobject, game_id){
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);
 
+    this.game_id = game_id;
     //add players
     //this.gs.addPlayer('mads');
     //this.gs.addPlayer('simon');
@@ -71,7 +73,7 @@ Class.extend('GameServer',{
 
       var response_data = {};
       response_data.t = t;
-
+      response_data.game_id = this.game_id;
       //apply updates from client
       var that = this;
 

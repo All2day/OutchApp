@@ -5,11 +5,12 @@ Class.extend('GameClient',{
   server:null,
   time_offset: 0,
   min_send_frequency:100,
+  game_id:null,
   UUID:'mads',
   remoteTriggerQueue:[],//{nextId:1}, //using integers for indexing
   currentPhase:null,
-  init:function(gameobject,id){
-    this.UUID = id;
+  init:function(gameobject,UUID){
+    this.UUID = UUID;
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);
     //this.gs.getFullState();
@@ -145,7 +146,7 @@ Class.extend('GameClient',{
 
     //set the value of all variables
     $.each(update,function(id,u){
-      //if(id==47) debugger;
+      //if(id==43 && u.value.length < 5) debugger;
       if(p && id == p.pos._id){
         return; //ignore updates of position
       }
@@ -244,6 +245,13 @@ Class.extend('GameClient',{
       dataType: "json",
       url: this.server+'?'+JSON.stringify(d),
       success: function(r){
+        if(this.game_id === null){
+          this.game_id = r.game_id;
+        }
+        if(r.game_id != this.game_id){
+          window.location.reload();
+        }
+        r.game_id
         this.fullUpdate(r.u);
         //console.log('got update');
         var this_t = new Date().getTime();

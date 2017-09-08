@@ -14,6 +14,6 @@ global.window = null; //required to be able to make (window || global)
 var uno = require('./www/js/uno.js');
 require('./www/js/gameengine.js');
 
-var gameServer = new GameServer(uno.game);
+var gameServer = new GameServer(uno.game,new Date().getTime() /*game_id*/);
 
 gameServer.start();

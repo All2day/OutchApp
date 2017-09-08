@@ -1133,6 +1133,8 @@ GeoElement.extend('GeolistElement',{
       for(var l = 0; l < that._wrapperels.length; l++){
         if(that._wrapperels[l].listel == k){
           that._wrapperels[l].updated_time = t;
+          that._wrapperels[l].index = i; //update the index to the position in the list
+          that._wrapperels[l].redraw(); //redraw:-)
           //By returning this wrapper el will stay the same
           return;
         }
