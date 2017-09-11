@@ -44,8 +44,14 @@ class IndexController extends Zend_Controller_Action{
 	}
 
 	public function startAction(){
-		$command = 'nohup '.'nodejs gameServer'.' > /dev/null 2>&1 & echo $!';
-    exec($command ,$op);
-    $this->pid = (int)$op[0];
+		$instance = InstanceTable::startInstance();
+
+		$res = array(
+			'instance_id' => $instance->instance_id,
+			'url' => $instance->url
+		);
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
 	}
 }

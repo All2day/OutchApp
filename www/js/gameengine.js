@@ -21,13 +21,15 @@ Class.extend('GameServer',{
   players:null,
   gs:null,
   hooks:null,
-  port: 9615,
+  port: null,
   game_id:null,
-  init:function(gameobject, game_id){
+  init:function(gameobject, game_id, port){
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);
 
     this.game_id = game_id;
+    this.port = port;
+
     //add players
     //this.gs.addPlayer('mads');
     //this.gs.addPlayer('simon');

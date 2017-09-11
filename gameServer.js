@@ -11,9 +11,14 @@ global.$ = require("jquery")(dom.window);
 
 global.window = null; //required to be able to make (window || global)
 
+var instance_id = process.argv[2];
+var port = process.argv[3];
+
+console.log(instance_id,port);
+
 var uno = require('./www/js/uno.js');
 require('./www/js/gameengine.js');
 
-var gameServer = new GameServer(uno.game,new Date().getTime() /*game_id*/);
+var gameServer = new GameServer(uno.game,instance_id ,port);
 
 gameServer.start();
