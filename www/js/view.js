@@ -862,6 +862,7 @@ ViewElement.extend('GeoElement',{
     this.registerProp('text',obj.text,null);
     this.registerProp('color',obj.color,[0,0,0,0.5],ScopeColor);
     this.registerProp('fill',obj.fill,[255,0,0,0.3],ScopeColor);
+    this.registerProp('zIndex',obj.zIndex,0);
   },
   getClientHooks: function(hooks){
     this._super(hooks);
@@ -979,6 +980,7 @@ ViewElement.extend('GeoElement',{
     var text = this.getProp('text');
     var color = this.getProp('color');
     var fill = this.getProp('fill');
+    var zIndex = this.getProp('zIndex');
 
     if(text && text._value){
       text = text._value;
@@ -997,7 +999,8 @@ ViewElement.extend('GeoElement',{
       stroke: new ol.style.Stroke({
         color:color,
         width:2
-      })
+      }),
+      zIndex:zIndex
     });
 
 

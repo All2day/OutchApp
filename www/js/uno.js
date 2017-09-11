@@ -333,6 +333,7 @@ exports.game = {
               radius:"2",
               pos:"player.pos",
               color:[0,0,255,1],
+              zIndex:2,
               //fill:[0,0,255,0.4]
               fill:"player.currentCard ? player.currentCard.color : [0,0,0,0]",
               text:"player.currentCard ? player.currentCard.value : ''",
@@ -344,6 +345,7 @@ exports.game = {
                 1:{
                   type:"circle",
                   radius:"1",
+                  zIndex:1,
                   pos:"listel.pos",
                   color:[0,255,0,1],
                   fill:[0,255,0,0.4]
@@ -356,6 +358,7 @@ exports.game = {
               radius:"game.size",
               rotation:"player.dir*2*3.1415/players.count",
               fill:[0,0,0,0],
+              zIndex:-1,
               pos:"game.center",
               geoElements:{
                 '_playercards':{ //The player cards
