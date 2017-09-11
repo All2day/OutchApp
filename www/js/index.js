@@ -81,9 +81,13 @@ var app = {
         if(!qs['UUID']){
           qs['UUID'] = prompt('Player name');
         }
+        if(qs['port']){
+          this.server = this.server+':'+qs['port'];
+        }
+
         window._client = new GameClient(uno.game,qs['UUID']||'mads');
 
-        _client.server = 'http://52.208.48.54:9615'; //'http://localhost:9615';
+        _client.server = this.server; //'http://52.208.48.54:9615'; //'http://localhost:9615';
         _client.startPinging();
 
         window._client = this._client = _client;

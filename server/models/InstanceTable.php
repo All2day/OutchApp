@@ -20,7 +20,7 @@ class InstanceTable extends Zend_Db_Table_Abstract
     $db->query('LOCK TABLES `instance` WRITE');
     $port = $db->fetchOne($sql);
     if(!$port){
-      $port = 10000;
+      $port = 9000;
     }
     $instance->port = $port+1;
     $instance->save();
