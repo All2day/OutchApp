@@ -1,0 +1,90 @@
+<h1>Statistik</h1>
+
+<?php
+if(isset($this->date)){
+	?>
+	<h2>Dato:<?=$this->date?></h2>
+
+
+	<table class="section_table">
+		<tr>
+			<th colspan="<?=$this->section_count?>">
+				Total (<?=$this->stat['used']?>/<?=$this->stat['total']?>)
+			</th>
+		</tr>
+		<tr>
+			<?php
+			foreach($this->stat['floors'] as $floor_name => $floor){
+				?>
+				<td colspan="<?=count($floor['sections'])?>"><a href="/admin/lockers/floor/<?=urlencode($floor_name)?>"><?=htmlspecialchars($floor_name ? $floor_name : '[no name]')?></a> (<?=$floor['used']?>/<?=$floor['total']?>)</td>
+				<?php
+			}
+			?>
+		</tr>
+		<tr>
+			<?php
+				foreach($this->stat['floors'] as $floor_name => $floor){
+					foreach($floor['sections'] as $section_name => $section){
+						?>
+						<td><a href="/admin/lockers/floor/<?=urlencode($floor_name)?>/section/<?=urlencode($section_name)?>"><?=htmlspecialchars($section_name ? $section_name : '[no name]')?></td>
+						<?php
+					}
+				}
+			?>
+		</tr>
+		<tr>
+			<?php
+				foreach($this->stat['floors'] as $floor){
+					foreach($floor['sections'] as $section_name => $section){
+						?>
+						<td>(<?=$section['used']?>/<?=$section['total']?>)</td>
+						<?php
+					}
+				}
+			?>
+		</tr>
+	</table>
+
+	<p>Bemærk, hvis et skab er blevet slettet, vil ordre på denne dato ikke indgå i oversigten, da den tager udgangspunkt i eksisterende skabe.</p>
+	<?php
+} else {
+ ?>
+
+<table class="stat_table">
+	<tr>
+		<th>Dato</th>
+		<th>Antal ordre</th>
+		<th></th>
+	</tr>
+<?php
+	foreach($this->stat as $row){
+		?>
+		<tr>
+			<td><?=$row['lock_date']?></td>
+			<td><?=$row['c']?></td>
+			<td class="more"><a href="?date=<?=$row['lock_date']?>" class="">Vis mere</a></td>
+		</tr>
+		<?php
+
+	}
+	//Zend_Debug::dump($this->stat);
+?>
+</table>
+
+<?php
+}
+?>
+<form method="get" class="search_form" action="?">
+	<button type="submit">Hent data</button>
+	<div class="bfc">
+		<input type="text" id="date_input" placeholder="Tryk for at vælge dato" name="date"/>
+	</div>
+
+</form>
+<script src="/js/datepicker.js"></script>
+
+<script>
+	window.addEvent('domready',function(){
+		var dp = new DatePicker('date_input',{format:'%Y-%m-%d'});
+	});
+</script>

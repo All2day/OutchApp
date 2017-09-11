@@ -1,0 +1,54 @@
+//Variables
+$side_padding:.5em;
+$left_bar: 15em;
+$header_height:70px;
+$max_page_width:64em;
+$product_footer_height:.25em;
+$small_rounding:.2em;
+
+
+
+
+$primary-color: #00102a;
+//$primary-color: blue;
+$green: #00102a;
+$light_blue: #2172b4;
+
+
+$orange: rgb(255,114,0);
+$dark_orange: #ed6902;
+$normal_text:#333;
+$border_gray:lighten(#8a8c8d,40);
+
+//$dark_text: #4c4c4c;
+$dark_text: #6d6d6d;
+$slider_gray:#C5C5C5;
+//$background_gray:#edf1f2;
+$background_gray:#F4F4F4;
+
+$green_light: #3b7715;
+$green_dark: #d9f2ca;
+$divider_gray:rgb(145,145,145);
+//$light_blue: #5997AF;
+
+$disabled_gray:#979898;
+
+$footer_light: #525252;
+$footer_dark: #404040;
+
+//tables
+$table_header_height: 3em;
+$table_row_height: 2em;
+$table_header_background: $primary-color;
+$table_header_color: white;
+$table_border_color: $border_gray;
+$table_row_hover: $light_blue;
+
+
+
+@mixin linear-image($start-color, $end-color){
+	//@include filter-gradient($start-color, $end-color);
+	background-color:$start-color;
+	@include background-image(linear-gradient($start-color,$end-color));
+
+}

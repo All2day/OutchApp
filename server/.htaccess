@@ -1,0 +1,12 @@
+RewriteEngine on
+RewriteRule .? - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+RewriteCond %{REQUEST_METHOD} =OPTIONS
+RewriteCond %{HTTP_USER_AGENT} ^Microsoft\sOffice\sProtocol\sDiscovery
+RewriteRule .* - [R=405,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule !\.(js|mov|ico|gif|png|jpg|css|txt)$ bootstrap.php
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule img/all/(.*)$ /index/getimage?img=$1 [L,R=temporary]

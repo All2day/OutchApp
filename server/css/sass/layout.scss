@@ -1,0 +1,246 @@
+@import "compass/css3";
+
+@import 'icons';
+@import 'colors';
+@import 'mixins';
+
+
+/* 8. CUSTOM LAYOUT & TYPOGRAPHY (Daddy bear)
+----------------------------------------------------------------------------------------*/
+
+.state-indicator:before {content: 'daddy'; }
+
+a.btn, #search_container button, #signup button{
+	font-weight:normal;
+}
+
+//display the slider
+#slider{
+	display:block;
+}
+
+header{
+	#search_container{
+		width:36em;
+		margin-top:1.5em;
+
+		left:$left_bar+2em;
+
+		#search_form{
+			@include border-radius($small_rounding);
+		}
+
+		.search_bar{
+			padding-left:0;
+			padding-right:0;
+		}
+
+		.selectable{
+			&:hover{
+	      display:block;
+	      //background-color:$green;//$orange;
+	      border-color:$green;
+				//color:white;
+	    }
+		}
+	}
+}
+
+
+.front{
+	header{
+		#search_container{
+
+			left: 50%;
+			@include transform(translateX(-50%));
+
+		}
+	}
+}
+
+.product{
+	.product_info{
+		&>div{
+			width:20%;
+		}
+		.attr_container{
+			width:60%;
+
+			div{
+				line-height:3em;
+				height:3em;
+			}
+			i{
+				width:1.5em;
+			}
+		}
+	}
+
+	.prices{
+		.partner{
+			img{
+				height:4em;
+			}
+		}
+		.delivery_conditions, .delivery_time{
+			display:table-cell;
+		}
+
+	}
+}
+
+.filters{
+	bottom:18em;
+	top:$header_height;
+
+	width: $left_bar + 1em;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+	@include border-box();
+	border-bottom:1em solid rgba(0,0,0,0);
+
+
+	.filters_inner{
+		width:$left_bar;
+		overflow:initial;
+	}
+}
+
+.landingpage_section{
+	padding-top:3em;
+  padding-bottom:3em;
+
+	.approach{
+		margin-left:100%*(100/1048);
+		//padding-top:150px;
+
+		div{
+			float:left;
+			margin:0 30px;
+			padding-top:150px;
+		}
+	}
+
+	/*#signup{
+		float:right;
+		margin:0;
+
+		padding: 0 (100%*48/1024);
+	}*/
+}
+
+header{
+	.content{
+		padding-left:0;
+		padding-right:0;
+	}
+
+	.logo{
+		
+	}
+}
+
+nav {
+
+}
+
+footer {
+	.footer_content{
+		padding:0;
+
+		&>div{
+			width:33%;
+		}
+		.middle{
+			display:inline-block;
+		}
+	}
+}
+
+.primary {
+	overflow:hidden;
+	position:relative;
+	width:auto;
+	max-width: 50.836em; /* 63.236 - 15.5*.8 = 50.836 */
+}
+.secondary {
+	clear:right;
+	width: 15em;
+	float:right;
+	margin-left:.5em;
+	font-size:.8em;
+}
+
+/*
+header ul li a span, #nav_menu span{
+	display:inline-block;
+	text-indent:0;
+	vertical-align:top;
+	padding-left:.5em;
+	font-size:1.3em;
+	font-weight:bold;
+}*
+header ul li a, header ul li a:visited, #nav_menu{
+	width: auto;
+}
+header ul li{
+	margin-left:1em;
+}*/
+
+#popup_window{
+	top:3em;
+}
+
+
+
+/* TESTIMONIALS */
+.testimonial{
+
+
+
+  min-height:$testimonial_image_size + 2*$testimonial_image_border;
+
+  min-width:475px;
+	width:auto;
+  margin:2em 1em 1em 1em;
+
+  .user_image1{
+    position:absolute;
+		display:block;
+  }
+
+  .quote{
+    color:$dark_text;
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+		margin:0;
+		margin-left:$testimonial_image_size + 2*$testimonial_image_border + 30px;
+    text-align:left;
+  }
+
+  .author{
+    right:0;
+  }
+}
+
+
+.inspiration_box{
+	width:25%;
+	margin:3%;
+}
+
+
+/* 9. CUSTOM LAYOUT & TYPOGRAPHY (Mummy bear)
+----------------------------------------------------------------------------------------*/
+@media screen and (min-width: 30em) {
+	.state-indicator:before {content: 'mummy'; }
+
+	.hide_mobile{display:none;}
+
+	#slider{
+		height:9em;
+		padding-top:2em;
+	}
+}

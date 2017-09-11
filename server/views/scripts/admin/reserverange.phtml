@@ -1,0 +1,18 @@
+<h1>Reserve lockers in range until a speficic time</h1>
+
+
+<form method="POST" action="">
+	start:<input type="number" name="start" placeholder="fx. 1024" value="<?=$this->start?>"/><br />
+	end:<input type="number" name="end" placeholder="fx. 1024" value="<?=$this->end?>"/><br />
+	until: <input type="text" name="until" placeholder="fx. 2017-02-03 02:00:00" value="<?=$this->until?>"/><br />
+	<button type="submit">Reserve locker range</button>
+	<button type="button" onclick="$(this).getParent('form').set('action','/admin/printcodesforrange').submit();">Get code for lockers in range</button>
+</form>
+
+<?php
+if(isset($this->res)){
+	?>
+	<h2><?=htmlspecialchars($this->res)?></h2>
+	<?php
+}
+?>
