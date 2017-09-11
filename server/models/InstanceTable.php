@@ -15,7 +15,7 @@ class InstanceTable extends Zend_Db_Table_Abstract
 
     //find free port
 
-    $sql = "SELECT max(port) FROM `instance`";
+    $sql = "SELECT max(port) FROM `instance` WHERE status = 'running'";
 
     $db->query('LOCK TABLES `instance` WRITE');
     $port = $db->fetchOne($sql);

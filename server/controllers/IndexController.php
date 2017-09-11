@@ -54,4 +54,30 @@ class IndexController extends Zend_Controller_Action{
 		header('Content-Type: application/json');
 		die(json_encode($res));
 	}
+
+	public function stopAction(){
+		$instance_id = $this->_getParam('instance_id');
+		$instanceTable = new InstanceTable();
+		$instance = $instanceTable->find($instance_id)->current();
+
+		$res = array(
+			'status' => 'ok'
+		);
+
+		if(!$instance){
+			$res['status'] = 'error';
+			$res['error'] = 'could not find instance with id:'.$instance_id;
+		} else {
+			if($instance->stop()){
+				$res['instance_status'] = $instance->status;
+			} else {
+				$res['instance_status'] = $instance->status;
+				$res['status'] = 'error';
+				$res['error'] = 'could not stop instance';
+			}
+		}
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
 }
