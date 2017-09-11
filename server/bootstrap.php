@@ -37,9 +37,9 @@ try{
 	# setup the db
 	if(preg_match("/^(.*\.)?(geogames\.all2day)\.dk.*/",$_SERVER['SERVER_NAME'])){
 		$db = Zend_Db::factory('Pdo_Mysql', array(
-			'host'     => 'localhost',
+			'host'     => 'maindb57.co2zizjzpyw3.eu-west-1.rds.amazonaws.com',
 			'username' => 'geogames',
-			'password' => 'c3yAziEM5yAEmv3n',
+			'password' => '3qYhQhqUupJtdK2J',
 			'dbname'   => 'geogames'
 		));
 	} else
