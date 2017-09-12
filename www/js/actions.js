@@ -315,7 +315,7 @@ Action.fromObject = function(obj,name){
    },
    do:function(scope){
 
-     if(navigator && navigator.vibrate){
+     if((global || window).navigator && navigator.vibrate){
         navigator.vibrate(this.duration || 300);
      } else {
        console.log('no vibration:vvvvvviiiiibbbbrrraaattteee');

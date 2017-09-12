@@ -1,3 +1,4 @@
+//require('js/handlebars-v2.0.0.js');
 require('js/log');
 require('js/client');
 
@@ -72,16 +73,18 @@ var app = {
             return b;
         })(window.location.search.substr(1).split('&'));
 
-        var uno = require('js/uno');
+
 
         $.each(qs,function(k,v){
           window[k] = v;
         });
 
-        if(!qs['UUID']){
-          qs['UUID'] = prompt('Player name');
+        if(qs['UUID']){
+          app.player_name = qs['UUID'];
+
         }
-        if(qs['port']){
+
+        /*if(qs['port']){
           this.server = this.server+':'+qs['port'];
         }
 
@@ -91,18 +94,204 @@ var app = {
         _client.startPinging();
 
         window._client = this._client = _client;
+        */
         //register volume buttons
         window.addEventListener("volumebuttonslistener", this.onVolumeButtonsListener.bind(this), false);
+        this.setupTemplates();
+        this.showGames();
     },
 
+    showGames:function(){
+      var f = $('#front');
+      var that = this;
+      if(!f.length){
+        f = $('<div id="front"></div>').appendTo("body");
+        f.on('click','.stop',function(){
+          $.getJSON(that.server+'/index/stop',{instance_id:$(this).attr('data-instance_id')},function(data){
+            this.showGames();
+          }.bind(that));
+        });
+
+        f.on('click','.start',function(){
+          $.getJSON(that.server+'/index/start',function(data){
+            this.showGames();
+          }.bind(that));
+        });
+
+        f.on('click','.join',function(){
+          var url = $(this).attr('data-url');
+          that.startGame(url);
+        });
+      }
+      $("#front").html(this.frontTmpl()).show();
+      //get current games from server
+      $.getJSON(this.server+'/index/listinstances',function(data){
+        $("#front").html(this.frontTmpl(data));
+      }.bind(this));
+
+
+
+    },
+
+    startGame:function(url){
+      $('#front').hide();
+      this.startLocationService();
+
+      if(!this.player_name){
+        this.player_name = prompt('Player name');
+      }
+
+      var uno = require('js/uno');
+
+      this._client = window._client = new GameClient(uno.game,this.player_name);
+
+      _client.server = url; //'http://52.208.48.54:9615'; //'http://localhost:9615';
+      _client.startPinging();
+
+    },
+    exitGame:function(){
+      if(this._client){
+        this._client.exit();
+        this._client = null;
+      }
+      $("body").children().each(function(){
+        $(this).remove();
+      });
+      this.showGames();
+      this.stopLocationService();
+    },
+    setupTemplates:function(){
+      var templates = $('script[type="text/x-handlebars-template"]');
+
+      templates.each(function(i,t){
+        t = $(t);
+        this[t.attr('id')+'Tmpl'] = 							Handlebars.compile(t.remove().html());
+      }.bind(this));
+
+    },
     onVolumeButtonsListener:function(info){
     	console.log("Button pressed: " + info.signal);
       switch(info.signal){
         case 'volume-up':
-          this._client.triggerVolumeUp();
+          if(this._client){
+            this._client.triggerVolumeUp();
+          }
           break;
         case 'volume-down':
           break;
+      }
+    },
+    startLocationService: function(){
+      console.log('starting location service');
+      if(!navigator.geolocation){
+        console.log('no gps, using html5 geolocation');
+        var geolocation = new ol.Geolocation({
+          tracking: true
+        });
+
+        this._onLocationUpdate = function(evt){
+          //TODO: this is for tesing, should be removes
+          window.loc = geolocation.getPosition();
+
+          var pp = new ol.geom.Point(ol.proj.transform(geolocation.getPosition(), 'EPSG:4326', 'EPSG:3857'));
+          var c = pp.getCoordinates();
+          console.log('got pos change:'+c[0]+','+c[1]);
+          if(this._client && !window.pos){
+
+            this._client.updatePosition(c);
+          } else {
+            console.log('got location update, but no client or ',window.pos);
+          }
+
+        };
+
+        //console.log(geolocation.getPosition());
+        geolocation.on('change',this._onLocationUpdate,this);
+
+        this._geolocation = geolocation;
+      } else { //End of no gps, now setup the gps
+
+
+        this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
+          //console.log(pos.coords.longitude+","+pos.coords.latitude+","+pos.coords.heading);
+
+          //app.map.getView().setZoom(12);
+          //console.log('got pos change');
+
+
+          var pp = new ol.geom.Point(ol.proj.transform([pos.coords.longitude, pos.coords.latitude], 'EPSG:4326', 'EPSG:3857'));
+          var c = pp.getCoordinates();
+          if(this._client && !window.pos){
+            this._client.updatePosition(c);
+          } else {
+            console.log('got location update, but no client');
+          }
+        }.bind(this),
+          function(err){
+            console.log('error in gps:'+err);
+          },
+          {enableHighAccuracy: true, timeout:1000,maximumAge:0});
+
+        /*if(navigator.compass){
+          //console.log('getting heading:'+heading.magneticHeading);
+          var compass_watch_id = navigator.compass.watchHeading(function(heading){
+            //console.log('heading:'+heading.magneticHeading);
+            if(app.playerPoint){
+              app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
+            }
+          }, function(e){
+            console.log('error while getting compass heading');
+          });
+        }*/
+      }
+
+      //manual control of position
+      that = this;
+      if(!window._keyeventhandler){
+        window._keyeventhandler = $(window).on('keydown',function(e){
+          if(!window.pos){
+            console.log('fetching pos from client to overwrite it')
+            var p = that._client.gs.currentPlayer.pos._value;
+            window.pos = [p.x,p.y];
+          }
+          switch(e.key){
+            case 'ArrowUp':
+              window.pos[1]+=1;
+              break;
+            case 'ArrowDown':
+              window.pos[1]-=1;
+              break;
+            case 'ArrowLeft':
+              window.pos[0]-=1;
+              break;
+            case 'ArrowRight':
+              window.pos[0]+=1;
+              break;
+            case ' ':
+              if(that._client){
+                that._client.triggerVolumeUp();
+              }
+              //console.log('space');
+              break;
+            default:
+              //console.log('e'+e.key);
+              return;
+          }
+          if(that._client){
+            that._client.updatePosition(window.pos);
+          }
+        });
+      }
+    }, //end of startLocationService
+
+    stopLocationService:function(){
+      if(this._geolocation){
+        this._geolocation.un('change',this._onLocationUpdate,this);
+        delete(this._geolocation);
+      }
+      if(this._navigator_watchId){
+        navigator.geolocation.clearWatch(this._navigator_watchId);
+        this._navigator_watchId = null;
       }
     },
 

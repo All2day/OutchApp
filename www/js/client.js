@@ -51,63 +51,23 @@ Class.extend('GameClient',{
 
     }.bind(this))
   },
-  startLocationService: function(){
-    var geolocation = new ol.Geolocation({
-      tracking: true
-    });
+  exit:function(){
 
-    //manual control of position
-    that = this;
-    $(window).on('keydown',function(e){
-      if(!window.pos){
+    if(typeof this.ping ==="object"){
+      this.ping.abort();
+    } else {
+      clearTimeout(this.ping)
+    }
 
-        var p = that.gs.currentPlayer.pos._value;
-        window.pos = [p.x,p.y];
-      }
-      switch(e.key){
-        case 'ArrowUp':
-          window.pos[1]+=1;
-          break;
-        case 'ArrowDown':
-          window.pos[1]-=1;
-          break;
-        case 'ArrowLeft':
-          window.pos[0]-=1;
-          break;
-        case 'ArrowRight':
-          window.pos[0]+=1;
-          break;
-        case ' ':
-          that.triggerVolumeUp();
-          //console.log('space');
-          break;
-        default:
-          //console.log('e'+e.key);
-          return;
-      }
-      that.gs.currentPlayer.updatePosition(window.pos);
-      //Trigger hooks affected by the changed position
-      Hookable._handleTriggerQueue();
+    //clean up
+    Variable._nextId = 1;
+    Variable._vars = {};
+    Hookable._triggerQueue = [];
+    Hookable._nextHookId = 1;
 
-
-    });
-
-    geolocation.on('change',function(evt){
-      //TODO: this is for tesing, should be removes
-
-      window.loc = geolocation.getPosition();
-      var pp = new ol.geom.Point(ol.proj.transform(geolocation.getPosition(), 'EPSG:4326', 'EPSG:3857'));
-      //console.log('got pos change');
-
-      if(this.gs.currentPlayer && !window.pos){
-        var c = pp.getCoordinates();
-        this.gs.currentPlayer.updatePosition(c);
-        //Trigger hooks affected by the changed position
-        Hookable._handleTriggerQueue();
-      }
-    }.bind(this));
 
   },
+
   getServerTime: function(){
     return new Date().getTime() + this.time_offset;
   },
@@ -217,11 +177,25 @@ Class.extend('GameClient',{
     //if first time update the current player in gs
     if(!this.gs.currentPlayer){
       this.gs.currentPlayer = this.gs.players.get(this.UUID);
-      this.startLocationService();
+      if(this.pos){
+        this.gs.currentPlayer.updatePosition(this.pos);
+      }
+
     }
 
     //Trigger hooks affected by the update
     Hookable._handleTriggerQueue();
+  },
+  updatePosition:function(pos){
+    this.pos = pos;
+    if(this.gs && this.gs.currentPlayer){
+      this.gs.currentPlayer.updatePosition(pos);
+      //Trigger hooks affected by the changed position
+      Hookable._handleTriggerQueue();
+    } else {
+      console.log('got client update of position but no player to add it to');
+
+    }
   },
   startPinging:function(){
     //console.log('starting ping');
@@ -245,7 +219,7 @@ Class.extend('GameClient',{
     });*/
 
     var t = new Date().getTime();
-    $.ajax({
+    this.ping = $.ajax({
       dataType: "json",
       url: this.server+'?'+JSON.stringify(d),
       success: function(r){
@@ -262,15 +236,18 @@ Class.extend('GameClient',{
         var time_offset = (this_t - t - r.rt)/2 + r.t + r.rt - this_t;
         this.time_offset = Math.round(0.9*this.time_offset + 0.1*time_offset);
 
-        setTimeout(this.startPinging.bind(this),Math.max(0,this.min_send_frequency - (this_t-t)));
+        this.ping = setTimeout(this.startPinging.bind(this),Math.max(0,this.min_send_frequency - (this_t-t)));
         //this.startStatePinging();
       }.bind(this),
       error:function(r,status,error) {
+        if(status == 'abort'){
+          return;
+        }
         //debugger;
         console.log('status:'+status+' error:'+error);
         //alert(error);
 
-        setTimeout(this.startPinging.bind(this),1000);
+        this.ping = setTimeout(this.startPinging.bind(this),1000);
       }.bind(this),
       timeout:2000
     });

@@ -89,7 +89,7 @@
 			//var dev = app.store.getValueFromKey('dev',false);
 			if(true || dev === 'true'){
 				console.log('opening log');
-				$(document.body).prepend('<div id="_log" style="-webkit-overflow-scrolling: touch;text-align:left;position:absolute;width:100%;height:100%;padding:1em;background-color:rgba(255,255,255,0.8);box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;word-break:break-word;z-index:1000;color:black;"><a href="#" class="_log_close" style="position:absolute;top:1rem;right:1rem;font-size:1rem;background:white;color:black;">close</a><a href="#" class="_log_reset" style="position:absolute;top:3rem;right:1rem;font-size:1rem;background:white;color:black;">reset</a><a href="#" class="_log_send" style="position:absolute;top:5rem;right:1rem;font-size:1rem;background:white;color:black;">send</a><a href="#" class="_log_info" style="position:absolute;top:7rem;right:1rem;font-size:1rem;background:white;color:black;">log info</a><a href="#" class="_log_testprice" style="position:absolute;top:9rem;right:1rem;font-size:1rem;background:white;color:black;">test price</a></div>');
+				$(document.body).prepend('<div id="_log" style="-webkit-overflow-scrolling: touch;text-align:left;position:absolute;width:100%;height:100%;padding:1em;background-color:rgba(255,255,255,0.8);box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;word-break:break-word;z-index:1000;color:black;"><a href="#" class="_log_close" style="position:absolute;top:1rem;right:1rem;font-size:1rem;background:white;color:black;">close</a><a href="#" class="_log_reset" style="position:absolute;top:3rem;right:1rem;font-size:1rem;background:white;color:black;">reset</a><a href="#" class="_log_send" style="position:absolute;top:5rem;right:1rem;font-size:1rem;background:white;color:black;">send</a><a href="#" class="_log_info" style="position:absolute;top:7rem;right:1rem;font-size:1rem;background:white;color:black;">log info</a><a href="#" class="_log_exitgame" style="position:absolute;top:9rem;right:1rem;font-size:1rem;background:white;color:black;">Exit game</a></div>');
 				log_div = $('#_log');
 				log_div.on('click','._log_close',function(e){toggle_log();e.preventDefault();return false;});
 				log_div.on('click','._log_reset',function(e){
@@ -123,9 +123,9 @@
 					}
 					e.preventDefault();return false;
 				});
-				log_div.on('click','._log_testprice',function(e){
-					app.lockerPrice = 1
-					alert('locker price set to:'+app.lockerPrice);
+				log_div.on('click','._log_exitgame',function(e){
+					toggle_log();
+					app.exitGame();
 					e.preventDefault();return false;
 				});
 

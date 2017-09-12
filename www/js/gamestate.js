@@ -657,6 +657,8 @@ GameStateChangeableList.extend('Phase',{
   vars:null,
   /*_hooks:null,*/
   init:function(obj){
+    //dont change the actual object, make  copy
+    obj = $.extend(Object.create(Object.getPrototypeOf(obj)),obj);
     this._obj = {
       views:obj.views,
     //  vars:obj.vars,
@@ -1064,6 +1066,7 @@ GameStateObject.extend('GameState',{
       that.phases[key].owner = that;
     });*/
     this.phases = new GameStateList(game.phases,Phase);
+
     this.phases.owner = this;
 
     this.currentPhase = new PointerVariable();

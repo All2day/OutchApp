@@ -13,8 +13,21 @@
         <script src="https://openlayers.org/en/v4.3.2/build/ol.js"></script>
     </head>
     <body>
-
+<script id="front" type="text/x-handlebars-template">
+    <h1>Geogames</h1>
+    {{#each instances}}
+      <div class="instance">
+        <h2>id:{{instance_id}}</h2>
+        <div>url:{{url}}</div>
+        <button class="stop" data-instance_id="{{instance_id}}">Stop</button>
+        <button class="join" data-url="{{url}}">Join</button>
+      </div>
+    {{/each}}
+    <button class="start">Start</button>
+</script>
         <!-- 3rd party libraries -->
+
+        <script type="text/javascript" src="js/handlebars-v2.0.0.js"></script>
         <script type="text/javascript" src="js/require.min.js"></script>
         <!--<script type="text/javascript" src="js/uno.js"></script>-->
         <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
@@ -33,6 +46,7 @@
         <!--<script type="text/javascript">
 require('js/client');
 </script>-->
+
 
     </body>
 </html>
