@@ -224,7 +224,7 @@ var app = {
           if(this._client && !window.pos){
             this._client.updatePosition(c);
           } else {
-            console.log('got location update, but no client');
+            console.log('got location update, but no client or '+window.pos);
           }
         }.bind(this),
           function(err){

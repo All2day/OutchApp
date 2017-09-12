@@ -784,7 +784,7 @@ ViewElement.extend('MapElement',{
     if(this._inside_elements === null){
       this._inside_elements = [];
     }
-    console.log('checking inside for post:',pos);
+    //console.log('checking inside for pos:',pos);
     var t = ScopeRef._gs.getTime(); //use current milliseconds to check if still inside an element
 
     //Fix since it seems that the rbush algorithm does not correctly find all elements
@@ -794,7 +794,9 @@ ViewElement.extend('MapElement',{
     for(var i = 0;i<all_fts.length;i++){
       var g = all_fts[i].getGeometry();
       if(!g){
-        console.log('no geometry for feature');
+        //TODO:this can happen for wrapper elements. They should not create features, but it does not matter that much
+        //console.log('no geometry for feature');
+
       } else
       if (g.intersectsCoordinate([pos._value.x,pos._value.y])) {
         fts.push(all_fts[i]);
@@ -821,7 +823,7 @@ ViewElement.extend('MapElement',{
         ft.el.triggerHook('change');
         that._inside_elements.push(ft.el);
       } else {
-        console.log('moving inside feature:'+ft.el._name);
+        //console.log('moving inside feature:'+ft.el._name);
       }
       ft.el._inside = t; //update inside time
     });
