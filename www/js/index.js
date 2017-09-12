@@ -1,13 +1,13 @@
 //require('js/handlebars-v2.0.0.js');
-alert('starting');
+//alert('starting');
 try{
-require('./js/log.js',function(){alert('got log');});
+require('./js/log.js');
 require('./js/client.js');
 } catch(e){
   alert('exception when requireng');
   alert(e);
 }
-alert('required stuff');
+//alert('required stuff');
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -149,7 +149,7 @@ var app = {
         this.player_name = prompt('Player name');
       }
 
-      var uno = require('js/uno');
+      var uno = require('js/uno.js');
 
       this._client = window._client = new GameClient(uno.game,this.player_name);
 

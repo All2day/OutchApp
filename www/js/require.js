@@ -174,7 +174,7 @@ function require(identifier, callback, compiler) {
 
   if (callback)
     request.onload = onLoad;
-  request.open('GET', descriptor.uri, !!callback);
+  request.open('GET', /*descriptor.uri*/ descriptor.id.replace(/.*:/,'')+'.js', !!callback);
   // NOTE Locking is required to prevent some browsers from running onLoad during load
   lock[cacheid] = lock[cacheid]++||1;
   request.send();
