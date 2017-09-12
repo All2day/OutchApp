@@ -100,7 +100,7 @@ catch (e) {
 //      pending AJAX load events for the same url might be executed before
 //      the synchronous onLoad is called. This should be no problem, but in
 //      Chrome the responseText of the sneaked in load events will be empty.
-//      Therefore we have to lock the loading while executing send().   
+//      Therefore we have to lock the loading while executing send().
 
 var lock = new Object();
 
@@ -192,7 +192,7 @@ function require(identifier, callback, compiler) {
       if (request.readyState != 4)
         return;
       if (request.status != 200)
-        throw new SmoothieError("unable to load "+descriptor.id+" ("+request.status+" "+request.statusText+")");
+        throw new SmoothieError("unable to load "+descriptor.id+" ("+request.status+" "+request.statusText+") at "+descriptor.uri);
       if (!cache[cacheid]) {
         var source = compiler ? compiler(request.responseText) : request.responseText;
         load(descriptor, cache, pwd, 'function(){\n'+source+'\n}');
