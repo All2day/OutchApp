@@ -1,8 +1,8 @@
 //require('js/handlebars-v2.0.0.js');
 //alert('starting');
 try{
-require('./js/log.js');
-require('./js/client.js');
+require('js/log.js');
+require('js/client.js');
 } catch(e){
   alert('exception when requireng');
   alert(e);
@@ -223,12 +223,16 @@ var app = {
         this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
           //console.log(pos.coords.longitude+","+pos.coords.latitude+","+pos.coords.heading);
 
-          //app.map.getView().setZoom(12);
-          //console.log('got pos change');
-
-
           var pp = new ol.geom.Point(ol.proj.transform([pos.coords.longitude, pos.coords.latitude], 'EPSG:4326', 'EPSG:3857'));
+
           var c = pp.getCoordinates();
+
+          if(!this._posHist){
+            this._postHist = [];
+            //this._lastPos =
+          }
+
+
           if(this._client && !window.pos){
             this._client.updatePosition(c);
           } else {
@@ -247,7 +251,7 @@ var app = {
             if(app.playerPoint){
               app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
             }
-          }, function(e){
+          }, function(e){x
             console.log('error while getting compass heading');
           });
         }*/

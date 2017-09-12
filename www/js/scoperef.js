@@ -1,4 +1,4 @@
-require('./basic');
+require('js/basic');
 /**
  * Defines scope references
  */
