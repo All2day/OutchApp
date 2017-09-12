@@ -1,8 +1,12 @@
 //require('js/handlebars-v2.0.0.js');
 alert('starting');
+try{
 require('js/log');
 require('js/client');
-
+} catch(e){
+  alert('exception when requireng');
+  alert(e);
+}
 alert('required stuff');
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
