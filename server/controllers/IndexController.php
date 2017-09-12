@@ -80,4 +80,19 @@ class IndexController extends Zend_Controller_Action{
 		header('Content-Type: application/json');
 		die(json_encode($res));
 	}
+
+	public function listinstancesAction(){
+		$instanceTable = new InstanceTable();
+
+		$instances = $instanceTable->fetchAll($instanceTable->select()->where('status=?','running'));
+
+		$res = array(
+			'status' => 'ok',
+			'instances' => $instances->toArray()
+		);
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
 }

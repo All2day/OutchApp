@@ -30,6 +30,7 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
     if ($this->isProcessRunning() == false){
 			$this->status = 'stopped';
 			$this->save();
+			return true;
 		}
     else return false;
 	}
