@@ -1,7 +1,9 @@
 //require('js/handlebars-v2.0.0.js');
+alert('starting');
 require('js/log');
 require('js/client');
 
+alert('required stuff');
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -27,9 +29,11 @@ var app = {
     // Application Constructor
     initialize: function() {
       if(navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) { //removed |IEMobile
+        alert('registering device ready');
         console.log('registering deviceready');
         document.addEventListener("deviceready", function(){
           console.log('Got deviceready');
+          alert('and got it');
           try{
             if(window.console_reinsert){
               console_reinsert();
@@ -305,9 +309,5 @@ var app = {
   		return 24234234234433;
   	}
 };
-
-
-
-
 
 app.initialize();
