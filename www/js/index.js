@@ -1,8 +1,8 @@
 //require('js/handlebars-v2.0.0.js');
 alert('starting');
 try{
-require('js/log.js',function(){alert('got log');});
-require('js/client.js');
+require('./js/log.js',function(){alert('got log');});
+require('./js/client.js');
 } catch(e){
   alert('exception when requireng');
   alert(e);
