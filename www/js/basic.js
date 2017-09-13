@@ -141,6 +141,10 @@ Array.prototype.shuffle = function(){
   }
 };
 
+Number.isNaN = Number.isNaN || function(value) {
+    return value !== value;
+}
+
  /**
   * Start of our Objects
   */

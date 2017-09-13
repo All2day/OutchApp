@@ -875,7 +875,11 @@ ProtoTypeVariable.extend('Player',{
   },
   //updates the players position from coordinates in meters*meters
   updatePosition:function(c){
-    console.log('player pos update:',c[0],c[1],c[2]);
+
+    if(Number.isNaN(c[0]) || Number.isNaN(c[1])){
+      console.log('bad player pos update:',c[0],c[1],c[2]);
+      return;
+    }
     this.pos.set({
       x:c[0],
       y:c[1],

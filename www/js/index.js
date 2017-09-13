@@ -308,8 +308,9 @@ var app = {
             }
           }
 
-          if(!this._lastPos || !this._lastPos.c || this._lastPos.c[0] === NaN || this._lastPos.c[1] === NaN){
+          if(!this._lastPos || !this._lastPos.c || Number.isNaN(this._lastPos.c[0]) || Number.isNaN(this._lastPos.c[1])){
             console.log('got bad last pos');
+
           }
 
           //if a client is available, use the position of the last pos and update
@@ -340,7 +341,7 @@ var app = {
           } else {
             this._posHist.push(pos_obj);
             if(this._posHist.length >= 10){
-              this._posHist.unshift();
+              this._posHist.shift();
             }
           }
 
@@ -420,7 +421,7 @@ var app = {
           } else {
             this._posHist.push(pos_obj);
             if(this._posHist.length >= 10){
-              this._posHist.unshift();
+              this._posHist.shift();
             }
           }
 
