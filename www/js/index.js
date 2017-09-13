@@ -1,13 +1,7 @@
-//require('js/handlebars-v2.0.0.js');
-//alert('starting');
-try{
 require('js/log.js');
 require('js/client.js');
-} catch(e){
-  alert('exception when requireng');
-  alert(e);
-}
-//alert('required stuff');
+
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -33,11 +27,11 @@ var app = {
     // Application Constructor
     initialize: function() {
       if(navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) { //removed |IEMobile
-        alert('registering device ready');
+
         console.log('registering deviceready');
         document.addEventListener("deviceready", function(){
           console.log('Got deviceready');
-          alert('and got it');
+
           try{
             if(window.console_reinsert){
               console_reinsert();
@@ -105,6 +99,18 @@ var app = {
         */
         //register volume buttons
         window.addEventListener("volumebuttonslistener", this.onVolumeButtonsListener.bind(this), false);
+
+        //fake volume button
+        //if(navigator.userAgent.match(/(iPhone|iPod|iPad)/)){
+          $(document.body).on('touchstart',function(e){
+        		if(e.originalEvent.touches.length == 2){
+        			this.onVolumeButtonsListener.call(this,{signal:'volume-up'});
+        			e.stopPropagation();
+        		}
+        	}.bind(this));
+        //}
+
+
         //perhaps: http://phonegap-plugins.com/plugins/rja235/volumebuttons
         //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
         //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
@@ -229,7 +235,7 @@ var app = {
           var delay = 500;
           var expected_frequency = 1000; //The expected ms between updates
           var t = new Date().getTime();
-          console.log('do smooth update');
+
           //when there is only one point in history, simply send that
           if(this._posHist.length == 1){
             //set the last pos to be the current pos
@@ -250,6 +256,7 @@ var app = {
                 new_pos.c[1]-this._lastPos.c[1], //delta y
                 new_pos.t +delay - this._lastPos.t //delta time
               ];
+              var delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
 
               //calculate the time since last pos
               var this_t = t-this._lastPos.t;
@@ -259,7 +266,8 @@ var app = {
               //calculate a new point using last_pos the vector and the factor
               var new_point = [
                 this._lastPos.c[0] + f*delta[0],
-                this._lastPos.c[1] + f*delta[1]
+                this._lastPos.c[1] + f*delta[1],
+                delta_length_sq>1 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
               ];
 
               //store the new point in last pos
@@ -272,6 +280,7 @@ var app = {
               //if the time is after the new pos (+ delay) use a vector between the old and new pos as a guide
               var delta =  [new_pos.c[0]-old_pos.c[0],new_pos.c[1]-old_pos.c[1],new_pos.t - old_pos.t];
 
+              var delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
               //calculate the amount of time after the new pos
               var this_t = t - (new_pos.t +delay);
 
@@ -286,7 +295,8 @@ var app = {
               //use the new pos as the base and the vecor as the guide with factor length to calculate the new position
               var new_point = [
                 new_pos.c[0] + f*delta[0],
-                new_pos.c[1] + f*delta[1]
+                new_pos.c[1] + f*delta[1],
+                delta_length_sq>1 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
               ];
 
               //store the new point in the last pos
@@ -296,6 +306,10 @@ var app = {
               };
 
             }
+          }
+
+          if(!this._lastPos || !this._lastPos.c || this._lastPos.c[0] === NaN || this._lastPos.c[1] === NaN){
+            console.log('got bad last pos');
           }
 
           //if a client is available, use the position of the last pos and update
@@ -427,6 +441,9 @@ var app = {
       if(this._navigator_watchId){
         navigator.geolocation.clearWatch(this._navigator_watchId);
         this._navigator_watchId = null;
+      }
+      if(this._smoothPosUpdates.timer_id){
+        clearTimeout(this._smoothPosUpdates.timer_id);
       }
     },
 

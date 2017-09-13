@@ -585,6 +585,7 @@ ViewElement.extend('MapElement',{
     this.geoElements = new GameStateList(obj.geoElements || {},GeoElement);
     this.geoElements.owner = this;
     this.registerProp('center',obj.center);
+    this.registerProp('heading',obj.heading,0);
     this.registerProp('width',obj.width,100);
     this.registerProp('height',obj.height,100);
     this.registerProp('zoom',obj.zoom,20);
@@ -606,6 +607,10 @@ ViewElement.extend('MapElement',{
           var s = that._map.getSize();
           //that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.66]);
           that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.5]);
+          break;
+        case 'heading':
+          console.log('setting rot to:'+val);
+          that._map.getView().setRotation(val);
           break;
         case 'zoom':
           if(val == 'fit'){

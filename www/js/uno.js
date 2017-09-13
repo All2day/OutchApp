@@ -82,6 +82,7 @@ exports.game = {
               height:20,
               zoom:"'fit'",
               center:"players.gameowner.pos",
+              heading:"players.gameowner.heading",
               geoElements:{
                 'outer':{
                   type:"circle",
@@ -332,11 +333,22 @@ exports.game = {
               type:"circle",
               radius:"2",
               pos:"player.pos",
+              rotation:"player.heading",
               color:[0,0,255,1],
               zIndex:2,
               //fill:[0,0,255,0.4]
               fill:"player.currentCard ? player.currentCard.color : [0,0,0,0]",
               text:"player.currentCard ? player.currentCard.value : ''",
+              geoElements:{
+                'tri':{
+                  type:"box",
+                  pos:[0,3],
+                  width:1,
+                  height:2,
+                  color:[0,0,255,1],
+                  zIndex:2
+                }
+              }
             },
             'list of players':{ //The player cards
               type:"geolist",

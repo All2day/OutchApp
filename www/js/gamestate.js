@@ -875,10 +875,13 @@ ProtoTypeVariable.extend('Player',{
   },
   //updates the players position from coordinates in meters*meters
   updatePosition:function(c){
+    console.log('player pos update:',c[0],c[1],c[2]);
     this.pos.set({
       x:c[0],
-      y:c[1]
+      y:c[1],
+      heading:c[2] !== undefined ? c[2] : 0
     });
+    this.triggerHook('change');
   },
   get:function(ref){
     switch(ref){
@@ -886,6 +889,8 @@ ProtoTypeVariable.extend('Player',{
         return this.pos;
       case 'id':
         return this._name;
+      case 'heading':
+        return this.pos._value.heading !== undefined ? this.pos._value.heading : 0;
     }
     return this._super(ref);
   }
