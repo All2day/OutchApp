@@ -230,10 +230,10 @@ var app = {
       } else { //End of no gps, now setup the gps
 
         this._smoothPosUpdates = function(){
-
+          //console.log('smooth update');
           //calculate best position based on time
-          var delay = 500;
-          var expected_frequency = 1000; //The expected ms between updates
+          var delay = 200;
+          var expected_frequency = 1200; //The expected ms between updates
           var t = new Date().getTime();
 
           //when there is only one point in history, simply send that
@@ -249,25 +249,55 @@ var app = {
             var old_pos = this._posHist[this._posHist.length-2];
             var new_pos = this._posHist[this._posHist.length-1];
 
+            if(Number.isNaN(new_pos.c[0])){
+              console.log('1new_pos is nan');
+            }
+            if(Number.isNaN(old_pos.c[0])){
+              console.log('1old_pos is nan');
+            }
+            if(Number.isNaN(this._lastPos.c[0])){
+              console.log('1last_pos is nan');
+            }
+
             //if the current time is before the new pos time (+ delay), the goal is to go towards the new_pos (vector from last position to new position)
+            var delta, delta_length_sq, this_t, f, new_point, method;
+
+            if(new_pos.t == old_pos.t){
+              //if no time has passed simply add the newest pos
+              console.log('no time passed, ignoring');
+              console.log('old_pos:['+old_pos.c[0]+','+old_pos.c[1]+","+old_pos.t+"]");
+              console.log('new_pos:['+new_pos.c[0]+','+new_pos.c[1]+","+new_pos.t+"]");
+
+              //store the new point in last pos
+              this._lastPos = {
+                c:[new_pos.c[0],new_pos.c[1],0],
+                t: t
+              };
+            } else
             if(t < new_pos.t + delay){
-              var delta =  [
+              method = 'before_new_pos';
+              delta =  [
                 new_pos.c[0]-this._lastPos.c[0], //delta x
                 new_pos.c[1]-this._lastPos.c[1], //delta y
                 new_pos.t +delay - this._lastPos.t //delta time
               ];
-              var delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
+              delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
 
               //calculate the time since last pos
-              var this_t = t-this._lastPos.t;
+              this_t = t-this._lastPos.t;
               //calculate a factor based on the amount of time since last pos compared to the time to new_pos
-              var f = this_t/delta[2];
+              f = this_t/delta[2];
+
+              if(Number.isNaN(f)){
+                console.log('got nan before new_pos');
+              }
+
 
               //calculate a new point using last_pos the vector and the factor
-              var new_point = [
+              new_point = [
                 this._lastPos.c[0] + f*delta[0],
                 this._lastPos.c[1] + f*delta[1],
-                delta_length_sq>1 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
+                delta_length_sq>0.5 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
               ];
 
               //store the new point in last pos
@@ -277,26 +307,38 @@ var app = {
               };
 
             } else {
+              method = 'after_new_pos';
               //if the time is after the new pos (+ delay) use a vector between the old and new pos as a guide
-              var delta =  [new_pos.c[0]-old_pos.c[0],new_pos.c[1]-old_pos.c[1],new_pos.t - old_pos.t];
+              delta =  [new_pos.c[0]-old_pos.c[0],new_pos.c[1]-old_pos.c[1],new_pos.t - old_pos.t];
 
-              var delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
+
+
+              delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
+
+
               //calculate the amount of time after the new pos
-              var this_t = t - (new_pos.t +delay);
+              this_t = t - (new_pos.t +delay);
 
               //a new position is expected after ~1000ms - delay, thus if larger than this slow down
               if(this_t + delay > expected_frequency){
                 this_t = (expected_frequency - delay) + Math.sqrt(this_t + delay - expected_frequency);
               }
 
+
               //calculate a factor based on the time after new pos compared to the time bewteen the old pos and new pos
               var f = this_t/delta[2];
+              if(Number.isNaN(f)){
+                console.log('got nan after new_pos');
+              }
+              if(Number.isNaN(new_pos.c[0])){
+                console.log('new_pos is nan');
+              }
 
               //use the new pos as the base and the vecor as the guide with factor length to calculate the new position
-              var new_point = [
+              new_point = [
                 new_pos.c[0] + f*delta[0],
                 new_pos.c[1] + f*delta[1],
-                delta_length_sq>1 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
+                delta_length_sq>0.5 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
               ];
 
               //store the new point in the last pos
@@ -306,15 +348,28 @@ var app = {
               };
 
             }
+
+            if(!this._lastPos || !this._lastPos.c || Number.isNaN(this._lastPos.c[0]) || Number.isNaN(this._lastPos.c[1])){
+              console.log('got bad last pos:'+method);
+
+              console.log('this_t:'+this_t);
+              console.log('delta:['+delta[0]+','+delta[1]+","+delta[2]+"]");
+              console.log('f:'+f);
+            }
           }
 
           if(!this._lastPos || !this._lastPos.c || Number.isNaN(this._lastPos.c[0]) || Number.isNaN(this._lastPos.c[1])){
-            console.log('got bad last pos');
+            console.log('got bad last pos:'+first);
+          }
 
+          //overwrite with compass if available
+          if(this._lastHeading !== undefined){
+            this._lastPos.c[2] = this._lastHeading;
           }
 
           //if a client is available, use the position of the last pos and update
           if(this._client){
+            //console.log('updating client pos', this._lastPos.c);
             this._client.updatePosition(this._lastPos.c);
           }
 
@@ -339,6 +394,14 @@ var app = {
             this._posHist.push(pos_obj);
             this._smoothPosUpdates(); //fire first time
           } else {
+            //if matching the one before, ignore it
+            var last_pos = this._posHist[this._posHist.length-1];
+            if(pos_obj.c[0] == last_pos.c[0] && pos_obj.c[1] == last_pos.c[1] && pos_obj.t == last_pos.t){
+              console.log('got location update duplicate, ignoring');
+              var t = new Date().getTime();
+              console.log('current time is:'+t+' and timestamp of pos is:'+pos_obj.t);
+              return;
+            }
             this._posHist.push(pos_obj);
             if(this._posHist.length >= 10){
               this._posHist.shift();
@@ -346,34 +409,37 @@ var app = {
           }
 
           return;
-
-          if(this._client && !window.pos){
+          /*if(this._client && !window.pos){
             this._client.updatePosition(c);
           } else {
             console.log('got location update, but no client or '+window.pos);
-          }
+          }*/
         }.bind(this),
           function(err){
-            console.log('error in gps:'+err);
-          },
-          {enableHighAccuracy: true, timeout:1000,maximumAge:0});
+            console.log('error in gps:'+err.code +' '+err.message);
+            console.log('restarting location service');
+            //this.stopLocationService();
+            //this.startLocationService();
+          }.bind(this),
+          {enableHighAccuracy: true, timeout:5000,maximumAge:0});
 
-        /*if(navigator.compass){
-          //console.log('getting heading:'+heading.magneticHeading);
-          var compass_watch_id = navigator.compass.watchHeading(function(heading){
+
+        //Keep track of compass heading if available
+        if(navigator.compass){
+          console.log('getting heading');
+          this._compass_watch_id = navigator.compass.watchHeading(function(heading){
             //console.log('heading:'+heading.magneticHeading);
-            if(app.playerPoint){
-              app.map.getView().rotate(-heading.magneticHeading*Math.PI/180,app.playerPoint.getCoordinates());
-            }
-          }, function(e){x
+            this._lastHeading = -heading.magneticHeading*Math.PI/180;
+          }.bind(this), function(e){
             console.log('error while getting compass heading');
           });
-        }*/
+        }
       }
 
       //manual control of position
       that = this;
       if(!window._keyeventhandler){
+        console.log('adding window key event handler');
         window._keyeventhandler = $(window).on('keydown',function(e){
           if(!this._posHist){
             console.log('no pos hist');
@@ -446,6 +512,10 @@ var app = {
       if(this._smoothPosUpdates.timer_id){
         clearTimeout(this._smoothPosUpdates.timer_id);
       }
+      if(this._compass_watch_id){
+        navigator.compass.clearWatch(this._compass_watch_id);
+      }
+      delete(this._posHist);
     },
 
     /**

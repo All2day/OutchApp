@@ -179,6 +179,20 @@ exports.game = {
                 }
               }
             },
+            '_01':{
+              type:'button',
+              text:"'vibrate'",
+              hooks:{
+                click:{
+                  actions:{
+                    '_v':{
+                      type:"vibrate",
+                      duration:100
+                    }
+                  }
+                }
+              }
+            },
             '_1':{
               type:'button',
               text:"'Start game in '+phase.test_var",

@@ -609,7 +609,6 @@ ViewElement.extend('MapElement',{
           that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.5]);
           break;
         case 'heading':
-          console.log('setting rot to:'+val);
           that._map.getView().setRotation(val);
           break;
         case 'zoom':
@@ -823,7 +822,6 @@ ViewElement.extend('MapElement',{
       }
       if(!ft.el._inside){
         console.log('entering feature:'+ft.el._name);
-
         ft.el.triggerHook('enter');
         ft.el.triggerHook('change');
         that._inside_elements.push(ft.el);
@@ -1015,7 +1013,14 @@ ViewElement.extend('GeoElement',{
       this._style.setText(new ol.style.Text({
         text:''+text,
         font: 'Courier New, monospace',
-        scale:'1'
+        scale:'2.0',
+        fill:{
+          color:"black"
+        }/*,
+        stroke:{
+          color:"black",
+          width:0.0
+        }*/
       }));
     } else {
       this._style.setText(new ol.style.Text({
