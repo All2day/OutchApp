@@ -49,7 +49,7 @@
             }
             if(require.cache[file]){
               //do nothing
-              return;
+              return require.cache[file];
             }
             console.log('loading file:'+file);
             //debugger;
@@ -60,7 +60,7 @@
               .attr('src',file)
               .appendTo('head');
             //$.getScript(file);
-            require.cache[file] = true;
+            require.cache[file] = exports;
             return exports;
           };
         </script>

@@ -105,6 +105,10 @@ var app = {
         */
         //register volume buttons
         window.addEventListener("volumebuttonslistener", this.onVolumeButtonsListener.bind(this), false);
+        //perhaps: http://phonegap-plugins.com/plugins/rja235/volumebuttons
+        //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
+        //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
+
         this.setupTemplates();
         this.showGames();
     },
@@ -219,6 +223,89 @@ var app = {
         this._geolocation = geolocation;
       } else { //End of no gps, now setup the gps
 
+        this._smoothPosUpdates = function(){
+
+          //calculate best position based on time
+          var delay = 500;
+          var expected_frequency = 1000; //The expected ms between updates
+          var t = new Date().getTime();
+          console.log('do smooth update');
+          //when there is only one point in history, simply send that
+          if(this._posHist.length == 1){
+            //set the last pos to be the current pos
+            this._lastPos = {
+              c:this._posHist[0].c,
+              t:t
+            };
+          } else {
+
+            //if multiple points define new_pos to be the newest and old_pos to be the next to newest
+            var old_pos = this._posHist[this._posHist.length-2];
+            var new_pos = this._posHist[this._posHist.length-1];
+
+            //if the current time is before the new pos time (+ delay), the goal is to go towards the new_pos (vector from last position to new position)
+            if(t < new_pos.t + delay){
+              var delta =  [
+                new_pos.c[0]-this._lastPos.c[0], //delta x
+                new_pos.c[1]-this._lastPos.c[1], //delta y
+                new_pos.t +delay - this._lastPos.t //delta time
+              ];
+
+              //calculate the time since last pos
+              var this_t = t-this._lastPos.t;
+              //calculate a factor based on the amount of time since last pos compared to the time to new_pos
+              var f = this_t/delta[2];
+
+              //calculate a new point using last_pos the vector and the factor
+              var new_point = [
+                this._lastPos.c[0] + f*delta[0],
+                this._lastPos.c[1] + f*delta[1]
+              ];
+
+              //store the new point in last pos
+              this._lastPos = {
+                c:new_point,
+                t: t
+              };
+
+            } else {
+              //if the time is after the new pos (+ delay) use a vector between the old and new pos as a guide
+              var delta =  [new_pos.c[0]-old_pos.c[0],new_pos.c[1]-old_pos.c[1],new_pos.t - old_pos.t];
+
+              //calculate the amount of time after the new pos
+              var this_t = t - (new_pos.t +delay);
+
+              //a new position is expected after ~1000ms - delay, thus if larger than this slow down
+              if(this_t + delay > expected_frequency){
+                this_t = (expected_frequency - delay) + Math.sqrt(this_t + delay - expected_frequency);
+              }
+
+              //calculate a factor based on the time after new pos compared to the time bewteen the old pos and new pos
+              var f = this_t/delta[2];
+
+              //use the new pos as the base and the vecor as the guide with factor length to calculate the new position
+              var new_point = [
+                new_pos.c[0] + f*delta[0],
+                new_pos.c[1] + f*delta[1]
+              ];
+
+              //store the new point in the last pos
+              this._lastPos = {
+                c:new_point,
+                t: t
+              };
+
+            }
+          }
+
+          //if a client is available, use the position of the last pos and update
+          if(this._client){
+            this._client.updatePosition(this._lastPos.c);
+          }
+
+          //restart the smooth timer
+          this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,100);
+        }.bind(this);
 
         this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
           //console.log(pos.coords.longitude+","+pos.coords.latitude+","+pos.coords.heading);
@@ -227,11 +314,23 @@ var app = {
 
           var c = pp.getCoordinates();
 
+          var pos_obj = {
+            c:c,
+            t:pos.timestamp
+          };
+
           if(!this._posHist){
-            this._postHist = [];
-            //this._lastPos =
+            this._posHist = [];
+            this._posHist.push(pos_obj);
+            this._smoothPosUpdates(); //fire first time
+          } else {
+            this._posHist.push(pos_obj);
+            if(this._posHist.length >= 10){
+              this._posHist.unshift();
+            }
           }
 
+          return;
 
           if(this._client && !window.pos){
             this._client.updatePosition(c);
@@ -261,27 +360,32 @@ var app = {
       that = this;
       if(!window._keyeventhandler){
         window._keyeventhandler = $(window).on('keydown',function(e){
-          if(!window.pos){
+          if(!this._posHist){
+            console.log('no pos hist');
+            return;
+            /*
             console.log('fetching pos from client to overwrite it')
             var p = that._client.gs.currentPlayer.pos._value;
-            window.pos = [p.x,p.y];
+            window.pos = [p.x,p.y];*/
           }
+          var pos = this._posHist[this._posHist.length-1].c;
+
           switch(e.key){
             case 'ArrowUp':
-              window.pos[1]+=1;
+              pos[1]+=1;
               break;
             case 'ArrowDown':
-              window.pos[1]-=1;
+              pos[1]-=1;
               break;
             case 'ArrowLeft':
-              window.pos[0]-=1;
+              pos[0]-=1;
               break;
             case 'ArrowRight':
-              window.pos[0]+=1;
+              pos[0]+=1;
               break;
             case ' ':
-              if(that._client){
-                that._client.triggerVolumeUp();
+              if(this._client){
+                this._client.triggerVolumeUp();
               }
               //console.log('space');
               break;
@@ -289,10 +393,29 @@ var app = {
               //console.log('e'+e.key);
               return;
           }
-          if(that._client){
-            that._client.updatePosition(window.pos);
+
+          var pos_obj = {
+            c:pos,
+            t:new Date().getTime()
+          };
+
+          if(!this._posHist){
+            this._posHist = [];
+            this._posHist.push(pos_obj);
+            this._smoothPosUpdates(); //fire first time
+          } else {
+            this._posHist.push(pos_obj);
+            if(this._posHist.length >= 10){
+              this._posHist.unshift();
+            }
           }
-        });
+
+          return;
+          /*
+          if(this._client){
+            this._client.updatePosition(window.pos);
+          }*/
+        }.bind(this));
       }
     }, //end of startLocationService
 
