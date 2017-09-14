@@ -113,6 +113,19 @@ class IndexController extends Zend_Controller_Action{
 		die(json_encode($res));
 	}
 
+	public function gamesrcAction(){
+		$game_id = $this->_getParam('game_id');
+
+		$gameTable = new GameTable();
+		$game = $gameTable->find($game_id)->current();
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: text/javascript');
+
+		echo file_get_contents('games/'.$game['name'].'.js');
+		exit;
+	}
+
 	public function gameAction(){
 		$game_id = $this->_getParam('game_id');
 
@@ -121,7 +134,9 @@ class IndexController extends Zend_Controller_Action{
 
 		$game = $game->toArray();
 
-		$game['src'] = 'http://'.$_SERVER['HTTP_HOST'].'/games/'.($game['name']).'.js?v='.urlencode($game['version']);
+		//$game['src'] = 'http://'.$_SERVER['HTTP_HOST'].'/games/'.($game['name']).'.js?v='.urlencode($game['version']);
+		$game['src'] = 'http://'.$_SERVER['HTTP_HOST'].'/index/gamesrc/game_id/'.($game['game_id']).'?v='.urlencode($game['version']);
+
 
 		$instanceTable = new InstanceTable();
 		$instances = $instanceTable->fetchAll($instanceTable->select()->where('status=?','running')->where('game_id=?',$game_id));

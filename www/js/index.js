@@ -21,8 +21,8 @@ require('js/client.js');
  * under the License.
  */
 var app = {
-    server: 'http://geogames.localhost',
-    //server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
+    //server: 'http://geogames.localhost',
+    server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
 
     // Application Constructor
     initialize: function() {
