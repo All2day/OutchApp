@@ -21,8 +21,8 @@ require('js/client.js');
  * under the License.
  */
 var app = {
-    //server: 'http://localhost:9615',
-    server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
+    server: 'http://geogames.localhost',
+    //server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
 
     // Application Constructor
     initialize: function() {
@@ -119,6 +119,8 @@ var app = {
         this.showGames();
     },
 
+
+    _currentGame:null,
     showGames:function(){
       var f = $('#front');
       var that = this;
@@ -130,10 +132,23 @@ var app = {
           }.bind(that));
         });
 
+        f.on('click','.open',function(){
+          $.getJSON(that.server+'/index/game',{game_id:$(this).attr('data-game_id')},function(data){
+
+            that._currentGame = data.game;
+            that.showGames();
+          });
+        });
+
         f.on('click','.start',function(){
-          $.getJSON(that.server+'/index/start',function(data){
+          $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id},function(data){
             this.showGames();
           }.bind(that));
+        });
+
+        f.on('click','.back',function(){
+          that._currentGame = null;
+          that.showGames();
         });
 
         f.on('click','.join',function(){
@@ -141,14 +156,21 @@ var app = {
           that.startGame(url);
         });
       }
-      $("#front").html(this.frontTmpl()).show();
+      //$("#front").html(this.frontTmpl()).show();
       //get current games from server
-      $.getJSON(this.server+'/index/listinstances',function(data){
-        $("#front").html(this.frontTmpl(data));
-      }.bind(this));
 
-
-
+      if(this._currentGame){
+        $("#front").html(this.gameTmpl(this._currentGame));
+        //update data
+        $.getJSON(that.server+'/index/game',{game_id:this._currentGame.game_id},function(data){
+          this._currentGame = data.game;
+          $("#front").html(this.gameTmpl(this._currentGame));
+        }.bind(this));
+      } else {
+        $.getJSON(this.server+'/index/listgames',function(data){
+          $("#front").html(this.frontTmpl(data));
+        }.bind(this));
+      }
     },
 
     startGame:function(url){
@@ -159,9 +181,11 @@ var app = {
         this.player_name = prompt('Player name');
       }
 
-      var uno = require('js/uno.js');
 
-      this._client = window._client = new GameClient(uno.game,this.player_name);
+      var g = require(this._currentGame.src);
+      //var uno = require('js/uno.js');
+
+      this._client = window._client = new GameClient(g.game,this.player_name);
 
       _client.server = url; //'http://52.208.48.54:9615'; //'http://localhost:9615';
       _client.startPinging();
@@ -230,6 +254,7 @@ var app = {
       } else { //End of no gps, now setup the gps
 
         this._smoothPosUpdates = function(){
+          this._smoothPosUpdates._run_count = (this._smoothPosUpdates._run_count || 0)+1;
           //console.log('smooth update');
           //calculate best position based on time
           var delay = 200;
@@ -373,6 +398,18 @@ var app = {
             this._client.updatePosition(this._lastPos.c);
           }
 
+          if(this._smoothPosUpdates._run_count % 100 == 99){
+            console.log('GPS STAT:');
+            console.log('history count:'+this._posHist.length);
+            var total_time = this._posHist[this._posHist.length-1].t - this._posHist[0].t;
+            console.log('avg second between:'+(total_time/(this._posHist.length-1)));
+            var total_delay =0;
+            for(var i=0;i<this._posHist.length;i++){
+              total_delay+=this._posHist[i].rt - this._posHist[i].t;
+            }
+            console.log('avg delay:'+(total_delay/(this._posHist.length)));
+          }
+
           //restart the smooth timer
           this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,100);
         }.bind(this);
@@ -386,12 +423,14 @@ var app = {
 
           var pos_obj = {
             c:c,
-            t:pos.timestamp
+            t:pos.timestamp,
+            rt: new Date().getTime()
           };
 
           if(!this._posHist){
             this._posHist = [];
             this._posHist.push(pos_obj);
+            console.log('starting smoothing');
             this._smoothPosUpdates(); //fire first time
           } else {
             //if matching the one before, ignore it
@@ -402,8 +441,9 @@ var app = {
               console.log('current time is:'+t+' and timestamp of pos is:'+pos_obj.t);
               return;
             }
+
             this._posHist.push(pos_obj);
-            if(this._posHist.length >= 10){
+            if(this._posHist.length >= 100){
               this._posHist.shift();
             }
           }
@@ -417,7 +457,7 @@ var app = {
         }.bind(this),
           function(err){
             console.log('error in gps:'+err.code +' '+err.message);
-            console.log('restarting location service');
+            //console.log('restarting location service');
             //this.stopLocationService();
             //this.startLocationService();
           }.bind(this),

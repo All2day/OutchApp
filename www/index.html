@@ -17,6 +17,18 @@
 
 <script id="front" type="text/x-handlebars-template">
     <h1>Geogames</h1>
+    {{#each games}}
+      <div class="game">
+        <h2>{{name}}</h2>
+        <button class="open" data-game_id="{{game_id}}">Open</button>
+      </div>
+    {{/each}}
+</script>
+
+<script id="game" type="text/x-handlebars-template">
+  <div class="game">
+    <h1>{{name}}</h1>
+    <p>{{description}}</p>
     {{#each instances}}
       <div class="instance">
         <h2>id:{{instance_id}}</h2>
@@ -26,7 +38,10 @@
       </div>
     {{/each}}
     <button class="start">Start</button>
+    <button class="back">Back</button>
+  </div>
 </script>
+
         <!-- 3rd party libraries -->
 
         <script type="text/javascript" src="js/handlebars-v2.0.0.js"></script>
@@ -34,36 +49,8 @@
         <!--<script type="text/javascript" src="js/require.js"></script>-->
         <!--<script type="text/javascript" src="js/uno.js"></script>-->
         <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
-        <script>
-          window.require = function(file){
+        <script type="text/javascript" src="js/require_basic.js"></script>
 
-            if(!file.match(/.js$/)){
-              file = file+'.js';
-            }
-            var m = file.match(/^\.\/(.*)/);
-            if(m){
-              file = 'js/'+m[1];
-            }
-            if(!require.cache){
-              require.cache = {};
-            }
-            if(require.cache[file]){
-              //do nothing
-              return require.cache[file];
-            }
-            console.log('loading file:'+file);
-            //debugger;
-            window.global = null;
-            window.exports = {};
-            $('<script>')
-              .attr('type', 'text/javascript')
-              .attr('src',file)
-              .appendTo('head');
-            //$.getScript(file);
-            require.cache[file] = exports;
-            return exports;
-          };
-        </script>
         <!--<script type="text/javascript" src="js/basic.js"></script>
         <script type="text/javascript" src="js/scoperef.js"></script>
         <script type="text/javascript" src="js/actions.js"></script>

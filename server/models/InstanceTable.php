@@ -5,12 +5,13 @@ class InstanceTable extends Zend_Db_Table_Abstract
 	protected $_name = 'instance';
 	protected $_rowClass = 'InstanceRow';
 
-  public static function startInstance(){
+  public static function startInstance($game_id){
     $db = Zend_Db_Table_Abstract::getDefaultAdapter();
     //create a new instance
 		$instanceTable = new InstanceTable();
 		$instance = $instanceTable->createRow();
     $instance->status = 'created';
+		$instance->game_id = $game_id;
     $instance->save();
 
     //find free port
