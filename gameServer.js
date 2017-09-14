@@ -13,10 +13,12 @@ global.window = null; //required to be able to make (window || global)
 
 var instance_id = process.argv[2];
 var port = process.argv[3];
+var name = process.argv[4];
 
 console.log(instance_id,port);
 
-var uno = require('./www/js/uno.js');
+//var uno = require('./www/js/uno.js');
+var g = require('./server/games/'+name+'.js');
 require('./www/js/gameengine.js');
 
 var gameServer = new GameServer(uno.game,instance_id ,port);

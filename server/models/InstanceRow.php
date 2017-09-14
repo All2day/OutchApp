@@ -1,7 +1,8 @@
 <?php
 class InstanceRow extends Zend_Db_Table_Row_Abstract{
 	public function start(){
-		$command = 'nohup '.'node ../gameServer '.($this->instance_id).' '.($this->port*1).' > cache/log/instance_'.$this->instance_id.'.log 2>&1 & echo $!';
+		$game = $this->getGame();
+		$command = 'nohup '.'node ../gameServer '.($this->instance_id).' '.($this->port*1).' '.($game->name).' > cache/log/instance_'.$this->instance_id.'.log 2>&1 & echo $!';
 		exec($command ,$op);
 
 		$pid = (int)$op[0];
@@ -15,6 +16,12 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 			$this->status = 'error';
 		}
 		$this->save();
+	}
+
+	public function getGame(){
+		$gameTable = new GameTable();
+		$game = $gameTable->find($this->game_id)->current();
+		return $game;
 	}
 
 	public function isProcessRunning(){

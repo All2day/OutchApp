@@ -1,7 +1,7 @@
 /* Simulate basic require functionality to allow both uses within cordova and node*/
 window.require = function(file){
 
-  if(!file.match(/.js(\?.*)?$||^http\:/)){
+  if(!file.match(/.js(\?.*)?$|^http\:.*/)){
     file = file+'.js';
   }
   var m = file.match(/^\.\/(.*)/);
@@ -29,9 +29,10 @@ window.require = function(file){
     var request = new XMLHttpRequest();
     request.open('GET', file, false);
     request.send();
-    if (request.readyState != 4)
+    if (request.readyState != 4){
       debugger;
       return;
+    }
     if (request.status != 200){
       console.log('could not load source file:'+file);
       return false;
