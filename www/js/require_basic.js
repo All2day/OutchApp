@@ -15,7 +15,7 @@ window.require = function(file,force_request){
     //do nothing
     return require.cache[file];
   }
-  console.log('loading file:'+file);
+
   //debugger;
   window.global = null;
 
@@ -26,6 +26,7 @@ window.require = function(file,force_request){
 
   //if document is already loaded, use a http request
   if(document.readyState === "complete" || force_request){
+    console.log('loading file with xmlhttprequest:'+file);
     var request = new XMLHttpRequest();
     request.open('GET', file, false);
     request.send();
@@ -40,12 +41,12 @@ window.require = function(file,force_request){
 
     eval(request.responseText);
   } else {
+    console.log('loading file with script:'+file);
     //if ready state is not yet complete adding the file directly will make it load
     //synchronously and keep it for fx. chrome dev
     $('<script>')
       .attr('type', 'text/javascript')
       .attr('src',file)
-      .attr('async',false)
       .appendTo('head');
   }
   require.cache[file] = exports;

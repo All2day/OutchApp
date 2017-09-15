@@ -1,3 +1,6 @@
+document.addEventListener("deviceready", function(){
+  window.deviceisready = true;
+});
 require('js/log.js');
 require('js/client.js');
 
@@ -26,6 +29,21 @@ var app = {
 
     // Application Constructor
     initialize: function() {
+      if(window.deviceisready){
+        console.log('already deviceready');
+        try{
+          if(window.console_reinsert){
+            console_reinsert();
+          }
+        } catch(e){
+          alert('error in console reinsert:'+e.message + ' in '+e.fileName + '['+e.lineNumber+']');
+        }
+        try{
+          app.onDeviceReady();
+        } catch(e){
+          alert('error in init:'+e.message + ' in '+e.fileName + '['+e.lineNumber+']');
+        }
+      } else
       if(navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) { //removed |IEMobile
 
         console.log('registering deviceready');
