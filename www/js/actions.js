@@ -202,6 +202,7 @@ Action.fromObject = function(obj,name){
        if(src_var === null){
          console.log('setting to null');
        }
+
        target_var.set(src_var);
      } else {
        console.log('could not find target');

@@ -83,8 +83,13 @@ var app = {
 
         if(qs['UUID']){
           app.player_name = qs['UUID'];
-
         }
+        if(!!qs['local']){
+          this.server = 'http://geogames.localhost';
+        }
+
+
+
 
         /*if(qs['port']){
           this.server = this.server+':'+qs['port'];
@@ -115,7 +120,20 @@ var app = {
         //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
         //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
 
+
+
         this.setupTemplates();
+
+        if(qs['test_game']){
+          var port = qs['port'];
+          this._currentGame = {
+            src:this.server+'/index/gamesrc/game_id/'+qs['test_game']
+          };
+          this.startGame('http://localhost:'+port);
+          //to start local server: node gameServer 1 9000 scorched_earth
+          return;
+        }
+
         this.showGames();
     },
 
@@ -182,7 +200,7 @@ var app = {
       }
 
 
-      var g = require(this._currentGame.src);
+      var g = require(this._currentGame.src,true);
       //var uno = require('js/uno.js');
 
       this._client = window._client = new GameClient(g.game,this.player_name);

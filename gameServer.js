@@ -21,6 +21,6 @@ console.log(instance_id,port);
 var g = require('./server/games/'+name+'.js');
 require('./www/js/gameengine.js');
 
-var gameServer = new GameServer(uno.game,instance_id ,port);
+var gameServer = new GameServer(g.game,instance_id ,port);
 
 gameServer.start();

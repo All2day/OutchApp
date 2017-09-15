@@ -110,7 +110,8 @@ Class.extend('GameClient',{
 
     //set the value of all variables
     $.each(update,function(id,u){
-      //if(id==43 && u.value.length < 5) debugger;
+      //if(id==12 && u.value.length != window.last_v){window.last_v = u.value.length;debugger;}
+      if(window._watch && window._watch.indexOf(id) >= 0){ debugger;}
       if(p && id == p.pos._id){
         return; //ignore updates of position
       }
@@ -152,7 +153,7 @@ Class.extend('GameClient',{
         if(Variable._vars[id]._value == null){
           Variable._vars[id]._value = [];
         }
-        var max_i = 0;
+        var max_i = -1;
         //go through the update and change
         $.each(u.value,function(i,p){
           if(i == Variable._vars[id]._value.length){

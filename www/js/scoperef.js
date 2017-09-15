@@ -280,6 +280,10 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
             ScopeRef._prepareScopeRef(s.c.slice(i+1))
           );
         }
+      }
+
+      //look for 3. level splitters
+      for(var i=0;i< s.c.length;i++){
         if(s.c[i] == '*'){
           return new ScopeMult(
             ScopeRef._prepareScopeRef(s.c.slice(0,i)),
@@ -350,6 +354,24 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
   }
 
 
+  //check for functions
+  if(s.c.length == 2 && s.c[1].type=="("){
+    var a = [];
+    for(var i=0,j=0;i<s.c[1].c.length;i++){
+      if(s.c[1].c[i]==","){
+        a.push(ScopeRef._prepareScopeRef(s.c[1].c.slice(j,i)));
+        j=i+1;
+      }
+    }
+    //the last
+    a.push(ScopeRef._prepareScopeRef(s.c[1].c.slice(j)));
+
+    switch(s.c[0]){
+      case 'dist':
+        return new ScopeDist(a);
+    }
+  }
+
   var m;
   if($.type(s) != 'string'){
     debugger;
@@ -410,8 +432,13 @@ ScopeRef.extend('ScopeDebug',{
     this.inner = inner;
   },
   eval:function(scp,inf){
+
+    var old_chatty = ScopeRef._chatty;
+    ScopeRef._chatty = true;
     debugger;
-    return this.inner.eval(scp,inf);
+    var v = this.inner.eval(scp,inf);
+    ScopeRef._chatty = old_chatty;
+    return v;
   },
   traverse:function(f){
     this._super(f);
@@ -451,7 +478,14 @@ LeftRightRef.extend('ScopeMoreThan',{
 
 LeftRightRef.extend('ScopeLessThan',{
   eval:function(scp,inf){
-    return this.left.eval(scp,inf) < this.right.eval(scp,inf);
+    var l = this.left.eval(scp,inf);
+    var r = this.right.eval(scp,inf);
+
+    if(l instanceof Variable){l = l._value;}
+    if(r instanceof Variable){r = r._value;}
+
+    if(ScopeRef._chatty){console.log('ScopeLessThan:'+l+'<'+r);}
+    return l < r;
   }
 });
 
@@ -518,26 +552,48 @@ ScopeRef.extend('ScopeString',{
  LeftRightRef.extend('ScopeAdd',{
    eval:function(scp,inf){
      var l = this.left.eval(scp,inf);
-     if(l instanceof Variable){l = l._value;}
      var r = this.right.eval(scp,inf);
+
+     if(l instanceof Variable){l = l._value;}
      if(r instanceof Variable){r = r._value;}
+
+     //if both are objects, do the operation on each element (pos)
+     if($.type(l) == "object" && $.type(r) == "object"){
+       var t = {};
+       $.each(l,function(k,lv){
+         t[k] = lv + r[k];
+       });
+       return t;
+     }
+
      return l+r;
    }
  });
 
- LeftRightRef.extend('ScopeMinus',{
-   eval:function(scp,inf){
-     var l = 0;
-     if(this.left){
+LeftRightRef.extend('ScopeMinus',{
+  eval:function(scp,inf){
+    var l;
+    if(this.left){
       l = this.left.eval(scp,inf);
       if(l instanceof Variable){l = l._value;}
-     }
+    }
 
-     var r = this.right.eval(scp,inf);
-     if(r instanceof Variable){r = r._value;}
-     return l-r;
-   }
- });
+    var r = this.right.eval(scp,inf);
+    if(r instanceof Variable){r = r._value;}
+
+    //if both are objects, do the operation on each element (pos)
+    if($.type(l) == "object" && $.type(r) == "object"){
+      var t = {};
+      $.each(l,function(k,lv){
+        t[k] = lv - r[k];
+      });
+      return t;
+    }
+
+
+    return l-r;
+  }
+});
 
  LeftRightRef.extend('ScopeDiv',{
    eval:function(scp,inf){
@@ -555,6 +611,18 @@ ScopeRef.extend('ScopeString',{
      if(l instanceof Variable){l = l._value;}
      var r = this.right.eval(scp,inf);
      if(r instanceof Variable){r = r._value;}
+
+     //if both are objects, do the operation on each element (pos)
+     if($.type(l) == "object" || $.type(r) == "object"){
+       var t = {};
+       var o = $.type(l) == "object" ? l : r;
+       var v = $.type(l) == "object" ? r : o;
+       $.each(o,function(k,ov){
+         t[k] = ov*v;
+       });
+       return t;
+     }
+
      return l*r;
    }
  });
@@ -718,10 +786,12 @@ ScopeRef.extend('ScopeRootLookup',{
   },
   //Called on the top level scope lookup
   eval:function(other_scp,inf /*if set will be used to collect info on the execution*/){
+    if(ScopeRef._chatty){console.log('ScopeRootLookup:'+this.ref);}
     var scp = this.gameStateLookup();
 
     //if a specific scope is found by the first reference use it
     if(scp){
+      if(ScopeRef._chatty){console.log('GameState result:'+scp._id);}
       return this.getNext(scp,inf);
     }
 
@@ -853,11 +923,16 @@ ScopeRootLookup.extend('ScopeLookup',{
   //evaluates this scope reference based on the scp
   eval:function(scp,inf /*if set will be used to collect info on the execution*/){
     if(!scp){
+      if(ScopeRef._chatty){console.log('ScopeLookup:'+this.ref+' but no scope, returning null');}
      return null;
     }
 
     scp = scp.get(this.ref);
+
+    if(ScopeRef._chatty){console.log('ScopeLookup:'+this.ref+' res:'+(scp && scp._id ? 'var '+scp._id : scp));}
+
     if(!scp || !scp.get){
+
       return scp;
     }
 
@@ -974,5 +1049,46 @@ ScopeRef.extend('ScopeIfThenElse',{
     this.condition.traverse(f);
     this.iftrue.traverse(f);
     this.iffalse.traverse(f);
+  }
+});
+
+ScopeRef.extend('ScopeFunction',{
+  args:null,
+  init:function(args){
+    this.args = args;
+  },
+  traverse:function(f){
+    this._super(f);
+    $.each(this.args,function(k,a){
+      a.traverse(f);
+    });
+  },
+  eval:function(scp,inf){
+    var res = [];
+    for(var i=0;i<this.args.length;i++){
+      var r = this.args[i].eval(scp,inf);
+      if(r instanceof Variable){
+        r = r._value;
+      }
+      res.push(r);
+    }
+    return res;
+  }
+});
+
+ScopeFunction.extend('ScopeDist',{
+  eval:function(scp,inf){
+    var res = this._super(scp,inf);
+
+    //both args should be objects
+    if(res.length!=2 || $.type(res[0]) != 'object' || $.type(res[1]) != 'object'){
+      console.log('not pos in dist');
+      return null;
+    }
+
+    var r = Math.sqrt(Math.pow(res[0].x - res[1].x,2) + Math.pow(res[0].y - res[1].y,2));
+
+    if(ScopeRef._chatty){console.log('ScopeDist:'+r);}
+    return r;
   }
 });

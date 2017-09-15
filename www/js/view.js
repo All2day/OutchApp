@@ -739,6 +739,7 @@ ViewElement.extend('MapElement',{
       //TODO: why is it needed to update all props here?
       this.updateAllProps();
 
+      this.triggerHook('change');
 
       //register method for checking if inside any elements
       ScopeRef._gs.currentPlayer.get('pos').addHook('change',function(){
@@ -768,7 +769,7 @@ ViewElement.extend('MapElement',{
 
   },
   /**
-   * Method for tracking enter and leaces on elements. Currently only actual elements can be tracked thus fx entering a child element is not the same as entering an element.
+   * Method for tracking enter and leaves on elements. Currently only actual elements can be tracked thus fx entering a child element is not the same as entering an element.
    Every time the pos of the player is changing, a list of features at the new coordinate is used to trigger "enter" hooks. A _inside attr on all the elements is set to a time variable used for all checks in this update. All inside elements are stored in a container array.
    When done all elements in the this container is checked, and if the _inside attr is less than the current time "leave" hooks are triggered and the inside_elements are updated.
 
@@ -844,6 +845,44 @@ ViewElement.extend('MapElement',{
     });
     this._inside_elements = new_inside_els;
     Hookable._handleTriggerQueue();
+  },
+  get:function(ref){
+    switch(ref){
+      case 'dragging':
+        if(!this._drag && this._dom){
+          //add events:
+          this._drag = true;
+          this._dom.on('touchstart touchmove touchend',function(event){
+            console.log(event.type);
+            var _dragging = event.type != 'touchend';
+
+            if(_dragging){
+              this._drag = [event.originalEvent.touches[0].pageX,event.originalEvent.touches[0].pageY];
+            } else {
+              this.triggerHook('dragend');
+              Hookable._handleTriggerQueue();
+            }
+
+
+            this._dragging = _dragging;
+            this.triggerHook('change');
+            Hookable._handleTriggerQueue();
+          }.bind(this));
+        }
+        return !!this._dragging;
+        break;
+      case 'dragpos':
+        if(!this.get('dragging')){
+          return null;
+        }
+
+        var p = this._map.getCoordinateFromPixel(this._drag);
+        //console.log(p);
+        return {x:p[0],y:p[1]};
+        break;
+      default:
+        this._super(ref);
+    }
   }
 });
 

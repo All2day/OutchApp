@@ -231,8 +231,13 @@ PrimitiveVariable.extend('PosVariable',{
     if(changed){
       this.triggerHook('change');
     }
-  }
+  },
+  clone:function(){
+    var c = this._super();
+    c._value = Object.assign({},this._value);
 
+    return c;
+  }
 });
 
 Variable.extend('ListVariable',{
@@ -285,7 +290,12 @@ Variable.extend('ListVariable',{
       return;
     }
 
+    //console.log('length before remove '+this._value.length);
+
     this._value.remove(v);
+
+    //console.log('length after remove '+this._value.length);
+    //console.log(this.getObject());
 
     this.triggerHook('change');
   },
@@ -428,6 +438,9 @@ Variable.extend('TimerVariable',{
       });
       v._hooks.add(ht,v_hs);
     });
+    //copy the value
+    v._value = Object.assign({},this._value);
+
     return v;
   },
   get:function(ref){
