@@ -45,8 +45,6 @@ var app = {
             alert('error in init:'+e.message + ' in '+e.fileName + '['+e.lineNumber+']');
           }
         }, false);
-
-
         } else {
           console.log('NOT registering deviceready');
           app.onDeviceReady();

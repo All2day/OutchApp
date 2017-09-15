@@ -25,7 +25,7 @@ window.require = function(file,force_request){
   };
 
   //if document is already loaded, use a http request
-  if(document.readyState === "complete" || true){
+  if(document.readyState === "complete" || force_request){
     var request = new XMLHttpRequest();
     request.open('GET', file, false);
     request.send();
