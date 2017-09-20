@@ -10,6 +10,7 @@ Class.extend('GameClient',{
   remoteTriggerQueue:[],//{nextId:1}, //using integers for indexing
   currentPhase:null,
   init:function(gameobject,UUID){
+    //debugger;
     this.UUID = UUID;
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);
@@ -88,7 +89,6 @@ Class.extend('GameClient',{
     });
   },
   fullUpdate:function(update){
-    //debugger;
     //first go is simply to check the existance of all the variables
     $.each(update,function(id,u){
       if(Variable._vars[id] === undefined){
