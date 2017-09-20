@@ -26,6 +26,7 @@
     </platform>
     <platform name="ios">
     </platform>
+    <engine name="android" spec="^6.2.3" />
     <plugin name="com.manueldeveloper.volume-buttons" spec="https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git" />
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />

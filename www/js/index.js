@@ -1,6 +1,9 @@
-document.addEventListener("deviceready", function(){
+/*document.addEventListener("deviceready", function(){
+  alert('got start device ready');
   window.deviceisready = true;
 });
+alert('device ready fired');
+*/
 require('js/log.js');
 require('js/client.js');
 
