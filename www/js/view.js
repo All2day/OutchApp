@@ -714,6 +714,16 @@ ViewElement.extend('MapElement',{
       this._map = map;
       c.append(dom);
 
+      this._vectorLayer.on('precompose',function(event){
+        //let all timers change their value
+
+        $.each(ScopeRef._getGameState().currentPhase._value._runningTimers,function(k,t){
+          t.triggerHook('change');
+        });
+        
+        Hookable._handleTriggerQueue();
+      });
+
       /* Test feature
       var test_c = new ol.geom.Circle([0,0],10);
       var test_f = new ol.Feature({

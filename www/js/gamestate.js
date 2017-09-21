@@ -422,8 +422,26 @@ Variable.extend('TimerVariable',{
   },
   set:function(val){
 
-    //if(val !== null) debugger;
-    this._super(val);
+    var old_val = this._value;
+    this._value = val;
+    if(old_val !== null && val !== null){
+      if(old_val.duration != val.duration || old_val.status != val.status || old_val.start_time != val.start_time){
+        console.log('timer change');
+        this.triggerHook('change');
+      }
+
+      if(old_val.status != val.status){
+        if(val.status == 'started'){
+          ScopeRef._getGameState().currentPhase.registerTimer(this);
+        } else {
+          ScopeRef._getGameState().currentPhase.deregisterTimer(this);
+        }
+      }
+
+    } else if(val !== old_val){
+      this.triggerHook('change');
+    }
+    //this._super(val);
     //console.log('setting timer to:'+val + 'r:'+this.get('ratioDone')+' d:'+this._value.duration);
   },
   clone: function(){
@@ -449,6 +467,7 @@ Variable.extend('TimerVariable',{
       case 'ratioDone': //between 0 and 1
         if(!this._value || this._value.status != 'started') return 0;
         var t = ScopeRef._gs.getTime();
+
         return Math.min(1,(t - this._value.start_time)/this._value.duration);
       case 'duration':
         return this._value === null ? Infinity : this._value.duration;

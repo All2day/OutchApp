@@ -7,10 +7,11 @@ Class.extend('GameClient',{
   min_send_frequency:100,
   game_id:null,
   UUID:'mads',
-  remoteTriggerQueue:[],//{nextId:1}, //using integers for indexing
+  remoteTriggerQueue:null,//{nextId:1}, //using integers for indexing
   currentPhase:null,
   init:function(gameobject,UUID){
     //debugger;
+    this.remoteTriggerQueue = [];
     this.UUID = UUID;
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);

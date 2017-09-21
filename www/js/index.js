@@ -448,7 +448,7 @@ var app = {
           }
 
           //restart the smooth timer
-          this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,100);
+          this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,200);
         }.bind(this);
 
         this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
