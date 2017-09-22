@@ -807,7 +807,7 @@ ViewElement.extend('MapElement',{
     var fts = [];
     var all_fts = this._vectorSource.getFeatures();
     for(var i = 0;i<all_fts.length;i++){
-      var g = all_fts[i].getGeometry();
+      var g = all_fts[i].el && all_fts[i].el._hitGeom ? all_fts[i].el._hitGeom : all_fts[i].getGeometry();
       if(!g){
         //TODO:this can happen for wrapper elements. They should not create features, but it does not matter that much
         //console.log('no geometry for feature');
@@ -1379,11 +1379,13 @@ GeoElement.extend('CircleElement',{
 GeoElement.extend('SvgElement',{
   //radius:null,
   /*_geom:null,*/
+  _hitGeom:null,
   init:function(obj){
 
     this._super(obj);
 
-    //this.registerProp('radius',obj.radius,1);
+    this.registerProp('svg',obj.svg,false);
+    this.registerProp('radius',obj.radius,10);
 
     this._sourceObj = obj;
   },
@@ -1393,24 +1395,25 @@ GeoElement.extend('SvgElement',{
     this._super(vl);
 
     if(!this._geom){
-
+      var radius = this.getProp('radius');
+      this._hitGeom = new ol.geom.Circle([0,0],radius);
       this._geom = new ol.geom.Point([0,0]);
     }
   },
   updateStyle:function(){
 
     this._super();
-    var svg = '<svg width="400" height="400" version="1.1" xmlns="http://www.w3.org/2000/svg">'
-      + '<circle cx="60" cy="60" r="10"/>'
-      + '<path d="M153 334 C153 334 151 334 151 334 C151 339 153 344 156 344 C164 344 171 339 171 334 C171 322 164 314 156 314 C142 314 131 322 131 334 C131 350 142 364 156 364 C175 364 191 350 191 334 C191 311 175 294 156 294 C131 294 111 311 111 334 C111 361 131 384 156 384 C186 384 211 361 211 334 C211 300 186 274 156 274" style="fill:none;stroke:red;stroke-width:4"/>'
+    var svg = this.getProp('svg');
+    /*var svg = '<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">'
+      + '<path stroke="red" id="svg_1" fill="none" stroke-width="4" d="m42.2952,54.35156c0,0 -1.91882,0 -1.91882,0c0,4.36263 1.91882,8.72526 4.79705,8.72526c7.67528,0 14.39114,-4.36263 14.39114,-8.72526c0,-10.47031 -6.71587,-17.45052 -14.39114,-17.45052c-13.43173,0 -23.98524,6.98021 -23.98524,17.45052c0,13.96042 10.55351,26.17578 23.98524,26.17578c18.22878,0 33.57934,-12.21536 33.57934,-26.17578c0,-20.0681 -15.35055,-34.90104 -33.57934,-34.90104c-23.98524,0 -43.17343,14.83294 -43.17343,34.90104c0,23.5582 19.18819,43.6263 43.17343,43.6263c28.78229,0 52.76753,-20.0681 52.76753,-43.6263c0,-29.66588 -23.98524,-52.35156 -52.76753,-52.35156"/>'
       + '</svg>';
-
+    */
 
     this._style.setImage(new ol.style.Icon({
       opacity: 1,
       src: 'data:image/svg+xml;utf8,' + svg,
       rotation:0,
-      scale: 0.3
+      scale: 1
     }));
     if(this._feature){
       this._feature.setStyle(this._style);
