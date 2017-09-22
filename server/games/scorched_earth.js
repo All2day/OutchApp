@@ -150,6 +150,12 @@ exports.game = {
                   //pos:"listel.end_pos",
                   pos:"listel.start_pos*(1-listel.timer.ratioDone) + listel.end_pos*(listel.timer.ratioDone)",
                   radius:"game.bombSize*0.5"
+                },
+                'svg':{
+                  type:"SVG",
+                  pos:"listel.start_pos*(1-listel.timer.ratioDone) + listel.end_pos*(listel.timer.ratioDone)",
+                  color:[0,0,255,1],
+                  zIndex:2,
                 }
               }
             } // end of bombs
