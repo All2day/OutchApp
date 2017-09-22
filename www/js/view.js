@@ -720,7 +720,7 @@ ViewElement.extend('MapElement',{
         $.each(ScopeRef._getGameState().currentPhase._value._runningTimers,function(k,t){
           t.triggerHook('change');
         });
-        
+
         Hookable._handleTriggerQueue();
       });
 
@@ -1374,6 +1374,66 @@ GeoElement.extend('CircleElement',{
     this._super(props);
   },
 });
+
+
+GeoElement.extend('SvgElement',{
+  //radius:null,
+  /*_geom:null,*/
+  init:function(obj){
+
+    this._super(obj);
+
+    //this.registerProp('radius',obj.radius,1);
+
+    this._sourceObj = obj;
+  },
+  draw:function(vl /* vector layer*/){
+    //if(this._name=='inner') debugger;
+
+    this._super(vl);
+
+    if(!this._geom){
+
+      this._geom = new ol.geom.Point([0,0]);
+    }
+  },
+  updateStyle:function(){
+
+    this._super();
+    var svg = '<svg width="400" height="400" version="1.1" xmlns="http://www.w3.org/2000/svg">'
+      + '<circle cx="60" cy="60" r="10"/>'
+      + '<path d="M153 334 C153 334 151 334 151 334 C151 339 153 344 156 344 C164 344 171 339 171 334 C171 322 164 314 156 314 C142 314 131 322 131 334 C131 350 142 364 156 364 C175 364 191 350 191 334 C191 311 175 294 156 294 C131 294 111 311 111 334 C111 361 131 384 156 384 C186 384 211 361 211 334 C211 300 186 274 156 274" style="fill:none;stroke:red;stroke-width:4"/>'
+      + '</svg>';
+
+
+    this._style.setImage(new ol.style.Icon({
+      opacity: 1,
+      src: 'data:image/svg+xml;utf8,' + svg,
+      rotation:0,
+      scale: 0.3
+    }));
+    if(this._feature){
+      this._feature.setStyle(this._style);
+    }
+
+  },
+  update:function(props){ //update the following properties by looking up the values
+
+    var that = this;
+    $.each(props,function(prop,val){
+      //val = val !== null ? val._value || val : null;
+      val = val && val._value ? val._value : val;
+      switch(prop){
+        case 'radius':
+          if(!this._geom) return;
+          that._geom.setRadius(val);
+          break;
+      }
+    });
+    this._super(props);
+  },
+});
+
 
 
 /**

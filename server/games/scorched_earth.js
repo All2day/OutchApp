@@ -121,6 +121,12 @@ exports.game = {
               color:[0,0,255,1],
               zIndex:2,
             },
+            'svg':{
+              type:"SVG",
+              pos:"player.pos",
+              color:[0,0,255,1],
+              zIndex:2,
+            },
             'list of players':{ //The player cards
               type:"geolist",
               list:"players.others",
