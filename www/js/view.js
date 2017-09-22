@@ -708,7 +708,14 @@ ViewElement.extend('MapElement',{
         //useSpatialIndex:false //sometimes the rbush used for the spatial tree fails
       });
       this._vectorLayer = new ol.layer.Vector({
-        source:this._vectorSource
+        source:this._vectorSource,
+        style:function(feature,resolution){
+          debugger;
+          if(feature.el instanceof SvgElement){
+
+            feature.el._style.getImage().setScale(resolution);
+          }
+        }
       });
       map.addLayer(this._vectorLayer);
       this._map = map;
@@ -1380,12 +1387,14 @@ GeoElement.extend('SvgElement',{
   //radius:null,
   /*_geom:null,*/
   _hitGeom:null,
+  svg:null,
   init:function(obj){
 
     this._super(obj);
 
-    this.registerProp('svg',obj.svg,false);
+    this.svg = obj.svg;
     this.registerProp('radius',obj.radius,10);
+    this.registerProp('scale',obj.scale,15/100);
 
     this._sourceObj = obj;
   },
@@ -1403,18 +1412,45 @@ GeoElement.extend('SvgElement',{
   updateStyle:function(){
 
     this._super();
-    var svg = this.getProp('svg');
+
     /*var svg = '<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">'
       + '<path stroke="red" id="svg_1" fill="none" stroke-width="4" d="m42.2952,54.35156c0,0 -1.91882,0 -1.91882,0c0,4.36263 1.91882,8.72526 4.79705,8.72526c7.67528,0 14.39114,-4.36263 14.39114,-8.72526c0,-10.47031 -6.71587,-17.45052 -14.39114,-17.45052c-13.43173,0 -23.98524,6.98021 -23.98524,17.45052c0,13.96042 10.55351,26.17578 23.98524,26.17578c18.22878,0 33.57934,-12.21536 33.57934,-26.17578c0,-20.0681 -15.35055,-34.90104 -33.57934,-34.90104c-23.98524,0 -43.17343,14.83294 -43.17343,34.90104c0,23.5582 19.18819,43.6263 43.17343,43.6263c28.78229,0 52.76753,-20.0681 52.76753,-43.6263c0,-29.66588 -23.98524,-52.35156 -52.76753,-52.35156"/>'
       + '</svg>';
     */
 
-    this._style.setImage(new ol.style.Icon({
-      opacity: 1,
-      src: 'data:image/svg+xml;utf8,' + svg,
-      rotation:0,
-      scale: 1
-    }));
+    var scale = this.getProp('scale');
+
+    /*if(!this._svgImage && this.svg){
+      this._svgImage = new ol.style.Icon({
+        opacity: 1,
+        src: 'data:image/svg+xml;utf8,' + this.svg,
+        rotation:0,
+        scale: scale
+      });
+      this._svgImage.load();
+      var that = this;
+      this._style.setRenderer(function(c,s){
+        //debugger;
+        //if (that._svgImage.getImageState() === ol.ImageState.LOADED){
+          s.context.drawImage(that._svgImage.getImage(1),c[0],c[1]);
+      //  }
+        //debugger;
+      });
+    }*/
+
+
+
+    if(this._style.getImage()){
+      this._style.getImage().setScale(scale);
+    } else {
+      this._style.setImage(new ol.style.Icon({
+        opacity: 1,
+        src: 'data:image/svg+xml;utf8,' + this.svg,
+        rotation:0,
+        //size:[10,10],
+        scale: scale
+      }));
+    }
     if(this._feature){
       this._feature.setStyle(this._style);
     }

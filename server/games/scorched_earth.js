@@ -121,12 +121,6 @@ exports.game = {
               color:[0,0,255,1],
               zIndex:2,
             },
-            'svg':{
-              type:"SVG",
-              pos:"player.pos",
-              color:[0,0,255,1],
-              zIndex:2,
-            },
             'list of players':{ //The player cards
               type:"geolist",
               list:"players.others",
@@ -155,6 +149,7 @@ exports.game = {
                   type:"SVG",
                   radius:"game.bombSize*0.5",
                   pos:"listel.start_pos*(1-listel.timer.ratioDone) + listel.end_pos*(listel.timer.ratioDone)",
+                  scale:"game.bombSize/100",
                   svg:'<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">'
                     + '<path stroke="red" id="svg_1" fill="none" stroke-width="4" d="m42.2952,54.35156c0,0 -1.91882,0 -1.91882,0c0,4.36263 1.91882,8.72526 4.79705,8.72526c7.67528,0 14.39114,-4.36263 14.39114,-8.72526c0,-10.47031 -6.71587,-17.45052 -14.39114,-17.45052c-13.43173,0 -23.98524,6.98021 -23.98524,17.45052c0,13.96042 10.55351,26.17578 23.98524,26.17578c18.22878,0 33.57934,-12.21536 33.57934,-26.17578c0,-20.0681 -15.35055,-34.90104 -33.57934,-34.90104c-23.98524,0 -43.17343,14.83294 -43.17343,34.90104c0,23.5582 19.18819,43.6263 43.17343,43.6263c28.78229,0 52.76753,-20.0681 52.76753,-43.6263c0,-29.66588 -23.98524,-52.35156 -52.76753,-52.35156"/>'
                     + '</svg>',
