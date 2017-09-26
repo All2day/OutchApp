@@ -118,3 +118,72 @@ h1 {
     animation:fade 3000ms infinite;
     -webkit-animation:fade 3000ms infinite;
 }
+
+/**
+ * Our default styling of objects
+ */
+#front{
+  background-color:#FFF;
+  width:100vw;
+  height:100vh;
+  box-sizing:border-box;
+  text-align:center;
+}
+
+#front .game{
+  width:100%;
+  border-top:1px solid rgb(100,100,100);
+  border-bottom:1px solid rgb(100,100,100);
+  padding:1em;
+  box-sizing:border-box;
+}
+
+#front .game .instance{
+  width:100%;
+  border-top:1px solid rgb(100,100,100);
+  border-bottom:1px solid rgb(100,100,100);
+  padding:1em 0;
+  box-sizing:border-box;
+}
+
+button {
+  width:80vw;
+  margin:1em 0;
+}
+
+.label{
+  width:80vw;
+  text-align:center;
+
+}
+.list{
+  width:100%;
+}
+.listel{
+  width:100%;
+}
+.timer{
+  width:100%;
+  box-sizing:border-box;
+  margin:1em 10vw;
+  height:1em;
+  display:inline-block;
+  position:relative;
+  background:white;
+  border:1px solid black;
+  border-radius:.5em;
+}
+.timer .bar{
+  border-radius:.5em 0 0 .5em;
+  position:absolute;
+  height:100%;
+  width:50%;
+  left:0;
+  top:0;
+  background:linear-gradient(to right, #7db9e8 0%,#1e5799 100%);
+}
+
+.timer .bar.disabled{
+  width:100%;
+  background:gray;
+}

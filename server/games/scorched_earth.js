@@ -91,6 +91,20 @@ exports.game = {
         bombs:{
           type:"list",
           prototype:"bomb"
+        },
+        stopTimer:{
+          type:"timer",
+          duration:10000,//300000, // 5 min
+          hooks:{
+            end:{
+              actions:{
+                '_1':{
+                  type:'startphase',
+                  phase:'scoreboard'
+                }
+              }
+            }
+          }
         }
       }, //end of vars
       views:{
@@ -207,7 +221,10 @@ exports.game = {
       hooks:{
         start:{
           actions:{
-
+            '_1':{
+              type:'start',
+              timer:'phase.stopTimer'
+            }
           }
         } //end of start hook
       }
@@ -227,7 +244,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.id+':'+(listel.hits)+'/'+(listel.dies)",
+                  text:"listel.id+':'+(listel.hits)+'/'+(listel.dies)+ 'total distance:'+listel.total_distance",
                 }
               }
             },

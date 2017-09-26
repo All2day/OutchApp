@@ -834,7 +834,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser:'+listel.hand.count)",
+                  text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser:'+listel.hand.count) + ' total distance:'+listel.total_distance+'m'",
                 }
               }
             },

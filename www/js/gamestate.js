@@ -430,13 +430,15 @@ Variable.extend('TimerVariable',{
         this.triggerHook('change');
       }
 
-      if(old_val.status != val.status){
+      //Removed 2017-09-26 - set of timer only used on client, why the need to register/deregister timer?
+      /*if(old_val.status != val.status){
         if(val.status == 'started'){
           ScopeRef._getGameState().currentPhase.registerTimer(this);
         } else {
           ScopeRef._getGameState().currentPhase.deregisterTimer(this);
         }
-      }
+      }*/
+
 
     } else if(val !== old_val){
       this.triggerHook('change');
@@ -652,9 +654,12 @@ GameStateChangeableList.extend('PlayerList',{
     if(this.get(ref) == ScopeRef._gs.currentPlayer){
       //removing self
       if((window || global).alert){
-        alert('exited');
+        //alert('exited');
       } else {
         console.log(ref+ ' exited');
+      }
+      if((window || global).app){
+        app.exitGame();
       }
     }
     this._super(ref);
@@ -891,6 +896,7 @@ ProtoTypeVariable.extend('Player',{
   pos:null,
   ping:null,
   name:null,
+  total_distance:0,
   id:null,
   gsUpdates:null,
   init:function(type,obj){
@@ -912,6 +918,11 @@ ProtoTypeVariable.extend('Player',{
       console.log('bad player pos update:',c[0],c[1],c[2]);
       return;
     }
+    //update total distance
+    if(this.pos._value){
+      var d = Math.sqrt(Math.pow(this.pos._value.x - c[0],2) + Math.pow(this.pos._value.y - c[1],2));
+      this.total_distance+=d;
+    }
     this.pos.set({
       x:c[0],
       y:c[1],
@@ -923,6 +934,8 @@ ProtoTypeVariable.extend('Player',{
     switch(ref){
       case 'pos':
         return this.pos;
+      case 'total_distance':
+        return this.total_distance;
       case 'id':
         return this._name;
       case 'heading':

@@ -287,14 +287,15 @@ ViewElement.extend('LabelElement',{
       val = val._value || val;
       switch(prop){
         case 'text':
-          that._dom.text(val);
+          if(that._dom.text() != val)
+            that._dom.text(val);
       }
     });
   },
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<span></span>').css({
+      var dom = $('<span></span>').addClass('label').css({
 
       }).text(this.getProp('text'));
 
@@ -337,7 +338,7 @@ ViewElement.extend('ListElement',{
       this.attachHooks();
       var dom = $('<div></div>').css({
 
-      });
+      }).addClass('list');
 
       this._dom = dom;
       this._update('list');
@@ -393,7 +394,7 @@ ViewElement.extend('ListElElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      this._dom = $('<div></div>');
+      this._dom = $('<div></div>').addClass('listel');
       var that = this;
       $.each(this.elements._value,function(j,el){
 
@@ -518,25 +519,15 @@ ViewElement.extend('TimerElement',{
 
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div></div>').css({
-        width:'80vw',
-        height:'10px',
-        display:'inline-block',
-        position:'relative',
-        background:'white',
-        border:'1px solid black'
+      var dom = $('<div></div>').addClass('timer').css({
+
       });
       if(!this.getProp('show',true)){
         dom.hide();
       }
 
-      this._barDiv = $('<div></div>').css({
-        position:'absolute',
-        height:'100%',
-        width:'50%',
-        background:'blue',
-        left:0,
-        top:0
+      this._barDiv = $('<div></div>').addClass('bar').css({
+
       });
       dom.append(this._barDiv);
 
@@ -552,13 +543,15 @@ ViewElement.extend('TimerElement',{
         width:'100%',
         background:'gray'
       });
+      this._barDiv.addClass('disabled');
     } else {
+      this._barDiv.removeClass('disabled');
       //debugger;
       var ratioDone = this._timer.get('ratioDone');
       //console.log(''+(100*ratioDone)+'%');
       this._barDiv.stop().css({
         width:''+(100*ratioDone)+'%',
-        background:'blue'
+        //background:'blue'
       }).animate({
         width:'100%'
       },(1-ratioDone)*this._timer.get('duration'),'linear');
