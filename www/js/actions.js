@@ -247,9 +247,16 @@ Action.fromObject = function(obj,name){
      this.prototype = ProtoType.prototypes[obj.prototype];
      this.actions = [];
 
-     var new_obj = this.prototype.create();
+
+     //creating objects in init phase will mess with variable ids, create fake object
+     /*var new_obj = this.prototype.create();
      new_obj._name = this.prototype._name;
      ScopeRef._pushScope(new_obj);
+     */
+     var gso = new GameStateObject({});
+     gso._name = this.prototype._name;
+     ScopeRef._pushScope(gso);
+
 
      var that = this;
      $.each(obj.actions,function(i,a){

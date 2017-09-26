@@ -139,15 +139,15 @@ exports.game = {
               type:"geolist",
               list:"phase.bombs",
               elements:{
-                /*'bomb':{
+                'bomb':{
                   type:"circle",
                   //pos:"listel.end_pos",
                   pos:"listel.start_pos*(1-listel.timer.ratioDone) + listel.end_pos*(listel.timer.ratioDone)",
                   radius:"game.bombSize*0.5"
-                },*/
+                },
                 'svgbomb':{
                   type:"SVG",
-                  radius:"game.bombSize*0.5",
+                  //radius:"game.bombSize*0.5",
                   pos:"listel.start_pos*(1-listel.timer.ratioDone) + listel.end_pos*(listel.timer.ratioDone)",
                   scale:"game.bombSize/100",
                   svg:'<svg width="100" height="100" version="1.1" xmlns="http://www.w3.org/2000/svg">'

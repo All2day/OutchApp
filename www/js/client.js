@@ -90,6 +90,7 @@ Class.extend('GameClient',{
     });
   },
   fullUpdate:function(update){
+
     //first go is simply to check the existance of all the variables
     $.each(update,function(id,u){
       if(Variable._vars[id] === undefined){
