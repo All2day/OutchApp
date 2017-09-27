@@ -14,6 +14,7 @@ Class.extend('GameClient',{
     this.remoteTriggerQueue = [];
     this.UUID = UUID;
     //read the gameobject and create a game state
+
     this.gs = new GameState(gameobject);
 
     //register time function
@@ -90,7 +91,7 @@ Class.extend('GameClient',{
     });
   },
   fullUpdate:function(update){
-
+    
     //first go is simply to check the existance of all the variables
     $.each(update,function(id,u){
       if(Variable._vars[id] === undefined){

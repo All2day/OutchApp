@@ -179,7 +179,9 @@ var app = {
 
         f.on('click','.start',function(){
           $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id},function(data){
-            this.showGames();
+
+            this.startGame(data.url);
+            //this.showGames();
           }.bind(that));
         });
 
@@ -435,25 +437,28 @@ var app = {
             this._client.updatePosition(this._lastPos.c);
           }
 
-          if(this._smoothPosUpdates._run_count % 100 == 99){
+          if(this._smoothPosUpdates._run_count % 50 == 49){
             console.log('GPS STAT:');
             console.log('history count:'+this._posHist.length);
             var total_time = this._posHist[this._posHist.length-1].t - this._posHist[0].t;
             console.log('avg second between:'+(total_time/(this._posHist.length-1)));
             var total_delay =0;
+            var total_accuracy = 0;
             for(var i=0;i<this._posHist.length;i++){
               total_delay+=this._posHist[i].rt - this._posHist[i].t;
+              total_accuracy+=this._posHist[i].a;
             }
             console.log('avg delay:'+(total_delay/(this._posHist.length)));
+            console.log('avg accuracy:'+(total_accuracy/(this._posHist.length)));
           }
 
           //restart the smooth timer
           this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,200);
         }.bind(this);
 
-        this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
-          //console.log(pos.coords.longitude+","+pos.coords.latitude+","+pos.coords.heading);
 
+        //The actual watch function
+        this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
           var pp = new ol.geom.Point(ol.proj.transform([pos.coords.longitude, pos.coords.latitude], 'EPSG:4326', 'EPSG:3857'));
 
           var c = pp.getCoordinates();
@@ -461,8 +466,11 @@ var app = {
           var pos_obj = {
             c:c,
             t:pos.timestamp,
-            rt: new Date().getTime()
+            rt: new Date().getTime(),
+            a: pos.coords.accuracy
           };
+
+          console.log('accuracy:'+pos_obj.a);
 
           if(!this._posHist){
             this._posHist = [];
@@ -480,10 +488,12 @@ var app = {
             }
 
             this._posHist.push(pos_obj);
-            if(this._posHist.length >= 100){
+            if(this._posHist.length >= 15){
               this._posHist.shift();
             }
           }
+
+
 
           return;
           /*if(this._client && !window.pos){

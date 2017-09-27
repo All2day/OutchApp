@@ -128,6 +128,7 @@ h1 {
   height:100vh;
   box-sizing:border-box;
   text-align:center;
+  overflow-y: scroll;
 }
 
 #front .game{
@@ -172,6 +173,7 @@ button {
   background:white;
   border:1px solid black;
   border-radius:.5em;
+  overflow: hidden;
 }
 .timer .bar{
   border-radius:.5em 0 0 .5em;
@@ -186,4 +188,26 @@ button {
 .timer .bar.disabled{
   width:100%;
   background:gray;
+}
+
+.slider {
+  width:100%;
+  box-sizing:border-box;
+  margin:1em 10vw;
+  height:1em;
+  display:inline-block;
+  position:relative;
+  background:white;
+  border:1px solid black;
+  border-radius:.5em;
+}
+
+.slider .knob{
+  width:2em;
+  height:2em;
+  border-radius:1em;
+  border:1px solid black;
+  position: absolute;
+  margin-top: -0.75em;
+  background: radial-gradient(ellipse at center, #7db9e8 0%,#1e5799 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }

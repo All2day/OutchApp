@@ -14,7 +14,7 @@ exports.game = {
       },
       nextCard: {
         type:"timer",
-        duration:15000,
+        duration:"game.newCardDelay*1000",
         hooks:{
           end:{
             actions:{
@@ -59,7 +59,8 @@ exports.game = {
       els: [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     },
     size:25,
-    cardHeight:15
+    cardHeight:15,
+    newCardDelay:15
   },
   phases:{
     /*create:{
@@ -72,15 +73,12 @@ exports.game = {
         '_1':{
           type:'page',
           elements:{
-            't':{
-              type:"timer",
-              timer:"phase.test_timer"
-            },
             'map':{
               type:'MapView',
               width:80,
               height:20,
-              zoom:"'fit'",
+              zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
+              //zoom:"'fit'",
               center:"players.gameowner.pos",
               heading:"players.gameowner.heading",
               geoElements:{
@@ -143,6 +141,50 @@ exports.game = {
                 }
               }
             },
+            'delay':{
+              type:"label",
+              text:"'Tid før nyt kort:'+game.newCardDelay+'s'"
+            },
+            'newCardDelay':{
+              show:"player = players.gameowner",
+              type:"slider",
+              default:"game.newCardDelay",
+              min:10,
+              max:300,
+              hooks:{
+                change:{
+                  actions:{
+                    '_1':{
+                      type:"set",
+                      target:"game.newCardDelay",
+                      source:"^element.value"
+                    }
+                  }
+                }
+              }
+            },
+            'radius':{
+              type:"label",
+              text:"'Radius af spil:'+game.size+'m'"
+            },
+            'gameSize':{
+              show:"player = players.gameowner",
+              type:"slider",
+              min:25,
+              max:100,
+              default:"game.size",
+              hooks:{
+                change:{
+                  actions:{
+                    '_1':{
+                      type:"set",
+                      target:"game.size",
+                      source:"element.value"
+                    }
+                  }
+                }
+              }
+            },
             'players':{
               type:'list',
               list:'players',
@@ -164,38 +206,9 @@ exports.game = {
                 }
               }
             },
-            '_0':{
-              type:'button',
-              text:"'restart'",
-              hooks:{
-                click:{
-                  actions:{
-                    '_1':{
-                      type:"set",
-                      target:"phase.test_var",
-                      source:"0"
-                    }
-                  }
-                }
-              }
-            },
-            '_01':{
-              type:'button',
-              text:"'vibrate'",
-              hooks:{
-                click:{
-                  actions:{
-                    '_v':{
-                      type:"vibrate",
-                      duration:100
-                    }
-                  }
-                }
-              }
-            },
             '_1':{
               type:'button',
-              text:"'Start game in '+phase.test_var",
+              text:"'Start game'",
               show:"player = players.gameowner",
               hooks:{
                 click:{
@@ -213,47 +226,18 @@ exports.game = {
                   }
                 }
               }
-            },
-            '_2':{
-              type:'label',
-              text:"'hej'+phase.test_var"
             }
           }
 
         }
       },
       vars:{
-        test_var:{
-          type:"number",
-          value:0
-        },
-        test_timer:{
-          type:"timer",
-          duration:2000,
-          hooks:{
-            end:{
-              actions:{
-                '_1':{
-                  type:"set",
-                  target:"phase.test_var",
-                  source:"phase.test_var+1"
-                },
-                '_2':{
-                  type:"start",
-                  timer:"phase.test_timer"
-                }
-              }
-            }
-          }
-        }
+
       },
       hooks:{
         start:{
           actions:{
-            '_sta':{
-              type:"start",
-              timer:"phase.test_timer"
-            }
+
           }
         }
       }
@@ -333,7 +317,7 @@ exports.game = {
       views:{
         1:{
           type:"MapView",
-          zoom:"19.5",
+          zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
           center:"game.center",
           rotation:"game.center.heading + player.dir",
           elements:{
@@ -399,7 +383,7 @@ exports.game = {
                         'box':{
                           type:"box",
                           //TODO:make it possible to have position referenced to the game
-                          pos:[0,32.5], //go half the card to the left, and the radius of the circle down
+                          pos:"[0,game.size+0.5*game.cardHeight]", //go half the card to the left, and the radius of the circle down
                           width:"10",
                           //height:"15",
                           height:"game.cardHeight",

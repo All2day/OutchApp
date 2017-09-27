@@ -569,6 +569,104 @@ ViewElement.extend('TimerElement',{
 });
 
 
+/**
+ * Element displaying a slider to choose a number
+ */
+ViewElement.extend('SliderElement',{
+  _min:null,
+  _max:null,
+  _knobDiv:null,
+  _val:null,
+  init:function(obj){
+    this._super(obj);
+
+    this._min = obj.min;
+    this._max = obj.max;
+
+    this.registerProp('default',obj.default,0);
+
+  },
+  draw:function(c){
+
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div></div>').addClass('slider').css({
+      });
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      var that = this;
+      this._knobDiv = $('<div></div>').addClass('knob').css({
+
+      }).on('touchstart',this.startDrag.bind(this));
+
+      dom.append(this._knobDiv);
+
+      this._dom = dom;
+    }
+    this._val = this.getProp('default');
+    this.updateSlider();
+    c.append(this._dom);
+  },
+  startDrag:function(e){
+    if(e.originalEvent.touches.length != 1){
+      return;
+    }
+
+    this._dragging = e.originalEvent.touches[0].clientX - this._knobDiv.position().left;
+
+    $(document.body).on('touchend.drag touchcancel.drag',this.stopDrag.bind(this));
+
+    $(document.body).on('touchmove.drag',this.handleDrag.bind(this));
+  },
+  stopDrag:function(e){
+    $(document.body).off('.drag');
+  },
+  handleDrag:function(e){
+    var d = e.originalEvent.touches[0].clientX;
+
+    var left = (d - this._dragging);
+
+    var total_width = this._dom.width() - this._knobDiv.width();
+
+    left = Math.max(left,0);
+    left = Math.min(left,total_width);
+
+    var val = this._min + (left/total_width)*(this._max - this._min);
+
+    this._val = val;
+    this._knobDiv.css({
+      left:left
+    });
+
+    this.triggerHook('change');
+
+    //this.updateSlider();
+    //debugger;
+  },
+  updateSlider:function(){
+    this._knobDiv.css({
+      left:100*(this._val - this._min)/(this._max - this._min)+'%'
+    });
+  },
+  update:function(props){
+    if(props['timer'] !== undefined){
+      this._timer = props['timer'];
+      this.updateBar();
+      delete(props['timer']);
+    }
+    this._super(props);
+  },
+  get:function(ref){
+    switch(ref){
+      case 'value':
+        return ~~this._val;
+    }
+  }
+});
+
+
 ViewElement.extend('MapElement',{
   geoElements:[],
   _realPos: null, //x,y,r clockwise in radians
@@ -606,6 +704,7 @@ ViewElement.extend('MapElement',{
           break;
         case 'zoom':
           if(val == 'fit'){
+            //debugger;
             var ext = ol.extent.createEmpty();
             that._vectorSource.forEachFeature(function(ft){
               var g = ft.getGeometry();
@@ -639,7 +738,25 @@ ViewElement.extend('MapElement',{
               constrainResolution:false,
               size:that._map.getSize()
             });
+          } else
+          if($.type(val) == 'object' && val.x !== undefined && val.y !== undefined){
+
+            //var ext = ol.extent.createEmpty();
+            var center = that._map.getView().getCenter();
+
+            var ext = ol.extent.boundingExtent([
+              [center[0] - 0.5*val.x,center[1] - 0.5*val.y],
+              [center[0] + 0.5*val.x,center[1] + 0.5*val.y]
+            ]);
+            //ol.extent.extend(ext,[center[0] - 0.5*val.x,center[1] - 0.5*val.y]);
+            //ol.extent.extend(ext,[center[0] + 0.5*val.x,center[1] + 0.5*val.y]);
+            that._map.getView().fit(ext,{
+              constrainResolution:false,
+              size:that._map.getSize()
+            });
           } else {
+
+
             that._map.getView().setZoom(val);
           }
           break;
@@ -687,7 +804,8 @@ ViewElement.extend('MapElement',{
           center: [0,0],
           zoom: 20
         }),
-        interactions:new ol.Collection([])/*ol.interaction.defaults({
+        controls: new ol.Collection([]),
+        interactions:new ol.Collection([new ol.interaction.PinchZoom()])/*ol.interaction.defaults({
           dragPan:false
         })*/
       });
@@ -1366,7 +1484,7 @@ GeoElement.extend('CircleElement',{
       val = val && val._value ? val._value : val;
       switch(prop){
         case 'radius':
-          if(!this._geom) return;
+          if(!that._geom) return;
           that._geom.setRadius(val);
           break;
       }
@@ -1441,7 +1559,7 @@ GeoElement.extend('SvgElement',{
       val = val && val._value ? val._value : val;
       switch(prop){
         case 'radius':
-          if(!this._geom) return;
+          if(!that._geom) return;
           that._geom.setRadius(val);
           break;
       }

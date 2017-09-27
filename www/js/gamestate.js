@@ -31,6 +31,7 @@ Hookable.extend('Variable',{
         });
       }*/
     }
+
     this._value = val;
   },
   get:function(ref){
@@ -80,7 +81,10 @@ Variable._registerVar = function(v,id){
   Variable._vars[v._id] = v;
 };
 Variable.fromObject = function(obj){
-  if($.type(obj) == 'string' || $.type(obj) == 'number'){
+  if($.type(obj) == 'number'){
+    return new NumberVariable(obj);
+  }
+  if($.type(obj) == 'string'){
     return new PrimitiveVariable(obj);
   }
   switch(obj.type|| 'none'){
@@ -88,8 +92,9 @@ Variable.fromObject = function(obj){
       return new ListVariable(obj);
     case 'val':
     case 'string':
-    case 'number':
       return new PrimitiveVariable(obj.value);
+    case 'number':
+      return new NumberVariable(obj.value);
     case 'phase':
       return new Phase();
     case 'pos':
@@ -129,11 +134,12 @@ Variable.extend('PointerVariable',{
     if(val === this._value){
       return;
     }
+
     var that = this;
     //if val is changed, remove all functions again
     if(this._value){
       $.each(this._value,function(n,f){
-        if(n=='set' || n.match(/^\_.*/) || n=='addHook' || n=='triggerHook'){
+        if(n=='set' || n.match(/^\_.*/)  && n != '_name' || n=='addHook' || n=='triggerHook'){
           return;
         }
         //console.log(n,$.type(f));
@@ -151,7 +157,7 @@ Variable.extend('PointerVariable',{
 
     if(val){
       $.each(val,function(n,f){
-        if(n=='set' || n.match(/^\_.*/) || n=='addHook' || n=='triggerHook'){
+        if(n=='set' || n.match(/^\_.*/) && n != '_name' || n=='addHook' || n=='triggerHook'){
           return;
         }
         //console.log(n,$.type(f));
@@ -169,7 +175,10 @@ Variable.extend('PointerVariable',{
           });
         }
       });
+
+
     }
+
     this.triggerHook('change');
   },
   triggerHook:function(type){
@@ -187,6 +196,19 @@ Variable.extend('PrimitiveVariable',{
     if(val !== undefined){
       this.set(val);
     }
+  }
+});
+
+PrimitiveVariable.extend('NumberVariable',{
+  _type:'number',
+  set:function(val){
+    if(val instanceof PrimitiveVariable){
+      val = val._value;
+    }
+    if($.type(val) == 'string'){
+      val = val*1;
+    }
+    this._super(val);
   }
 });
 
@@ -369,13 +391,16 @@ Variable.extend('TimerVariable',{
   _type:'timer',
   start_time:0,
   duration:0,
+  duration_src:null,
   init: function(obj){
     this._super(obj);
     this.fromObject(obj);
   },
   fromObject: function(obj){
     //digest the object
-    this.duration = obj.duration;
+
+    this.duration = ScopeRef._evalString(obj.duration).value;
+    this.duration_src = obj.duration;
 
     this._super(obj);
     this._value = {
@@ -393,6 +418,8 @@ Variable.extend('TimerVariable',{
     this._value.status = 'started';
     this._value.start_time = this.start_time;
 
+    this.duration = ScopeRef._evalString(this.duration_src).value;
+    this._value.duration = this.duration;
     //register this timer on the current phase
     ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
@@ -426,18 +453,21 @@ Variable.extend('TimerVariable',{
     this._value = val;
     if(old_val !== null && val !== null){
       if(old_val.duration != val.duration || old_val.status != val.status || old_val.start_time != val.start_time){
-        console.log('timer change');
+        //console.log('timer change');
         this.triggerHook('change');
       }
 
       //Removed 2017-09-26 - set of timer only used on client, why the need to register/deregister timer?
-      /*if(old_val.status != val.status){
+      //All timers will be triggered continously while animating, thus this is necessary.
+      //The problem is that the timer may be created before the current phase is set
+      //Which we need to look into
+      if(old_val.status != val.status && ScopeRef._getGameState().currentPhase._value){
         if(val.status == 'started'){
           ScopeRef._getGameState().currentPhase.registerTimer(this);
         } else {
           ScopeRef._getGameState().currentPhase.deregisterTimer(this);
         }
-      }*/
+      }
 
 
     } else if(val !== old_val){
@@ -694,6 +724,7 @@ GameStateChangeableList.extend('Phase',{
   vars:null,
   /*_hooks:null,*/
   init:function(obj){
+    obj = obj || {};
     //dont change the actual object, make  copy
     obj = $.extend(Object.create(Object.getPrototypeOf(obj)),obj);
     this._obj = {
@@ -918,8 +949,8 @@ ProtoTypeVariable.extend('Player',{
       console.log('bad player pos update:',c[0],c[1],c[2]);
       return;
     }
-    //update total distance
-    if(this.pos._value){
+    //update total distance if in a play phase
+    if(this.pos._value && ScopeRef._getGameState().currentPhase._name == 'play'){
       var d = Math.sqrt(Math.pow(this.pos._value.x - c[0],2) + Math.pow(this.pos._value.y - c[1],2));
       this.total_distance+=d;
     }
@@ -935,7 +966,7 @@ ProtoTypeVariable.extend('Player',{
       case 'pos':
         return this.pos;
       case 'total_distance':
-        return this.total_distance;
+        return ~~this.total_distance;
       case 'id':
         return this._name;
       case 'heading':

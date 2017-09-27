@@ -187,6 +187,9 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
         return new ScopeColor(a);
       }
 
+      if(a.length ==2){
+        return new ScopePos(a);
+      }
       debugger;
       console.log('mis starting [');
       return new ScopeNull();
@@ -620,7 +623,14 @@ LeftRightRef.extend('ScopeMinus',{
        $.each(o,function(k,ov){
          t[k] = ov*v;
        });
+       if(ScopeRef._chatty){
+         console.log('Mult '+JSON.encode(o)+'*'+v);
+       }
        return t;
+     }
+
+     if(ScopeRef._chatty){
+       console.log('Mult '+l+'*'+r);
      }
 
      return l*r;
@@ -647,7 +657,19 @@ ScopeRef.extend('ScopeNumber',{
       //this._value = val;
     },
     eval:function(scp,inf){
-      return this._value;
+      var r = {};
+      if(this._value.x instanceof ScopeRef){
+        r.x = this._value.x.eval(scp,inf);
+      } else {
+        r.x = this._value.x;
+      }
+
+      if(this._value.y instanceof ScopeRef){
+        r.y = this._value.y.eval(scp,inf);
+      } else {
+        r.y = this._value.y;
+      }
+      return r;
     }
   });
 
