@@ -60,6 +60,7 @@ exports.game = {
     },
     size:25,
     cardHeight:15,
+    cardWidth:10,
     newCardDelay:15
   },
   phases:{
@@ -378,13 +379,13 @@ exports.game = {
                     'boxlist':{
                       type:"GeoElement",
                       pos:[0,0],
-                      rotation:"index*2/5+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
+                      rotation:"index*game.cardWidth/game.size+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
                       geoElements:{
                         'box':{
                           type:"box",
                           //TODO:make it possible to have position referenced to the game
                           pos:"[0,game.size+0.5*game.cardHeight]", //go half the card to the left, and the radius of the circle down
-                          width:"10",
+                          width:"game.cardWidth",
                           //height:"15",
                           height:"game.cardHeight",
                           text:"listel.value",

@@ -8,8 +8,8 @@ Hookable.extend('Variable',{
   _id:null, //The id of the variable
   _p:null, //The pointer if any
   _type:'var', //Type of the variable
-  init:function(val){
-    this._super();
+  init:function(obj){
+    this._super(obj);
     //this.set(val);
     Variable._registerVar(this);
   },
@@ -192,7 +192,12 @@ Variable.extend('PointerVariable',{
 Variable.extend('PrimitiveVariable',{
   _type:'val',
   init:function(val){
-    this._super();
+    if(val && val.hooks){
+      this._super(val);
+    } else {
+      this._super();
+    }
+
     if(val !== undefined){
       this.set(val);
     }
@@ -228,12 +233,14 @@ PrimitiveVariable.extend('BoolVariable',{
 PrimitiveVariable.extend('PosVariable',{
   _type:'pos',
   init:function(value){
+
     this._value = {//TODO: decide on a pos format and method
       x:null,
       y:null,
       heading:null
     };
-    this._super();
+
+    this._super(value);
   },
   set:function(val){
     if(val instanceof PosVariable){
@@ -935,7 +942,10 @@ ProtoTypeVariable.extend('Player',{
     this.gsUpdates = [];
     this.gsUpdates.push(new GameStateUpdate());
 
-    this.pos = new PosVariable();
+    if(!this.pos){
+      this.pos = new PosVariable();
+    }
+
     //TODO: register on a change hook on all variables and a 'new' hook on
     //gamestate, that is triggered when registering new vars.
   },

@@ -219,7 +219,7 @@ var app = {
       if(!this.player_name){
         this.player_name = prompt('Player name');
       }
-
+      
 
       var g = require(this._currentGame.src,true);
       //var uno = require('js/uno.js');
