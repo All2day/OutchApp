@@ -299,6 +299,13 @@ Variable.extend('ListVariable',{
       v = Variable._vars[v._p];
     }
     this._value.push(v);
+
+    /*var ids = [];
+    for(var t = 0;t<this._value.length;t++){
+      ids.push(this._value[t]._id);
+    }
+    console.log('after add in list['+this._id+'] is:',ids);
+    */
     this.triggerHook('change');
 
   },
@@ -314,14 +321,28 @@ Variable.extend('ListVariable',{
     }
 
     var i = this._value.indexOf(v);
+    //console.log('removing['+this._id+']:'+v._id);
     if(i < 0){
-      console.log('could not find object to remove from list');
+      console.log('could not find object to remove from list['+this._id+']:',v._id);
+      var ids =[];
+      for(var t = 0;t<this._value.length;t++){
+        ids.push(this._value[t]._id);
+      }
+      console.log('in list is:',ids);
+
       return;
     }
 
     //console.log('length before remove '+this._value.length);
-
     this._value.remove(v);
+
+    /*var ids =[];
+    for(var t = 0;t<this._value.length;t++){
+      ids.push(this._value[t]._id);
+    }
+    console.log('after remove in list['+this._id+'] is:',ids);
+    */
+
 
     //console.log('length after remove '+this._value.length);
     //console.log(this.getObject());
@@ -850,6 +871,7 @@ Variable.extend('ProtoTypeVariable',{
     this._type = type._name;
 
     if(obj){
+      debugger;
       //add prototype variables to this
       var that = this;
       var value = {};
@@ -907,6 +929,26 @@ Variable.extend('ProtoTypeVariable',{
     if(!this._value){
       this._value = {};
     }
+    if($.type(ref) == 'object'){
+      //go through all elements and set them
+      var old_keys = Object.keys(this._value);
+      var that = this;
+      $.each(ref,function(n,p){
+        old_keys.remove(n);
+        if(that._value[n] === undefined){
+          //new variable, use the adder function
+          that.add(n,Variable._vars[p]);
+        } else {
+          //existing variable, set using the set function
+          //Variable._vars[id]._value[n] = Variable._vars[p];
+          that.set(n,Variable._vars[p]);
+        }
+      });
+      //add cleanup removing nonexisting entries
+      $.each(old_keys,function(i,n){
+        that.remove(n);
+      });
+    } else
     if(this._value[ref] === undefined){
       console.log('setting '+ref+' to '+v+' in protovar '+this.prototype._name);
       this._value[ref] = v;
@@ -921,6 +963,9 @@ Variable.extend('ProtoTypeVariable',{
       o[k] = v.getObject();
     });
     return o;
+  },
+  fromObject:function(){
+    debugger;
   }
 });
 
@@ -942,16 +987,20 @@ ProtoTypeVariable.extend('Player',{
     this.gsUpdates = [];
     this.gsUpdates.push(new GameStateUpdate());
 
-    if(!this.pos){
-      this.pos = new PosVariable();
+    //if the value is already set (not null Player) check for pos
+    if(this._value){
+      if(this._value['pos']){
+        this.pos = this._value['pos'];
+      } else {
+        this.pos = new PosVariable();
+      }
     }
+
 
     //TODO: register on a change hook on all variables and a 'new' hook on
     //gamestate, that is triggered when registering new vars.
   },
-  addChange(v,new_v, list_index){
-    this.gsUpdates[0].addChange(v,new_v,list_index);
-  },
+
   //updates the players position from coordinates in meters*meters
   updatePosition:function(c){
 
@@ -983,6 +1032,18 @@ ProtoTypeVariable.extend('Player',{
         return this.pos._value.heading !== undefined ? this.pos._value.heading : 0;
     }
     return this._super(ref);
+  },
+  set:function(ref,val){
+    this._super(ref,val);
+
+    if($.type(ref) == 'object' && !this.pos){
+      if(this._value['pos']){
+        this.pos = this._value['pos'];
+      } else {
+        this.pos = new PosVariable();
+      }
+
+    }
   }
 });
 
@@ -1145,6 +1206,7 @@ GameStateObject.extend('GameState',{
 
     //fill them now to allow circular references
     $.each(this.prototypes,function(key,val){
+
       val.fromObject(game.prototypes[key]);
     });
 

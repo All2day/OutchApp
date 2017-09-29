@@ -1310,7 +1310,7 @@ GeoElement.extend('GeolistElement',{
     this.list = new_list;
     var t = ScopeRef._gs.getTime();
     var that = this;
-    $.each(this.list._value,function(i,k){
+    $.each(this.list._value || {},function(i,k){
       //if already existing, dont create a new wrapper element
       for(var l = 0; l < that._wrapperels.length; l++){
         if(that._wrapperels[l].listel == k){

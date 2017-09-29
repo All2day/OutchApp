@@ -86,6 +86,7 @@ Action.fromObject = function(obj,name){
      var list_var = this.list.eval();
 
      if(list_var instanceof ListVariable && target_var){
+       //console.log('removing:',target_var);
        list_var.remove(target_var);
      }
    },
@@ -512,6 +513,7 @@ Action.extend('EachAction',{
        var j = 0;
        $.each(list_var._value,function(k,v){
          for(var i=0;i<that.actions.length;i++){
+           //console.log('each action of listvariable['+list_var._id+'] => '+v._id );
            gso.el = v;
            gso.index = j;
            ScopeRef._pushScope(v);

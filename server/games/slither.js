@@ -15,10 +15,42 @@ exports.game = {
         hooks:{
           change:{
             actions:{
+              /*'_d':{
+                type:"alert",
+                text:"'pos changed'"
+              },*/
               '_1':{
-                type:"set",
-                target:"^player.tail"
-              }
+                type:"create",
+                prototype:"point",
+                target:"player.tail",
+                actions:{
+                  '_1':{
+                    type:"set",
+                    target:"point.pos",
+                    source:"player.pos*1"
+                  },
+                  '_2':{
+                    type:"set",
+                    target:"point.t",
+                    source:"now"
+                  }
+                }
+              },
+              '_remove':{
+                type:"each",
+                list:"player.tail[el.t < now - player.size*1000]",
+                actions:{
+                  '_1':{
+                    type:"remove",
+                    list:"player.tail",
+                    target:"_remove.el"
+                  }
+                }
+              },
+              /*'_d2':{
+                type:"alert",
+                text:"'tail length:'+player.tail.count"
+              },*/
             }
           }
         }
@@ -27,13 +59,61 @@ exports.game = {
     point:{
       pos:{
         type: "pos"
+      },
+      t:{
+        type: "number"
+      }
+    },
+    food:{
+      pos:{
+        type:"pos"
       }
     }
   },
   phases:{
     play:{ //play phase
       vars:{
-
+        center:{
+          type:"pos"
+        },
+        foods:{
+          type:"list",
+          prototype:"food"
+        },
+        morefood:{
+          type:"timer",
+          duration:"1000",
+          hooks:{
+            end:{
+              actions:{
+                '_1':{
+                  type:"set",
+                  target:"phase.center",
+                  source:"players.gameowner.pos*1"
+                },
+                'makefood':{
+                  type:"each",
+                  list:"1:100",
+                  actions:{
+                    '_1':{
+                      type:"create",
+                      prototype:"food",
+                      target:"phase.foods",
+                      actions:{
+                        1:{
+                          type:"set",
+                          target:"food.pos",
+                          source:"phase.center + 100*[rand,rand] - [50,50]"
+                        }
+                      }
+                    }
+                  }
+                },
+                //restart
+              }
+            }
+          }
+        }
       },
       views:{
         1:{
@@ -64,16 +144,54 @@ exports.game = {
                   height:2,
                   color:[0,0,255,1],
                   zIndex:2
-                },
-                'tail':{
-                  type:"geolist",
-                  list:"player.tail",
-                  elements:{
-                    1:{
+                }
+              }
+            },
+            'tail':{
+              type:"geolist",
+              list:"player.tail",
+              elements:{
+                1:{
+                  type:"circle",
+                  radius:"1",
+                  pos:"listel.pos",
+                  color:[0,255,0,1]
+                }
+              }
+            },
+            'food':{
+              type:"geolist",
+              list:"phase.foods",
+              elements:{
+                '_1':{
+                  type:"circle",
+                  radius:"5",
+                  pos:"listel.pos",
+                  color:[0,0,0,0],
+                  fill:[0,0,0,0],
+                  geoElements:{
+                    '_innerfood':{
                       type:"circle",
                       radius:"1",
-                      pos:"listel.pos",
-                      color:[0,255,0,1]
+                      color:[0,255,0,1],
+                      fill:[0,255,0,1]
+                    }
+                  },
+                  hooks:{
+                    enter:{
+                      actions:{
+                        //remove it
+                        'remove':{
+                          type:"remove",
+                          target:"^listel",
+                          list:"phase.foods"
+                        },
+                        'grow':{
+                          type:"set",
+                          target:"player.size",
+                          source:"player.size+1"
+                        }
+                      }
                     }
                   }
                 }
@@ -83,13 +201,36 @@ exports.game = {
               type:"geolist",
               list:"players.others",
               elements:{
-                1:{
+                'head':{
                   type:"circle",
                   radius:"1",
                   zIndex:1,
                   pos:"listel.pos",
                   color:[0,255,0,1],
                   fill:[0,255,0,0.4]
+                },
+                'tail':{
+                  type:"geolist",
+                  list:"listel.tail",
+                  elements:{
+                    1:{
+                      type:"circle",
+                      radius:"1",
+                      pos:"listel.pos",
+                      color:[0,255,0,1],
+                      hooks:{
+                        enter:{
+                          actions:{
+                            '_1':{
+                              type:"alert",
+                              text:"'die'"
+                            }
+                          }
+                        }
+                      }
+
+                    }
+                  }
                 }
               }
             }
@@ -99,6 +240,33 @@ exports.game = {
       hooks:{
         start:{
           actions:{
+            '_1':{
+              type:"set",
+              target:"phase.center",
+              source:"players.gameowner.pos*1"
+            },
+            /*'makefood':{
+              type:"each",
+              list:"1:100",
+              actions:{
+                '_1':{
+                  type:"create",
+                  prototype:"food",
+                  target:"phase.foods",
+                  actions:{
+                    1:{
+                      type:"set",
+                      target:"food.pos",
+                      source:"phase.center + 100*[rand,rand] - [50,50]"
+                    }
+                  }
+                }
+              }
+            },*/
+            'start_morefood':{
+              type:"start",
+              timer:"phase.morefood"
+            }
           }
         } //end of start hook
       }

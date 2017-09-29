@@ -94,7 +94,7 @@ exports.game = {
         },
         stopTimer:{
           type:"timer",
-          duration:10000,//300000, // 5 min
+          duration:300000, // 5 min
           hooks:{
             end:{
               actions:{

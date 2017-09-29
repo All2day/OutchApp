@@ -475,7 +475,13 @@ ScopeRef.extend('LeftRightRef',{
 
 LeftRightRef.extend('ScopeMoreThan',{
   eval:function(scp,inf){
-    return this.left.eval(scp,inf) > this.right.eval(scp,inf);
+    var l = this.left.eval(scp,inf);
+    var r = this.right.eval(scp,inf);
+
+    if(l instanceof Variable){l = l._value;}
+    if(r instanceof Variable){r = r._value;}
+    if(ScopeRef._chatty){console.log('ScopeMoreThan '+l + ' > '+r+' => '+(l > r));}
+    return l > r;
   }
 });
 
@@ -487,7 +493,7 @@ LeftRightRef.extend('ScopeLessThan',{
     if(l instanceof Variable){l = l._value;}
     if(r instanceof Variable){r = r._value;}
 
-    if(ScopeRef._chatty){console.log('ScopeLessThan:'+l+'<'+r);}
+    if(ScopeRef._chatty){console.log('ScopeLessThan:'+l+'<'+r+' => '+(l < r));}
     return l < r;
   }
 });
@@ -617,14 +623,16 @@ LeftRightRef.extend('ScopeMinus',{
 
      //if both are objects, do the operation on each element (pos)
      if($.type(l) == "object" || $.type(r) == "object"){
+
        var t = {};
        var o = $.type(l) == "object" ? l : r;
-       var v = $.type(l) == "object" ? r : o;
+       var v = $.type(l) == "object" ? r : l;
        $.each(o,function(k,ov){
          t[k] = ov*v;
        });
        if(ScopeRef._chatty){
-         console.log('Mult '+JSON.encode(o)+'*'+v);
+         console.log(o);
+         console.log('Mult '+JSON.stringify(o)+'*'+v);
        }
        return t;
      }
@@ -716,6 +724,12 @@ ScopeRef.extend('ScopeRootLookup',{
   gameStateLookup: function(){
     var scp;
     switch(this.ref){
+      case 'now':
+        scp = ScopeRef._gs.getTime();//new ScopeNumber(ScopeRef._gs.getTime());
+        break;
+      case 'rand':
+        scp = Math.random();
+        break;
       case 'game':
         scp = ScopeRef._gs;
         break;
@@ -976,7 +990,7 @@ ScopeLookup.extend('ScopeFilter',{
     this.filter.traverse(f);
     this._super(f);
   },
-  _eval:function(scp,inf){
+  eval:function(scp,inf){
     if(!(scp instanceof ListVariable || scp instanceof GameStateList)){
       return null;
     }
@@ -996,6 +1010,7 @@ ScopeLookup.extend('ScopeFilter',{
       }
       ScopeRef._popScope();
     });
+    if(ScopeRef._chatty){console.log('ScopeFilter '+new_list._value.length + ' / '+scp._value.length);}
 
     return this.getNext(new_list,inf);
   }

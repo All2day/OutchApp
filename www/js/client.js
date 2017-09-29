@@ -110,11 +110,12 @@ Class.extend('GameClient',{
 
     //TODO:Make sure that client variables dont fill up the variable index space
     var p = this.gs.currentPlayer;
-
+    
     //set the value of all variables
     $.each(update,function(id,u){
       //if(id==12 && u.value.length != window.last_v){window.last_v = u.value.length;debugger;}
-      if(window._watch && window._watch.indexOf(id) >= 0){ debugger;}
+
+      if(window._watch && window._watch.indexOf(id*1) >= 0){ debugger;}
       if(p && id == p.pos._id){
         return; //ignore updates of position
       }
@@ -130,6 +131,8 @@ Class.extend('GameClient',{
         if(Variable._vars[id] instanceof PosVariable){
           Variable._vars[id].set(u.value);
         } else if(Variable._vars[id] instanceof TimerVariable){
+          Variable._vars[id].set(u.value);
+        } else if(Variable._vars[id] instanceof ProtoTypeVariable){
           Variable._vars[id].set(u.value);
         } else {
           var old_keys = Object.keys(Variable._vars[id]._value);
