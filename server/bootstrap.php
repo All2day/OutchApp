@@ -115,6 +115,22 @@ try{
 	);
 
 
+	# set up routes
+	$router = $frontController->getRouter();
+
+	//route for restaurents
+	$route = new Zend_Controller_Router_Route_Regex(
+		'instance/(.*)',
+		array(
+			'controller' => 'instance',
+			'action' => 'update'
+		),
+		array(
+			1 => 'token'
+		)
+	);
+	$router->addRoute('restauranter', $route);
+
 
 	# set up routes
 	$router = $frontController->getRouter();

@@ -6,6 +6,8 @@ class IndexController extends Zend_Controller_Action{
 	private $postdata = NULL;
 
 	public function init(){
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
 		$_SESSION['debug'] = true;
 
 		$rawpost = file_get_contents("php://input");
@@ -44,16 +46,23 @@ class IndexController extends Zend_Controller_Action{
 	}
 
 	public function startAction(){
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
 		$game_id = $this->_getParam('game_id');
+		$token = $this->_getParam('token');
+		$p = PlayerTable::getFromToken($token);
+		if(!$p){
+			throw new Exception('no such player');
+			exit;
+		}
 
-		$instance = InstanceTable::startInstance($game_id);
+		$instance = InstanceTable::startInstance($game_id,$p);
 
 		$res = array(
 			'instance_id' => $instance->instance_id,
 			'url' => $instance->url
 		);
-		header('Access-Control-Allow-Origin: *');
-		header('Content-Type: application/json');
+
 		die(json_encode($res));
 	}
 
@@ -86,11 +95,22 @@ class IndexController extends Zend_Controller_Action{
 	public function listinstancesAction(){
 		$instanceTable = new InstanceTable();
 
-		$instances = $instanceTable->fetchAll($instanceTable->select()->where('status=?','running'));
+		$instances = $instanceTable->fetchAll(
+			$instanceTable->select()
+			->where('status=?','running')
+			->where('currentPhase=?','join')
+		);
+		$ins = array();
+
+		foreach($instances as $instance){
+			$i = $instance->toArray();
+			$i['owner'] = $instance->getOwner();
+			$ins[] = $i;
+		}
 
 		$res = array(
 			'status' => 'ok',
-			'instances' => $instances->toArray()
+			'instances' => $ins
 		);
 
 		header('Access-Control-Allow-Origin: *');
@@ -139,9 +159,21 @@ class IndexController extends Zend_Controller_Action{
 
 
 		$instanceTable = new InstanceTable();
-		$instances = $instanceTable->fetchAll($instanceTable->select()->where('status=?','running')->where('game_id=?',$game_id));
+		$instances = $instanceTable->fetchAll($instanceTable->select()
+			->where('status=?','running')
+			->where('game_id=?',$game_id)
+			->where('currentPhase=?','join'));
 
-		$game['instances'] = $instances->toArray();
+
+		$ins = array();
+		foreach($instances as $instance){
+			$i = $instance->toArray();
+			$i['owner'] = $instance->getOwner()->getObject();
+
+			$ins[] = $i;
+		}
+
+		$game['instances'] = $ins;
 		$res = array(
 			'status' => 'ok',
 			'game' => $game
@@ -151,4 +183,92 @@ class IndexController extends Zend_Controller_Action{
 		header('Content-Type: application/json');
 		die(json_encode($res));
 	}
+
+	/**
+	 * Simply checks the token and returns the player
+	 * If the player does not exist return a guest player with no name
+	 */
+	public function loginAction(){
+		$token = $this->_getParam('token');
+
+		$p = PlayerTable::getFromToken($token,true);
+
+		$res = array(
+			'status' => 'ok',
+			'player' => $p->getObject()
+		);
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
+
+	public function updateplayerAction(){
+		$token = $this->_getParam('token');
+
+		$name = $this->_getParam('name');
+
+		$p = PlayerTable::getFromToken($token);
+
+		$res = array(
+			'status' => 'ok'
+		);
+
+		if(!$p){
+			$res['status'] = 'error';
+			$res['error'] = 'Token mismatch';
+		} else {
+			$p->name = $name;
+			$p->save();
+
+			$res['player'] = $p->getObject();
+		}
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
+
+	public function joininstanceAction(){
+		$token = $this->_getParam('token');
+
+		$instance_id = $this->_getParam('instance_id');
+
+		$p = PlayerTable::getFromToken($token);
+		$instance = InstanceTable::findById($instance_id);
+
+		$res = array(
+			'status' => 'ok'
+		);
+
+		if(!$p){
+			$res['status'] = 'error';
+			$res['error'] = 'Token mismatch';
+		} else
+		if(!$instance){
+			$res['status'] = 'error';
+			$res['error'] = 'No such instance:'.$instance_id;
+		} else
+		if($instance->currentPhase != 'join' && $instance->owner != $p->player_id){
+			$res['status'] = 'error';
+			$res['error'] = 'Instance not in join phase';
+		} else {
+			try{
+				$instance_player = $instance->addPlayer($p);
+				$res['instance_player'] = $instance_player;
+				$res['instance'] = $instance->getObject();
+			} catch(Exception $e){
+				$res['status'] = 'error';
+				$res['error'] = $e->getMessage();
+
+			}
+
+
+		}
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
+
 }

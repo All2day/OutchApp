@@ -70,7 +70,91 @@ exports.game = {
       }
     }
   },
+  vars: {
+    name: {
+      type:"string"
+    },
+    center: {
+      type: "pos"
+    },
+  },
   phases:{
+    join:{
+      //normal join phase, though there should be exactly two players
+      views:{
+        '_1':{
+          type:'page',
+          elements:{
+            'gamename':{
+              type:"label",
+              text:"'spillets navn:'+game.name"
+            },
+            'exit':{
+              type:'button',
+              text:'"exit"',
+              hooks:{
+                click:{
+                  actions:{
+                    '_1':{
+                      type:"exit"
+                    }
+                  }
+                }
+              }
+            },
+            'input':{
+              show:"player = players.gameowner",
+              type:"input",
+              default:"'fedt navn'",
+              hooks:{
+                change:{
+                  actions:{
+                    '_1':{
+                      type:"set",
+                      target:"game.name",
+                      source:"element.value"
+                    }
+                  }
+                }
+              }
+            },
+            'players':{
+              type:'list',
+              list:'players',
+              elements:{
+                0:{
+                  type:"label",
+                  text:"listel.id",
+                }
+              }
+            },
+
+            '_1':{
+              type:'button',
+              text:"'Start game'",
+              show:"player = players.gameowner",
+              hooks:{
+                click:{
+                  actions:{
+                    '_0':{
+                      type:"set",
+                      target:"game.center",
+                      source:"player.pos"
+                    },
+                    '_1':{
+                      type:"startphase",
+                      phase:"play"
+                    }
+                  }
+                }
+              }
+            }
+
+          }
+
+        }
+      }
+    },
     play:{ //play phase
       vars:{
         center:{

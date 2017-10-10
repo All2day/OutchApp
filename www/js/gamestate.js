@@ -1231,10 +1231,10 @@ GameStateObject.extend('GameState',{
     //set players
     this.players = new PlayerList({},Player);
   },
-  addPlayer:function(id){
-    console.log('adding player:'+id);
+  addPlayer:function(player_data){
+    console.log('adding player:'+player_data.name);
     var p = this.prototypes.player.create();
-    this.players.add(id,p);
+    this.players.add(player_data.token,p);
   },
   /**
    * Basic time function. Can be overwritten in clients

@@ -6,13 +6,13 @@ Class.extend('GameClient',{
   time_offset: 0,
   min_send_frequency:100,
   game_id:null,
-  UUID:'mads',
+  token:null,
   remoteTriggerQueue:null,//{nextId:1}, //using integers for indexing
   currentPhase:null,
-  init:function(gameobject,UUID){
+  init:function(gameobject,token){
     //debugger;
     this.remoteTriggerQueue = [];
-    this.UUID = UUID;
+    this.token = token;
     //read the gameobject and create a game state
 
     this.gs = new GameState(gameobject);
@@ -62,6 +62,7 @@ Class.extend('GameClient',{
       clearTimeout(this.ping)
     }
 
+    this.status = 'exited';
     //clean up
     Variable._nextId = 1;
     Variable._vars = {};
@@ -110,7 +111,7 @@ Class.extend('GameClient',{
 
     //TODO:Make sure that client variables dont fill up the variable index space
     var p = this.gs.currentPlayer;
-    
+
     //set the value of all variables
     $.each(update,function(id,u){
       //if(id==12 && u.value.length != window.last_v){window.last_v = u.value.length;debugger;}
@@ -179,11 +180,21 @@ Class.extend('GameClient',{
         Variable._vars[id].set(u.value);
         //Variable._vars[id]._value = null;
       }
-    });
+
+      if(this.status == 'exited'){
+
+        return false;//dont continue
+      }
+    }.bind(this));
 
     //if first time update the current player in gs
     if(!this.gs.currentPlayer){
-      this.gs.currentPlayer = this.gs.players.get(this.UUID);
+      this.gs.currentPlayer = this.gs.players.get(this.token);
+      if(!this.gs.currentPlayer){
+        alert('no such player');
+        app.exitGame();
+        return;
+      }
       if(this.pos){
         this.gs.currentPlayer.updatePosition(this.pos);
       }
@@ -208,7 +219,7 @@ Class.extend('GameClient',{
     //console.log('starting ping');
 
     var d = {
-      UUID:this.UUID
+      token:this.token
     };
 
     if(this.remoteTriggerQueue.length){
@@ -228,7 +239,7 @@ Class.extend('GameClient',{
     var t = new Date().getTime();
     this.ping = $.ajax({
       dataType: "json",
-      url: this.server+'?'+JSON.stringify(d),
+      url: this.server+'/ping?'+JSON.stringify(d),
       success: function(r){
         if(this.game_id === null){
           this.game_id = r.game_id;
@@ -238,6 +249,10 @@ Class.extend('GameClient',{
         }
         r.game_id
         this.fullUpdate(r.u);
+        //in case the full update results in an exit, dont restart the pinging
+        if(this.status == 'exited'){
+          return;
+        }
         //console.log('got update');
         var this_t = new Date().getTime();
         var time_offset = (this_t - t - r.rt)/2 + r.t + r.rt - this_t;

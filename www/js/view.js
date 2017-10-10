@@ -692,11 +692,14 @@ ViewElement.extend('MapElement',{
     if(!this._dom) return;
     var that = this;
     $.each(props,function(prop,val){
-      val = val._value || val;
+      val = val ? (val._value || val) : null;
       switch(prop){
         case 'center':
           var s = that._map.getSize();
           //that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.66]);
+          if(!val){
+            break;
+          }
           that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.5]);
           break;
         case 'heading':
@@ -950,7 +953,7 @@ ViewElement.extend('MapElement',{
         return;
       }
       if(!ft.el._inside){
-        console.log('entering feature:'+ft.el._name);
+        //console.log('entering feature:'+ft.el._name);
         ft.el.triggerHook('enter');
         ft.el.triggerHook('change');
         that._inside_elements.push(ft.el);
@@ -964,7 +967,7 @@ ViewElement.extend('MapElement',{
     $.each(this._inside_elements,function(i,el){
       if(el._inside < t){
         el._inside = false;
-        console.log('leaving feature:'+el._name);
+        //console.log('leaving feature:'+el._name);
         el.triggerHook('leave');
         el.triggerHook('change');
       } else {

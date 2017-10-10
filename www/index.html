@@ -33,8 +33,9 @@
       <div class="instance">
         <h2>id:{{instance_id}}</h2>
         <div>url:{{url}}</div>
+        <div>created by:{{owner.name}} at {{created}}</div>
         <button class="stop" data-instance_id="{{instance_id}}">Stop</button>
-        <button class="join" data-url="{{url}}">Join</button>
+        <button class="join" data-instance_id="{{instance_id}}" data-url="{{url}}">Join</button>
       </div>
     {{/each}}
     <button class="start">Start</button>

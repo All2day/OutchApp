@@ -30,6 +30,8 @@ var app = {
     //server: 'http://geogames.localhost',
     server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
 
+    player:null,
+
     // Application Constructor
     initialize: function() {
       if(window.deviceisready){
@@ -101,7 +103,7 @@ var app = {
         });
 
         if(qs['UUID']){
-          app.player_name = qs['UUID'];
+          app.fake_uuid = qs['UUID'];
         }
         if(!!qs['local']){
           this.server = 'http://geogames.localhost';
@@ -153,9 +155,34 @@ var app = {
           return;
         }
 
+        this.login();
         this.showGames();
     },
 
+
+    getPlayerToken:function(){
+      return this.getUUID();
+    },
+
+    login:function(){
+      var token = this.getPlayerToken();
+      console.log('sending login');
+      $.ajax({
+        dataType: "json",
+        url: app.server+'/index/login',
+        data:{token:token},
+        success: function(r){
+          this.player = r.player;
+        }.bind(this),
+        error:function(r,status,error) {
+          console.log('error in login');
+
+
+        }.bind(this),
+        timeout:2000
+      });
+
+    },
 
     _currentGame:null,
     showGames:function(){
@@ -178,9 +205,9 @@ var app = {
         });
 
         f.on('click','.start',function(){
-          $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id},function(data){
+          $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken()},function(data){
 
-            this.startGame(data.url);
+            this.startGame(data.instance_id);
             //this.showGames();
           }.bind(that));
         });
@@ -191,8 +218,8 @@ var app = {
         });
 
         f.on('click','.join',function(){
-          var url = $(this).attr('data-url');
-          that.startGame(url);
+          var instance_id = $(this).attr('data-instance_id');
+          that.startGame(instance_id);
         });
       }
       //$("#front").html(this.frontTmpl()).show();
@@ -212,22 +239,39 @@ var app = {
       }
     },
 
-    startGame:function(url){
-      $('#front').hide();
-      this.startLocationService();
-
-      if(!this.player_name){
-        this.player_name = prompt('Player name');
+    startGame:function(instance_id){
+      if(!this.player){
+        console.log('no player when starting game');
+        return;
       }
-      
+      if(!this.player.name){
+        console.log('no name, prompt for name');
+        var name = window.prompt('Player name');
+        $.getJSON(this.server+'/index/updateplayer',{token:this.getPlayerToken(),name:name},function(r){
+          this.player = r.player;
+          this.startGame(instance_id);
+        }.bind(this));
+        return;
+      }
 
       var g = require(this._currentGame.src,true);
-      //var uno = require('js/uno.js');
 
-      this._client = window._client = new GameClient(g.game,this.player_name);
+      //join the game instance
+      $.getJSON(this.server+'/index/joininstance',{token:this.getPlayerToken(),instance_id:instance_id},function(r){
+        if(r.status == 'ok'){
 
-      _client.server = url; //'http://52.208.48.54:9615'; //'http://localhost:9615';
-      _client.startPinging();
+          $('#front').hide();
+          this.startLocationService();
+
+          this._client = window._client = new GameClient(g.game,this.getPlayerToken());
+
+          _client.server = r.instance.url;
+          _client.startPinging();
+
+        } else {
+          alert('could not join instance:'+r.error);
+        }
+      }.bind(this));
 
     },
     exitGame:function(){
@@ -612,7 +656,7 @@ var app = {
   		if(window.device){
   			return window.device.uuid;
   		}
-  		return 24234234234433;
+  		return this.fake_uuid;
   	}
 };
 
