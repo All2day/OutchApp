@@ -35,6 +35,14 @@ try{
 	Zend_Date::setOptions(array('cache' => $dateCache));
 
 	# setup the db
+	if(preg_match("/^(.*\.)?(alphagames\.all2day)\.dk.*/",$_SERVER['SERVER_NAME'])){
+		$db = Zend_Db::factory('Pdo_Mysql', array(
+			'host'     => 'maindb57.co2zizjzpyw3.eu-west-1.rds.amazonaws.com',
+			'username' => 'geogames',
+			'password' => '3qYhQhqUupJtdK2J',
+			'dbname'   => 'alphagames'
+		));
+	} else
 	if(preg_match("/^(.*\.)?(geogames\.all2day)\.dk.*/",$_SERVER['SERVER_NAME'])){
 		$db = Zend_Db::factory('Pdo_Mysql', array(
 			'host'     => 'maindb57.co2zizjzpyw3.eu-west-1.rds.amazonaws.com',

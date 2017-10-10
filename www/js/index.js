@@ -27,7 +27,10 @@ require('js/client.js');
  * under the License.
  */
 var app = {
-    //server: 'http://geogames.localhost',
+    //debug settings that will take over if in debug mode
+    debug: {
+      server: 'http://geogames.localhost'
+    },
     server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
 
     player:null,
@@ -81,6 +84,19 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
         console.log('device ready');
+
+        if(window.cordova && cordova.plugins && cordova.plugins.IsDebug){
+          cordova.plugins.IsDebug.getIsDebug(function(isDebug) {
+            console.log('Is debug:', isDebug);
+            if(isDebug){
+              $.each(this.debug,function(key,setting){
+                this[key] = setting;
+              }.bind(this));
+            }
+          }.bind(this), function(err) {
+            console.error(err);
+          });
+        }
 
         var qs = (function(a) {
             if (a == "") return {};

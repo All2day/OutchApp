@@ -22,7 +22,7 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 			$this->pid = $pid;
 
 			if($this->isProcessRunning()){
-				$this->status = 'running';
+				$this->status = 'starting';
 			} else {
 				$this->status = 'error';
 			}

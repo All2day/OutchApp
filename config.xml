@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-packageName="dk.appvice.outch" id="dk.appvice.outch" ios-CFBundleIdentifier="dk.appvice.outch" version="0.0.38" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-packageName="dk.appvice.outch" id="dk.appvice.outch" ios-CFBundleIdentifier="dk.appvice.outch" version="0.0.39" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>GeoGames</name>
     <description>
         Lets go outside
@@ -37,4 +37,5 @@
     <plugin name="cordova-plugin-geolocation" spec="git+https://github.com/Kezzel/cordova-plugin-geolocation.git" />
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
+    <plugin name="cordova-plugin-is-debug" spec="^1.0.0" />
 </widget>
