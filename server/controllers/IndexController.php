@@ -271,4 +271,18 @@ class IndexController extends Zend_Controller_Action{
 		die(json_encode($res));
 	}
 
+	public function stopallAction(){
+		$instanceTable = new InstanceTable();
+		$instances = $instanceTable->fetchAll(
+			$instanceTable->select()
+			->where('status=?','running')
+		);
+
+		foreach($instances as $i => $ins){
+			$ins->stop();
+		}
+
+		die('done');
+	}
+
 }
