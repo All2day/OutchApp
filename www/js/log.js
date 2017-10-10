@@ -89,7 +89,14 @@
 			//var dev = app.store.getValueFromKey('dev',false);
 			if(true || dev === 'true'){
 				console.log('opening log');
-				$(document.body).prepend('<div id="_log" style="-webkit-overflow-scrolling: touch;text-align:left;position:absolute;width:100%;height:100%;padding:1em;background-color:rgba(255,255,255,0.8);box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;word-break:break-word;z-index:1000;color:black;"><a href="#" class="_log_close" style="position:absolute;top:1rem;right:1rem;font-size:1rem;background:white;color:black;">close</a><a href="#" class="_log_reset" style="position:absolute;top:3rem;right:1rem;font-size:1rem;background:white;color:black;">reset</a><a href="#" class="_log_send" style="position:absolute;top:5rem;right:1rem;font-size:1rem;background:white;color:black;">send</a><a href="#" class="_log_info" style="position:absolute;top:7rem;right:1rem;font-size:1rem;background:white;color:black;">log info</a><a href="#" class="_log_exitgame" style="position:absolute;top:9rem;right:1rem;font-size:1rem;background:white;color:black;">Exit game</a></div>');
+				$(document.body).prepend('<div id="_log" style="-webkit-overflow-scrolling: touch;text-align:left;position:absolute;width:100%;height:100%;padding:1em;background-color:rgba(255,255,255,0.8);box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;word-break:break-word;z-index:1000;color:black;">'
+				+'<a href="#" class="_log_close" style="position:absolute;top:1rem;right:1rem;font-size:1rem;background:white;color:black;">close</a>'
+				+'<a href="#" class="_log_reset" style="position:absolute;top:3rem;right:1rem;font-size:1rem;background:white;color:black;">reset</a>'
+				+'<a href="#" class="_log_send" style="position:absolute;top:5rem;right:1rem;font-size:1rem;background:white;color:black;">send</a>'
+				+'<a href="#" class="_log_info" style="position:absolute;top:7rem;right:1rem;font-size:1rem;background:white;color:black;">log info</a>'
+				+'<a href="#" class="_log_server" style="position:absolute;top:9rem;right:1rem;font-size:1rem;background:white;color:black;">'+(app.server.match(/alpha/) ? 'alpha' : 'beta')+'</a>'
+				+'<a href="#" class="_log_exitgame" style="position:absolute;top:11rem;right:1rem;font-size:1rem;background:white;color:black;">Exit game</a>'
+				+'</div>');
 				log_div = $('#_log');
 				log_div.on('click','._log_close',function(e){toggle_log();e.preventDefault();return false;});
 				log_div.on('click','._log_reset',function(e){
@@ -120,6 +127,25 @@
 					//log all window content:
 					for(var prop in window){
 						console.log('window.'+prop);
+					}
+					e.preventDefault();return false;
+				});
+				log_div.on('click','._log_server',function(e){
+					var changed = false;
+					if(app.server.match(/alpha/) && confirm('Use beta server?')){
+						app.server = 'http://geogames.all2day.dk';
+						changed = true;
+					} else
+					if(confirm('Use alpha server?')){
+						app.server = 'http://alphagames.all2day.dk';
+						changed = true;
+					}
+
+					if(changed){
+						app.login();
+						app.showGames();
+						app.exitGame();
+						toggle_log();
 					}
 					e.preventDefault();return false;
 				});

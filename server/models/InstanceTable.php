@@ -39,7 +39,12 @@ class InstanceTable extends Zend_Db_Table_Abstract
     $db->query('LOCK TABLES `instance` WRITE');
     $port = $db->fetchOne($sql);
     if(!$port){
-      $port = 9000;
+			if(preg_match("/^(.*\.)?(geogames\.all2day)\.dk.*/",$_SERVER['SERVER_NAME'])){
+				$port = 9000;
+			} else {
+				$port = 9500;
+			}
+
     }
     $instance->port = $port+1;
     $instance->save();

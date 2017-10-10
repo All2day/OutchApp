@@ -60,7 +60,7 @@ try{
 		));
 	} else
 	{
-		header("Location: https://geogames.all2day.dk".$_SERVER['REQUEST_URI'],TRUE,301);
+		header("Location: http://geogames.all2day.dk".$_SERVER['REQUEST_URI'],TRUE,301);
 		exit;
 	}
 

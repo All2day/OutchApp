@@ -29,10 +29,10 @@ require('js/client.js');
 var app = {
     //debug settings that will take over if in debug mode
     debug: {
-      server: 'http://geogames.localhost'
+      server: 'http://alphagames.localhost'
     },
     server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
-
+    //server: 'http://alphagames.all2day.dk',
     player:null,
 
     // Application Constructor
@@ -656,7 +656,7 @@ var app = {
         navigator.geolocation.clearWatch(this._navigator_watchId);
         this._navigator_watchId = null;
       }
-      if(this._smoothPosUpdates.timer_id){
+      if(this._smoothPosUpdates && this._smoothPosUpdates.timer_id){
         clearTimeout(this._smoothPosUpdates.timer_id);
       }
       if(this._compass_watch_id){
