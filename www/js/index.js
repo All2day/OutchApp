@@ -157,8 +157,10 @@ var app = {
         //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
         //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
 
-        var attachFastClick = Origami.fastclick;
-    		attachFastClick(document.body);
+        //Kezzel 2017-10-12 - should not be necessary according to:
+        //https://github.com/ftlabs/fastclick
+        //var attachFastClick = Origami.fastclick;
+    		//attachFastClick(document.body);
 
         this.setupTemplates();
 
