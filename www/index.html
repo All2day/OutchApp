@@ -12,34 +12,54 @@
 
         <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
         <script src="https://openlayers.org/en/v4.3.2/build/ol.js"></script>
+
     </head>
     <body>
 
+<script id="modal" type="text/x-handlebars-template">
+  <div class="modal">
+    <div class="header">{{title}}</div>
+    <div class="body">{{{body}}}</div>
+    <div class="footer">{{btn}}</div>
+  </div>
+</script>
+
 <script id="front" type="text/x-handlebars-template">
-    <h1>Geogames</h1>
-    {{#each games}}
-      <div class="game">
-        <h2>{{name}}</h2>
-        <button class="open" data-game_id="{{game_id}}">Open</button>
-      </div>
-    {{/each}}
+  <div class="page">
+    <header class="header"><div class="title">Geogames</div></header>
+    <content class="inner">
+      {{#each games}}
+        <div class="game">
+          <h2>{{name}}</h2>
+          <button class="open" data-game_id="{{game_id}}">Open</button>
+        </div>
+      {{/each}}
+    </content>
 </script>
 
 <script id="game" type="text/x-handlebars-template">
-  <div class="game">
-    <h1>{{name}}</h1>
-    <p>{{description}}</p>
-    {{#each instances}}
-      <div class="instance">
-        <h2>id:{{instance_id}}</h2>
-        <div>url:{{url}}</div>
-        <div>created by:{{owner.name}} at {{created}}</div>
-        <button class="stop" data-instance_id="{{instance_id}}">Stop</button>
-        <button class="join" data-instance_id="{{instance_id}}" data-url="{{url}}">Join</button>
+  <div class="page">
+    <header class="header"><a class="left back">&lt;</a> <div class="title">{{name}}</div></header>
+    <content class="inner">
+      <div class="game">
+        <p>{{description}}</p>
+        {{#each instances}}
+          <div class="instance">
+            <h2>id:{{instance_id}}</h2>
+            <div>url:{{url}}</div>
+            <div>created by:{{owner.name}} at {{created}}</div>
+            {{#if control}}
+            <button class="stop" data-instance_id="{{instance_id}}">Stop</button>
+            {{/if}}
+            <button class="join" data-instance_id="{{instance_id}}" data-url="{{url}}">Join</button>
+          </div>
+        {{/each}}
+
       </div>
-    {{/each}}
-    <button class="start">Start</button>
-    <button class="back">Back</button>
+    </content>
+    <footer class="footer">
+      <button class="bottom-button start">Start new game</button>
+    </footer>
   </div>
 </script>
 
@@ -50,6 +70,7 @@
         <!--<script type="text/javascript" src="js/require.js"></script>-->
         <!--<script type="text/javascript" src="js/uno.js"></script>-->
         <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+        <script type="text/javascript" src="js/fastClick.js"></script>
         <script type="text/javascript" src="js/require_basic.js"></script>
 
         <!--<script type="text/javascript" src="js/basic.js"></script>

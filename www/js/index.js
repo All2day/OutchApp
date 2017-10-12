@@ -87,7 +87,7 @@ var app = {
 
         if(window.cordova && cordova.plugins && cordova.plugins.IsDebug){
           cordova.plugins.IsDebug.getIsDebug(function(isDebug) {
-            console.log('Is debug:', isDebug);
+            console.log('Is debug:'+ (!!isDebug));
             if(isDebug){
               $.each(this.debug,function(key,setting){
                 this[key] = setting;
@@ -157,7 +157,8 @@ var app = {
         //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
         //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
 
-
+        var attachFastClick = Origami.fastclick;
+    		attachFastClick(document.body);
 
         this.setupTemplates();
 
@@ -166,10 +167,20 @@ var app = {
           this._currentGame = {
             src:this.server+'/index/gamesrc/game_id/'+qs['test_game']
           };
-          this.startGame('http://localhost:'+port);
+          var url = 'http://localhost:'+port;
+          $('#front').hide();
+          this.startLocationService();
+
+          var g = require(this._currentGame.src,true);
+
+          this._client = window._client = new GameClient(g.game,this.getPlayerToken());
+
+          _client.server = url;
+          _client.startPinging();
           //to start local server: node gameServer 1 9000 scorched_earth
           return;
         }
+
 
         this.login();
         this.showGames();
@@ -191,11 +202,12 @@ var app = {
           this.player = r.player;
         }.bind(this),
         error:function(r,status,error) {
-          console.log('error in login');
-
+          console.log('error in login', status, error);
+          alert('Could not login to server, try again');
+          this.login();
 
         }.bind(this),
-        timeout:2000
+        timeout:20000
       });
 
     },
@@ -207,13 +219,16 @@ var app = {
       if(!f.length){
         f = $('<div id="front"></div>').appendTo("body");
         f.on('click','.stop',function(){
+          app.openModal('Stopping game','Stopping game instance',{'waiting...':function(){return true;}});
           $.getJSON(that.server+'/index/stop',{instance_id:$(this).attr('data-instance_id')},function(data){
             this.showGames();
-          }.bind(that));
+          }.bind(that)).always(function(){
+            app.closeModal();
+          });
         });
 
         f.on('click','.open',function(){
-          $.getJSON(that.server+'/index/game',{game_id:$(this).attr('data-game_id')},function(data){
+          $.getJSON(that.server+'/index/game',{game_id:$(this).attr('data-game_id'),token:that.getPlayerToken()},function(data){
 
             that._currentGame = data.game;
             that.showGames();
@@ -221,6 +236,7 @@ var app = {
         });
 
         f.on('click','.start',function(){
+          app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
           $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken()},function(data){
 
             this.startGame(data.instance_id);
@@ -244,8 +260,9 @@ var app = {
       if(this._currentGame){
         $("#front").html(this.gameTmpl(this._currentGame));
         //update data
-        $.getJSON(that.server+'/index/game',{game_id:this._currentGame.game_id},function(data){
+        $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
           this._currentGame = data.game;
+
           $("#front").html(this.gameTmpl(this._currentGame));
         }.bind(this));
       } else {
@@ -270,11 +287,16 @@ var app = {
         return;
       }
 
+
+      this.openModal('Starting game','loading game',{'waiting...':function(){return true;}});
+
       var g = require(this._currentGame.src,true);
 
+      this.openModal('Starting game','joining game',{'waiting...':function(){return true;}});
       //join the game instance
       $.getJSON(this.server+'/index/joininstance',{token:this.getPlayerToken(),instance_id:instance_id},function(r){
         if(r.status == 'ok'){
+          this.closeModal();
 
           $('#front').hide();
           this.startLocationService();
@@ -285,7 +307,8 @@ var app = {
           _client.startPinging();
 
         } else {
-          alert('could not join instance:'+r.error);
+          this.openModal('Starting game','could not join instance:'+r.error,{'ok':function(){return false;}});
+          //alert('could not join instance:'+r.error);
         }
       }.bind(this));
 
@@ -673,7 +696,30 @@ var app = {
   			return window.device.uuid;
   		}
   		return this.fake_uuid;
-  	}
+  	},
+
+    openModal: function(title,body,buttons){
+      if(!$("#modal").length){
+        $('<div id="modal"></div>').appendTo("body");
+      }
+      $("#modal").html(this.modalTmpl({
+        title:title,
+        body:body,
+        btn:Object.keys(buttons)[0]
+      }));
+
+      $("#modal").on('click','.footer',function(e){
+        var k = Object.keys(buttons)[0];
+        var r = buttons[k].apply();
+        if(!r){
+          app.closeModal();
+        }
+      });
+
+    },
+    closeModal:function(){
+      $("#modal").hide().off('click','.footer');
+    }
 };
 
 app.initialize();

@@ -40,6 +40,10 @@ Class.extend('GameServer',{
 
     //add hook to update the server on the current phase
     this.gs.currentPhase.addHook('change',function(){
+      if(!this.control_url){
+        console.log('no control url, dont use');
+        return;
+      }
       console.log('phase changed sending to server',this.control_url);
       $.getJSON(this.control_url,{phase:this.gs.currentPhase._value._name,process_id:process_id},function(r){
         console.log('phase change result')
@@ -68,7 +72,7 @@ Class.extend('GameServer',{
     switch(message){
       case 'join':
         res.status = 'ok';
-        console.log('adding player',data);
+        console.log('player joined',data);
         this.gs.addPlayer(data);
         res.players = this.gs.players.getObject();
         break;
@@ -85,13 +89,21 @@ Class.extend('GameServer',{
     var token = data.token;
 
     if(!this.gs.players[token]){
-      console.log('no such player with token:'+token);
-      response_data.res = 'error';
-      response_data.error = 'no such player with token:'+token;
-      return response_data;
+      if(!this.control_url){
+        this.gs.addPlayer({token:token,name:token});
+
+        console.log('created player with name:'+this.gs.players[token].get('name')._value);
+      } else {
+        console.log('no such player with token:'+token);
+        response_data.res = 'error';
+        response_data.error = 'no such player with token:'+token;
+        return response_data;
+      }
     }
 
+
     var player = this.gs.players[token];
+
 
     player.last_ping = this.gs.getTime();
 
@@ -108,7 +120,7 @@ Class.extend('GameServer',{
 
     //Handl remotely triggered hooks in data
     $.each(data.rt || [],function(i,hd){
-      console.log('triggering client hook['+token+'] with vars',hd.h,hd.v);
+      console.log('triggering client hook['+token+' for '+player.get('name')._value+'] with vars',hd.h,hd.v);
       that.gs.triggerClientHook(token,hd.h,hd.v);
     });
 
@@ -166,7 +178,11 @@ Class.extend('GameServer',{
     }
   },
   serverPing:function(){
+    if(!this.control_url){
+      console.log('no control url, dont use');
+    }
     console.log('sending server ping to:'+this.control_url+ ' with process_id:'+this.process_id);
+
 
     var players = [];
     var n = this.gs.getTime();
@@ -194,6 +210,10 @@ Class.extend('GameServer',{
       });
     }.bind(this));
 
+    if(!this.control_url){
+      console.log('no control url, dont use');
+      return;
+    }
     $.getJSON(this.control_url,{
         process_id:this.process_id,
         players: players

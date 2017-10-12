@@ -493,6 +493,7 @@ Variable.extend('TimerVariable',{
         if(val.status == 'started'){
           ScopeRef._getGameState().currentPhase.registerTimer(this);
         } else {
+
           ScopeRef._getGameState().currentPhase.deregisterTimer(this);
         }
       }
@@ -527,8 +528,9 @@ Variable.extend('TimerVariable',{
       case 'ratioDone': //between 0 and 1
         if(!this._value || this._value.status != 'started') return 0;
         var t = ScopeRef._gs.getTime();
-
-        return Math.min(1,(t - this._value.start_time)/this._value.duration);
+        var r = Math.min(1,(t - this._value.start_time)/this._value.duration);
+        //console.log('ratioDone:',r);
+        return r;
       case 'duration':
         return this._value === null ? Infinity : this._value.duration;
     }
@@ -841,12 +843,13 @@ GameStateChangeableList.extend('Phase',{
     //delete obj.type;
     this._super(obj);
   },
-  create:function(){
+  create:function(obj){
+    obj = obj || {};
     var v = null;
     if(this._name == 'player'){
-      v = new Player(this,{value:{}});
+      v = new Player(this,{value:obj});
     } else {
-      v = new ProtoTypeVariable(this,{});
+      v = new ProtoTypeVariable(this,obj);
     }
     /*if(ScopeRef._gs && ScopeRef._gs.players){
       var that = this;
@@ -871,7 +874,7 @@ Variable.extend('ProtoTypeVariable',{
     this._type = type._name;
 
     if(obj){
-      debugger;
+
       //add prototype variables to this
       var that = this;
       var value = {};
@@ -952,6 +955,10 @@ Variable.extend('ProtoTypeVariable',{
     if(this._value[ref] === undefined){
       console.log('setting '+ref+' to '+v+' in protovar '+this.prototype._name);
       this._value[ref] = v;
+    } else {
+      //console.log('setting ',this._value);
+      //removed again, setting directly conflicts with timers
+      //this._value[ref].set(v);
     }
   },
   getObject:function(){
@@ -993,6 +1000,13 @@ ProtoTypeVariable.extend('Player',{
         this.pos = this._value['pos'];
       } else {
         this.pos = new PosVariable();
+        this._value['pos'] = this.pos;
+      }
+
+      if(this._value['name']){
+        this.name = this._value['name'];
+      } else {
+        this.name = this._value['name'] = new PrimitiveVariable();
       }
     }
 
@@ -1024,6 +1038,8 @@ ProtoTypeVariable.extend('Player',{
     switch(ref){
       case 'pos':
         return this.pos;
+      /*case 'name':
+        return this.name ||'[no name]';*/
       case 'total_distance':
         return ~~this.total_distance;
       case 'id':
@@ -1034,6 +1050,7 @@ ProtoTypeVariable.extend('Player',{
     return this._super(ref);
   },
   set:function(ref,val){
+    //if(val =='hej') debugger;
     this._super(ref,val);
 
     if($.type(ref) == 'object' && !this.pos){
@@ -1234,6 +1251,18 @@ GameStateObject.extend('GameState',{
   addPlayer:function(player_data){
     console.log('adding player:'+player_data.name);
     var p = this.prototypes.player.create();
+    $.each(player_data,function(n,pd){
+
+      if(p._value[n] === undefined){
+        //only set variables that are used
+
+      } else {
+        console.log('got '+n+':'+pd);
+        //existing variable, set using the set function
+        //Variable._vars[id]._value[n] = Variable._vars[p];
+        p._value[n].set(pd);
+      }
+    });
     this.players.add(player_data.token,p);
   },
   /**
@@ -1314,7 +1343,7 @@ GameStateObject.extend('GameState',{
 
     //Set the reference for each of the client based variables
     $.each(vars||{},function(i,v){
-      if(v.v){
+      if(v.v !== undefined){
         h.vars[i].v = v.v;
       } else {
         h.vars[i].v = Variable._vars[v.p];

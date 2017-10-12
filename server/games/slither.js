@@ -89,19 +89,6 @@ exports.game = {
               type:"label",
               text:"'spillets navn:'+game.name"
             },
-            'exit':{
-              type:'button',
-              text:'"exit"',
-              hooks:{
-                click:{
-                  actions:{
-                    '_1':{
-                      type:"exit"
-                    }
-                  }
-                }
-              }
-            },
             'input':{
               show:"player = players.gameowner",
               type:"input",
@@ -130,7 +117,7 @@ exports.game = {
             },
 
             '_1':{
-              type:'button',
+              type:'bottombutton',
               text:"'Start game'",
               show:"player = players.gameowner",
               hooks:{

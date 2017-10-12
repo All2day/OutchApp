@@ -147,6 +147,14 @@ class IndexController extends Zend_Controller_Action{
 	}
 
 	public function gameAction(){
+		$token = $this->_getParam('token',null);
+		if($token) {
+			$p = PlayerTable::getFromToken($token);
+		} else {
+			$p = null;
+		}
+
+
 		$game_id = $this->_getParam('game_id');
 
 		$gameTable = new GameTable();
@@ -168,7 +176,9 @@ class IndexController extends Zend_Controller_Action{
 		$ins = array();
 		foreach($instances as $instance){
 			$i = $instance->toArray();
+			$i['control'] = $p && $i['owner'] == $p['player_id']; //can this user control this instance
 			$i['owner'] = $instance->getOwner()->getObject();
+
 
 			$ins[] = $i;
 		}

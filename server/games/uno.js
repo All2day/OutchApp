@@ -76,7 +76,7 @@ exports.game = {
           elements:{
             'map':{
               type:'MapView',
-              width:80,
+              //width:80,
               height:20,
               zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
               //zoom:"'fit'",
@@ -113,19 +113,7 @@ exports.game = {
               type:"label",
               text:"'spillets navn:'+game.name"
             },
-            'exit':{
-              type:'button',
-              text:'"exit"',
-              hooks:{
-                click:{
-                  actions:{
-                    '_1':{
-                      type:"exit"
-                    }
-                  }
-                }
-              }
-            },
+
             'input':{
               show:"player = players.gameowner",
               type:"input",
@@ -208,7 +196,7 @@ exports.game = {
               }
             },
             '_1':{
-              type:'button',
+              type:'bottombutton',
               text:"'Start game'",
               show:"player = players.gameowner",
               hooks:{
@@ -227,6 +215,12 @@ exports.game = {
                   }
                 }
               }
+            },
+            '_2':{
+              type:'bottombutton',
+              text:"'Waiting'",
+              show:"player != players.gameowner",
+
             }
           }
 
@@ -252,6 +246,20 @@ exports.game = {
         stack: { //The current stack of cards. The last added is the current card, which the next card must match
           type:"list",
           prototype:"card"
+        },
+        stopTimer:{
+          type:"timer",
+          duration:600000, // 10 min
+          hooks:{
+            end:{
+              actions:{
+                '_1':{
+                  type:'startphase',
+                  phase:'scoreboard'
+                }
+              }
+            }
+          }
         },
         waitforrevengetimer:{
           type:"timer",
@@ -325,6 +333,10 @@ exports.game = {
             'test':{
               type:"timer",
               timer:"player.nextCard"
+            },
+            'ends':{
+              type:"timer",
+              timer:"phase.stopTimer"
             }
           },
           geoElements:{
@@ -787,15 +799,20 @@ exports.game = {
                   target:"_player_loop.el.dir",
                   source:"_player_loop.index"
                 },
-                'asdf':{
+                //start without a card
+                /*'asdf':{
                   type:"set",
                   target:"_player_loop.el.currentCard",
                   source:"_player_loop.el.hand.last"
 
-                },
+                },*/
                 'start timer for next card':{
                   type:"start",
                   timer:"_player_loop.el.nextCard"
+                },
+                '_stoptimer':{
+                  type:'start',
+                  timer:'phase.stopTimer'
                 }
               }
             }
@@ -820,19 +837,6 @@ exports.game = {
                 0:{
                   type:"label",
                   text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser:'+listel.hand.count) + ' total distance:'+listel.total_distance+'m'",
-                }
-              }
-            },
-            'exit':{
-              type:'button',
-              text:'"exit"',
-              hooks:{
-                click:{
-                  actions:{
-                    '_1':{
-                      type:"exit"
-                    }
-                  }
                 }
               }
             }

@@ -4,7 +4,7 @@ Class.extend('GameClient',{
   gs:null,
   server:null,
   time_offset: 0,
-  min_send_frequency:100,
+  min_send_frequency:200,
   game_id:null,
   token:null,
   remoteTriggerQueue:null,//{nextId:1}, //using integers for indexing
@@ -23,6 +23,7 @@ Class.extend('GameClient',{
     //this.gs.getFullState();
     this.gs.currentPhase.addHook('change',function(){
       if(this.currentPhase){
+
         console.log('unloading phase');
         //if there is an existing phase handle it
         this.currentPhase.triggerHook('end');
@@ -30,6 +31,7 @@ Class.extend('GameClient',{
         var view = this.currentPhase.views[view_name];
 
         view._dom.hide(); //hide the dom of the phase
+        view.destroy();
       }
 
       this.currentPhase = this.gs.currentPhase._value;

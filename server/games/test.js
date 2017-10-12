@@ -30,7 +30,10 @@ exports.game = {
             }
           }
         }
-      }
+      },
+      /*pos:{
+        type:"pos"
+      }*/
     },
     card: {
       color: {
@@ -71,14 +74,12 @@ exports.game = {
       views:{
         '_1':{
           type:'page',
+          title:"'Test'",
           elements:{
-            't':{
-              type:"timer",
-              timer:"phase.test_timer"
-            },
+
             'map':{
               type:'MapView',
-              width:80,
+              //width:80,
               height:20,
               zoom:"'fit'",
               center:"players.gameowner.pos",
@@ -110,22 +111,14 @@ exports.game = {
                 }*/
               }
             },//end of map
+            't':{
+              type:"timer",
+              timer:"phase.test_timer"
+            },
             'gamename':{
+              show:"player != players.gameowner",
               type:"label",
               text:"'spillets navn:'+game.name"
-            },
-            'exit':{
-              type:'button',
-              text:'"exit"',
-              hooks:{
-                click:{
-                  actions:{
-                    '_1':{
-                      type:"exit"
-                    }
-                  }
-                }
-              }
             },
             'input':{
               show:"player = players.gameowner",
@@ -149,7 +142,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.id",
+                  text:"listel.name",
                   /*hooks:{
                     click:{
                       actions:{
@@ -161,6 +154,19 @@ exports.game = {
                       }
                     }
                   }*/
+                }
+              }
+            },
+            'exit':{
+              type:'button',
+              text:'"exit"',
+              hooks:{
+                click:{
+                  actions:{
+                    '_1':{
+                      type:"exit"
+                    }
+                  }
                 }
               }
             },
@@ -193,8 +199,13 @@ exports.game = {
                 }
               }
             },
+            'slider':{
+              type:"slider",
+              min:10,
+              max:300,
+            },
             '_1':{
-              type:'button',
+              type:'bottombutton',
               text:"'Start game in '+phase.test_var",
               show:"player = players.gameowner",
               hooks:{

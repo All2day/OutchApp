@@ -20,7 +20,8 @@ Hookable.extend('ClientElement',{
   },
   _update:function(name){ //internal update
     if(this._destroyed){
-      console.log('destroyed, not updating:'+name);
+      //console.log('destroyed, not updating:'+name);
+      return;
     }
     var val = this.getProp(name);
 
@@ -241,34 +242,56 @@ ViewElement.fromObject = function(obj){
 
 
 ViewElement.extend('PageElement',{
+  init:function(obj){
+    this._super(obj);
+    this.registerProp('title',obj.title || 'game.name');
+  },
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div></div>').css({
-        position:'absolute',
-        top:0,
-        left:0,
-        background:'white',
-        width:'100vw',
-        height:'100vh',
-        verticalAlign:'middle',
-        textAlign:'center',
-        display:'flex',
-        alignItems:'center',
-        justifyContent:'center',
-        alignContent:'center',
-        flexWrap:'wrap'
-      });
+      var dom = $('<div class="page"><header class="header"><a class="left exit">&lt</a><div class="title"></div></header><content class="inner"></content><footer class="footer"></footer></div>').css({
+
+      }).addClass('page');
+
       this._dom = dom;
       c.append(this._dom);
 
+      var title = this.getProp('title');
+      if($.type(title)== 'object'){
+        title = title._value;
+      }
+      dom.find('.header .title').text(title);
+      dom.find('.header .exit').on('click',function(){
+        if(confirm('sure exit?')){
+          //todo: add nice exit
+          app.exitGame();
+        }
+      });
+      var inner = dom.find('.inner');
       $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
-        el.draw(dom);
+        if(el instanceof BottombuttonElement){
+          el.draw(dom.find('.footer'));
+        } else {
+          el.draw(inner);
+        }
       });
 
     }
+  },
+  update:function(props){ //update the following properties by looking up the values
 
+    if(!this._dom) return;
+    var that = this;
+    $.each(props,function(prop,val){
 
+      val = $.type(val) == 'object' ? val._value : val;
+      switch(prop){
+        case 'title':
+          if(that._dom.find('.header .title').text() != val)
+            that._dom.find('.header .title').text(''+val);
+      }
+    });
+    this._super(props);
   }
 });
 
@@ -284,11 +307,13 @@ ViewElement.extend('LabelElement',{
     var that = this;
     $.each(props,function(prop,val){
 
-      val = val._value || val;
+      val = ($.type(val) == 'object' ? val._value : val);
+
       switch(prop){
         case 'text':
-          if(that._dom.text() != val)
+          if(that._dom.text() != val){
             that._dom.text(val);
+          }
       }
     });
   },
@@ -297,7 +322,14 @@ ViewElement.extend('LabelElement',{
       this.attachHooks();
       var dom = $('<span></span>').addClass('label').css({
 
-      }).text(this.getProp('text'));
+      });
+      var val = this.getProp('text');
+      val = ($.type(val) == 'object' ? val._value : val);
+      dom.text(val);
+
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
 
       $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
         el.draw(dom);
@@ -454,6 +486,43 @@ ViewElement.extend('ButtonElement',{
   }
 });
 
+ViewElement.extend('BottombuttonElement',{
+  init:function(obj){
+    this._super(obj);
+    this.registerProp('text',obj.text || 'init');
+  },
+  update:function(props){ //update the following properties by looking up the values
+    if(!this._dom) return;
+    var that = this;
+    $.each(props,function(prop,val){
+      val = val._value || val;
+      switch(prop){
+        case 'text':
+          that._dom.text(val);
+      }
+    });
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<button></button>').css({
+
+      }).addClass('bottom-button')
+        .text(this.getProp('text'));
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+      var that = this;
+      dom.on('click',function(e){
+        that.triggerHook('click');
+      });
+      this._dom = dom;
+    }
+
+    c.append(this._dom);
+  }
+});
+
 ViewElement.extend('InputElement',{
   init:function(obj){
     this._super(obj);
@@ -484,7 +553,7 @@ ViewElement.extend('InputElement',{
       }
 
       var that = this;
-      dom.on('change',function(e){
+      dom.on('change keyup',function(e){
         that.triggerHook('change');
       });
       this._dom = dom;
@@ -736,11 +805,15 @@ ViewElement.extend('MapElement',{
                 new_g
               );
             }
-            //var ext = that._vectorSource.getExtent();
-            that._map.getView().fit(ext,{
-              constrainResolution:false,
-              size:that._map.getSize()
-            });
+
+            //only apply if not infinity
+            if(ext.filter(isFinite).length == 4){
+              that._map.getView().fit(ext,{
+                maxZoom: 19,
+                constrainResolution:false,
+                size:that._map.getSize()
+              });
+            }
           } else
           if($.type(val) == 'object' && val.x !== undefined && val.y !== undefined){
 
@@ -882,16 +955,15 @@ ViewElement.extend('MapElement',{
 
 
       //draw normal elements
-
-      $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
-        var d = $('<div></div>').css({
-          position:'absolute',
-          top:0
-        });
-        el.draw(d);
-        var c = new ol.control.Control({element: d[0]});
-        that._map.addControl(c);
+      var d = $('<div></div>').css({
+        position:'absolute',
+        top:0
       });
+      $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
+        el.draw(d);
+      });
+      var c = new ol.control.Control({element: d[0]});
+      that._map.addControl(c);
     }
 
 
@@ -1014,6 +1086,13 @@ ViewElement.extend('MapElement',{
       default:
         this._super(ref);
     }
+  },
+  destroy:function(){
+    this._super();
+    $.each(this.geoElements._value,function(key,element){
+      element.destroy();
+      element.owner = null;
+    });
   }
 });
 
@@ -1378,8 +1457,10 @@ GeoElement.extend('GeolistElement',{
     return this._super(ref);
   },
   destroy:function(){
+    this._super();
+
     for(var i = 0;i<this._wrapperels.length;i++){
-      this._wrapperels.destroy();
+      this._wrapperels[i].destroy();
     }
     this._wrapperels = null;
   }
@@ -1440,10 +1521,11 @@ ViewElement.extend('GeolistElElement',{
   },
   destroy:function(){
 
-    //this._super();
+    //this._super(); // not normal element
     for(var i = 0;i<this.geoels.length;i++){
       this.geoels[i].destroy();
     }
+    this.elements = null;
     this.geoels = null;
     this.listel = null;
     this.list = null;
@@ -1538,15 +1620,20 @@ GeoElement.extend('SvgElement',{
     */
 
     var scale = this.getProp('scale');
+    var rotation = this._realPos ? this._realPos[2]: 0;
+
+    //console.log(rotation);
 
     if(this._style.getImage()){
       this._style.getImage().setScale(scale);
+      this._style.getImage().setRotation(rotation);
     } else {
       this._style.setImage(new ol.style.Icon({
         opacity: 1,
         src: 'data:image/svg+xml;utf8,' + this.svg,
-        rotation:0,
-        scale: scale
+        rotation:rotation,
+        scale: scale,
+        snapToPixel: false //removes jittering
       }));
     }
     if(this._feature){
