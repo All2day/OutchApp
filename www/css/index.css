@@ -41,7 +41,7 @@ body {
         color-stop(0.51, #E4E4E4)
     );
     background-attachment:fixed;
-    font-family:'HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+    font-family:'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
     font-size:12px;
     height:100%;
     margin:0px;
@@ -49,6 +49,8 @@ body {
     text-transform:uppercase;
     width:100%;
 }
+
+
 
 /* Portrait layout (default) */
 .app {
@@ -123,7 +125,7 @@ h1 {
  * Our default styling of objects
  */
 #front{
-  background-color:#FFF;
+  /*background-color:#FFF;*/
   width:100vw;
   height:100vh;
   box-sizing:border-box;
@@ -152,7 +154,7 @@ h1 {
   position:absolute;
   top:0;
   left:0;
-  background:#e7e4e6;
+  /*background:#e7e4e6;*/
   width:100vw;
   height:100vh;
   text-align:center;
@@ -173,11 +175,16 @@ h1 {
 
 .page .header{
   background: linear-gradient(to bottom, #020f16 0%,#03171f 100%);
-  height:4em;
+  /*height:4em;*/
+  min-height: 4em;
   line-height: 4em;
   color:#FFFFFF;
   vertical-align:middle;
   position:relative;
+}
+
+.iOS7 .page .header{
+  padding-top:20px;
 }
 
 .page .header .title {
@@ -209,7 +216,7 @@ h1 {
 
   -webkit-overflow-scrolling: touch;
 
-  background:#e7e4e6;
+  /*background:#e7e4e6;*/
 
   vertical-align:middle;
   text-align:center;
@@ -234,7 +241,9 @@ button {
   color:#FFFFFF;
   border: 0;
   padding: .5em;
-  font-weight:bold;
+  font: inherit;
+  font-weight: bold;
+  font-size: 1.5em;
 }
 button:active {
   background: #2b465d;
@@ -260,7 +269,8 @@ input {
   border-radius:.5em;
   background:#FFFFFF;
   boz-sizing:border-box;
-
+  font: inherit;
+  font-size: 1.5em;
 }
 
 .label{
@@ -268,12 +278,19 @@ input {
   text-align:left;
   margin-top:.5em;
   margin-bottom:.5em;
+  font-size:1.2em;
 }
 .list{
   width:100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .listel{
   width:100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .timer{
   width:100%;
@@ -376,4 +393,8 @@ input {
   padding:1em;
   border:1px solid #3092bc;
   border-radius:0 0 1em 1em;
+}
+
+.iOS7 .map_controls{
+  margin-top:20px;
 }

@@ -177,7 +177,10 @@ Action.fromObject = function(obj,name){
      var timer_var = this.timer.eval();
 
      if(timer_var instanceof TimerVariable){
+       console.log('resetting timer');
        timer_var.reset();
+     } else {
+       console.log('var not timer');
      }
    },
    traverseInputs:function(f){

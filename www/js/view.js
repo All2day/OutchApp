@@ -52,12 +52,59 @@ Hookable.extend('ClientElement',{
       that._update(k);
     });
   },
+
+  _evalProp:function(name,gp,s){
+    var r = ScopeRef._evalString(s, gp.t);
+    var val = null;
+
+    if(r.inf.vars.length == 0 && r.inf.constant){
+      if(r.value !== undefined && r.value !== null){
+        gp.r = r.value;
+        val =  r.value;
+      } else {
+        ScopeRef._evalString(s, gp.t);
+        val = gp.r = gp.d; //default
+      }
+    } else {
+      gp.r = r.ref;
+      var that = this;
+
+      $.each(r.inf.vars,function(k,v){
+        var ah = {
+          v:v, //the variable
+          t:'change',
+          h:that._update.bind(that,name)
+        };
+        v.addHook(ah.t,ah.h);
+        that._attachedHooks.push(ah);
+      });
+      val = r.value;
+      val = val !== null ? val : gp.d;
+    }
+    return val;
+  },
+
   getProp:function(name,primitive /* is the returned value forced to be primitive */){
 
     var val = null;
     var gp = this._props[name]; //the game property
 
     if(gp instanceof GameProperty && gp.r !== null){
+      if(gp.or){ //if the result is of the type object_result, go through the object and eval if scoperef
+        ScopeRef._setScope(this);
+        val = {};
+        $.each(gp.or, function(el_name,igp){
+          if(igp.r instanceof ScopeRef){
+            val[el_name] = igp.r.eval(el_name);
+          } else {
+            val[el_name] = igp.r;
+          }
+
+          if(primitive && val[el_name] instanceof Variable){
+            val[el_name] = val[el_name]._value;
+          }
+        });
+      } else
       if(gp.r instanceof ScopeRef){
         ScopeRef._setScope(this);
         val = gp.r.eval();
@@ -73,7 +120,27 @@ Hookable.extend('ClientElement',{
       if(gp.s === null || gp.s === undefined){
         val = gp.r = gp.d; //default
       } else {
-        var r = ScopeRef._evalString(gp.s, gp.t);
+        if($.type(gp.s) !== "object"){
+          val = this._evalProp(name,gp,gp.s);
+        } else {
+
+          val = {};
+          var that = this;
+          gp.or = {};
+          $.each(gp.s,function(el_name,s){
+            var igp = new GameProperty(s,null,null);
+            val[el_name] = that._evalProp(name,igp,s);
+
+            if(primitive && val[el_name] instanceof Variable){
+              val[el_name] = val[el_name]._value;
+            }
+
+            gp.or[el_name] = igp;
+          });
+          gp.r = true; //set to trigger the result next time
+        }
+
+        /*var r = ScopeRef._evalString(gp.s, gp.t);
 
         if(r.inf.vars.length == 0 && r.inf.constant){
           if(r.value !== undefined && r.value !== null){
@@ -98,7 +165,23 @@ Hookable.extend('ClientElement',{
             that._attachedHooks.push(ah);
           });
           val = r.value !== null ? r.value : this._props[name].d;
+        }*/
+
+        //if an object and not a string, do this for every object
+        /*if(false && $.type(gp.s) == 'object'){
+          debugger;
+          val = {};
+          var that = this;
+          $.each(gp.s,function(name,s){
+            val[name] = this._evalProp(gp,s);
+          });
+        } else {
+
+          val = this._evalProp(gp,gp.s);
         }
+        */
+        //defaulting
+        //val = val !== null ? val : this._props[name].d;
       }
       //return this._props[name].d;
     } else
@@ -107,13 +190,20 @@ Hookable.extend('ClientElement',{
       ScopeRef._setScope(this);
       val = this._props[name].eval();
       //ScopeRef._popScope();
-    } else {
+    } /*else //removed, an object like property should never be set directly but as a part of a game property
+    if($.type(this._props[name]) === "object"){
+      debugger;
+    }*/ else {
       val = this._props[name];
     }
 
     if(primitive && val instanceof Variable){
       val = val._value;
     }
+
+    /*if(name=='css' && this._props[name] && this instanceof LabelElement){
+      console.log(val.background);
+    }*/
 
     return val;
 
@@ -186,6 +276,7 @@ ClientElement.extend('ViewElement',{
     this.elements = {_value:els};//new GameStateList(obj.elements || {},ViewElement);
 
     this.registerProp('show',obj.show,true);
+    this.registerProp('css',obj.css,{});
   },
   destroy:function(){
     this._super();
@@ -201,13 +292,27 @@ ClientElement.extend('ViewElement',{
     });
   },
   update:function(props){
-    if(this._dom && props['show'] != undefined){
-      if(props['show']){
-        this._dom.show();
-      } else {
-        this._dom.hide();
+    if(this._dom){
+      if(props['show'] != undefined){
+        if(props['show']){
+          this._dom.show();
+        } else {
+          this._dom.hide();
+        }
+      }
+
+      if(props['css'] != undefined){
+        var css = this.getProp('css',true);
+        this._dom.css(css);
       }
     }
+
+  },
+
+  draw: function(){
+    //debugger;
+    var css = this.getProp('css',true);
+    this._dom.css(css);
   }
 });
 
@@ -302,7 +407,7 @@ ViewElement.extend('LabelElement',{
     this.registerProp('text',obj.text || 'hej');
   },
   update:function(props){ //update the following properties by looking up the values
-
+    this._super(props);
     if(!this._dom) return;
     var that = this;
     $.each(props,function(prop,val){
@@ -338,6 +443,7 @@ ViewElement.extend('LabelElement',{
     }
 
     c.append(this._dom);
+    this._super();
   }
 });
 
@@ -394,7 +500,9 @@ ViewElement.extend('ListElement',{
 
     if(this.list){
       var that = this;
-
+      if(!this.list._value){
+        debugger;
+      }
       $.each(this.list._value,function(i,k){
         //TODO: somehow the elements inside needs to have access to the list element.
         //TODO: how to describe multilevel list elements?
@@ -955,7 +1063,7 @@ ViewElement.extend('MapElement',{
 
 
       //draw normal elements
-      var d = $('<div></div>').css({
+      var d = $('<div class="map_controls"></div>').css({
         position:'absolute',
         top:0
       });
@@ -1116,6 +1224,7 @@ ViewElement.extend('GeoElement',{
     this.registerProp('text',obj.text,null);
     this.registerProp('color',obj.color,[0,0,0,0.5],ScopeColor);
     this.registerProp('fill',obj.fill,[255,0,0,0.3],ScopeColor);
+    this.registerProp('stroke',obj.stroke,2);
     this.registerProp('zIndex',obj.zIndex,0);
   },
   getClientHooks: function(hooks){
@@ -1235,6 +1344,7 @@ ViewElement.extend('GeoElement',{
     var color = this.getProp('color');
     var fill = this.getProp('fill');
     var zIndex = this.getProp('zIndex');
+    var stroke = this.getProp('stroke');
 
     if(text && text._value){
       text = text._value;
@@ -1252,7 +1362,7 @@ ViewElement.extend('GeoElement',{
       fill: new ol.style.Fill({color:fill}),
       stroke: new ol.style.Stroke({
         color:color,
-        width:2
+        width:stroke
       }),
       zIndex:zIndex
     });

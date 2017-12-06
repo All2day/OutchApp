@@ -58,6 +58,15 @@ var app = {
         document.addEventListener("deviceready", function(){
           console.log('Got deviceready');
 
+          if(window.device.platform == 'iOS'){
+    				$('body').addClass('iOS');
+    				if(parseFloat(window.device.version) >= 7.0) {
+    				  $('body').addClass('iOS7');
+    					console.log('iOS7+ detected, adding top padding for statusbar');
+    		    }
+    			}
+
+
           try{
             if(window.console_reinsert){
               console_reinsert();
@@ -230,11 +239,31 @@ var app = {
         });
 
         f.on('click','.open',function(){
-          $.getJSON(that.server+'/index/game',{game_id:$(this).attr('data-game_id'),token:that.getPlayerToken()},function(data){
+          if(that._fetching){
+            //request.readyState > 0 && request.readyState < 4
+            that._fetching.abort();
+            that._fetching = null;
+          }
+          var game_id = $(this).attr('data-game_id');
+          var all_games = app.all_games.games||[];
 
-            that._currentGame = data.game;
-            that.showGames();
-          });
+          for(var i=0;i<all_games.length;i++){
+            if(all_games[i].game_id == game_id){
+              that._currentGame = all_games[i];
+            }
+          }
+
+          console.log(that._currentGame);
+
+          that.showGames();
+
+          if(!that._currentGame){
+            that._fetching = $.getJSON(that.server+'/index/game',{game_id:$(this).attr('data-game_id'),token:that.getPlayerToken()},function(data){
+
+              that._currentGame = data.game;
+              that.showGames();
+            });
+          }
         });
 
         f.on('click','.start',function(){
@@ -247,6 +276,11 @@ var app = {
         });
 
         f.on('click','.back',function(){
+          if(that._fetching){
+            //request.readyState > 0 && request.readyState < 4
+            that._fetching.abort();
+            that._fetching = null;
+          }
           that._currentGame = null;
           that.showGames();
         });
@@ -258,17 +292,23 @@ var app = {
       }
       //$("#front").html(this.frontTmpl()).show();
       //get current games from server
+      console.log('showgames',this._currentGame);
 
       if(this._currentGame){
         $("#front").html(this.gameTmpl(this._currentGame));
         //update data
-        $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
+        this._fetching = $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
           this._currentGame = data.game;
 
           $("#front").html(this.gameTmpl(this._currentGame));
         }.bind(this));
       } else {
-        $.getJSON(this.server+'/index/listgames',function(data){
+        if(app.all_games){
+          $("#front").html(this.frontTmpl(app.all_games));
+        }
+        this._fetching = $.getJSON(this.server+'/index/listgames',function(data){
+          app.all_games = data;
+
           $("#front").html(this.frontTmpl(data));
         }.bind(this));
       }

@@ -91,7 +91,7 @@ exports.game = {
                 },
                 'inner':{
                   type:"circle",
-                  radius:"7",
+                  radius:"10",
                   fill:[0,0,0,0],
                   pos:"players.gameowner.pos",
                 }/*,
@@ -180,7 +180,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.id",
+                  text:"listel.name",
                   /*hooks:{
                     click:{
                       actions:{
@@ -337,6 +337,26 @@ exports.game = {
             'ends':{
               type:"timer",
               timer:"phase.stopTimer"
+            },
+            'currentCard':{
+              show:"player.currentCard",
+              type:"label",
+              text:"player.currentCard ? player.currentCard.value : ''",
+              css:{
+                border:"'1px solid black'",
+                background: "player.currentCard.color",
+                display:"player.currentCard ? 'flex' : 'none'",
+                position:"'fixed'",
+                width:"'10vh'",
+                height:"'15vh'",
+                right:"'5vh'",
+                top:"'1em'",
+                fontSize:"'5vh'",
+                margin:"'0'",
+                alignItems:"'center'",
+                justifyContent:"'center'",
+                borderRadius:"'5px'"
+              }
             }
           },
           geoElements:{
@@ -381,9 +401,61 @@ exports.game = {
               radius:"game.size",
               rotation:"player.dir*2*3.1415/players.count",
               fill:[0,0,0,0],
+              //if there is a player with only one card show red and big
+              color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
+              stroke:"players[el.hand.length=1].length>0 ? 10 : 2",
               zIndex:-1,
               pos:"game.center",
               geoElements:{
+                '_newcard':{
+                  type:"GeoElement",
+                  pos:[0,0],
+                  rotation:"player.hand.length*game.cardWidth/game.size+list.count-list.count",
+                  geoElements:{
+                    'box':{
+                      type:"box",
+                      pos:"[0,game.size+0.5*game.cardHeight]",
+                      width:"game.cardWidth",
+                      //height:"15",
+                      height:"game.cardHeight",
+                      text:"'+'",
+                      fill:[0,0,0,.5],
+                      color:"element.isinside ? 'white' : 'black'",
+                      hooks:{
+                        enter:{
+                          actions:{
+                            1:{
+                              type:"vibrate",
+                              duration:100
+                            }
+                          }
+                        },
+                        volumeup:{
+                          actions:{
+                            1:{
+                              type:"vibrate",
+                              duration:100
+                            },
+                            '_1':{
+                              type:"add",
+                              list:"player.hand",
+                              target:"phase.deck.pop"
+                            },
+                            '_2':{
+                              type:"reset",
+                              timer:"player.nextCard"
+                            },
+                            '_3':{
+                              type:"set",
+                              target:"player.currentCard",
+                              source:"player.hand.last"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 '_playercards':{ //The player cards
                   type:"geolist",
                   list:"player.hand",
@@ -435,7 +507,7 @@ exports.game = {
                   type:"circle",
                   pos:[0,0],
                   //stroke:"5px rgba(100,100,100,0.5)",
-                  radius:"7",
+                  radius:"10",
                   //fill:[0,0,0,0],
                   color:"element.isinside?'white':'black'",
                   fill:"phase.stack.last.color",
@@ -825,10 +897,10 @@ exports.game = {
         '_1':{
           type:'page',
           elements:{
-            'gamename':{
+            /*'gamename':{
               type:"label",
               text:"'spillets navn:'+game.name"
-            },
+            },*/
 
             'players':{
               type:'list',
@@ -836,7 +908,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.id+':'+(listel.hand.count=0 ? ' winner!!!':' looser:'+listel.hand.count) + ' total distance:'+listel.total_distance+'m'",
+                  text:"listel.name+':'+(listel.hand.count=0 ? ' winner!!!':' loser:'+listel.hand.count) + ' total distance:'+listel.total_distance+'m'",
                 }
               }
             }

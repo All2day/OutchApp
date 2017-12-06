@@ -1005,6 +1005,7 @@ ScopeLookup.extend('ScopeFilter',{
     $.each(scp._value,function(k,v){
       gso.el = v;
       ScopeRef._pushScope(v);
+
       if(that.filter.eval(undefined,inf)){
         new_list.add(v);
       }

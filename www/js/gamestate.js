@@ -390,6 +390,7 @@ Variable.extend('ListVariable',{
         var el = this._value.pop();
         this.triggerHook('change');
         return el;
+      case 'length':
       case 'count':
         return this._value.length;//new Variable(this._value.length);
       default:
@@ -469,7 +470,9 @@ Variable.extend('TimerVariable',{
     this.triggerHook('change');
   },
   reset: function(){
-    this.triggerHook('change');
+    clearTimeout(this._timeout);
+    this.start();
+    //this.triggerHook('change');
   },
   _stop: function(){ //Internal stop
     clearTimeout(this._timeout);

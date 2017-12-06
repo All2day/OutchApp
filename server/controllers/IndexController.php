@@ -136,13 +136,17 @@ class IndexController extends Zend_Controller_Action{
 	public function gamesrcAction(){
 		$game_id = $this->_getParam('game_id');
 
-		$gameTable = new GameTable();
-		$game = $gameTable->find($game_id)->current();
+		$game_name = ''.$game_id;
+		if(is_numeric($game_id)){
 
+			$gameTable = new GameTable();
+			$game = $gameTable->find($game_id)->current();
+			$game_name = $game['name'];
+		}
 		header('Access-Control-Allow-Origin: *');
 		header('Content-Type: text/javascript');
 
-		echo file_get_contents('games/'.$game['name'].'.js');
+		echo file_get_contents('games/'.$game_name.'.js');
 		exit;
 	}
 

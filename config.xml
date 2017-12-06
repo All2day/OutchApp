@@ -8,9 +8,10 @@
         Mads Kessel
     </author>
     <content src="index.html" />
-
-
     <preference name="target-device" value="handset" />
+    <preference name="webviewbounce"              value="false" />           <!-- Changed by kezzel because of bounce on ios --><!-- ios: control whether the screen 'bounces' when scrolled beyond the top -->
+    <preference name="DisallowOverscroll"         value="true" />						<!-- Kezzel: Should allow scrolling on internal elements -->
+
 
     <access origin="*" />
     <allow-intent href="http://*/*" />
@@ -19,6 +20,7 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+    <icon src="res/icon.png" />
     <platform name="android">
         <allow-intent href="market:*" />
     </platform>
@@ -38,7 +40,7 @@
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
-    <plugin name="cordova-plugin-geolocation" spec="https://github.com/Kezzel/cordova-plugin-geolocation.git" />
+    <plugin name="cordova-plugin-geolocation" spec="git+https://github.com/Kezzel/cordova-plugin-geolocation.git" />
     <plugin name="cordova-plugin-is-debug" spec="^1.0.0" />
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
