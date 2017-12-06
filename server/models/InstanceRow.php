@@ -96,6 +96,23 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		return $ip;
 	}
 
+
+	public function storePlayerLog($p,$log){
+		$db = $this->getTable()->getAdapter();
+		$ip = $this->getPlayer($p->player_id);
+
+		if(!$ip){
+			return false;
+		}
+
+		$sql = "UPDATE instance_player SET `log`=".$db->quote($log)." WHERE instance_id=".$db->quote($this->instance_id)." AND player_id=".$db->quote($p['player_id']);
+
+		//insert manually, zend fails in there mumbo jumbo when handling large strings
+		$db->getConnection()->query($sql);
+
+		return true;
+	}
+
 	public function getOwner(){
 		$t = new PlayerTable();
 		return $t->find($this->owner)->current();

@@ -6,10 +6,12 @@ Class.extend('GameClient',{
   time_offset: 0,
   min_send_frequency:200,
   game_id:null,
+  instance_id:null,
   token:null,
   remoteTriggerQueue:null,//{nextId:1}, //using integers for indexing
   currentPhase:null,
-  init:function(gameobject,token){
+  init:function(gameobject,token, instance_id){
+    this.instance_id = instance_id;
     //debugger;
     this.remoteTriggerQueue = [];
     this.token = token;

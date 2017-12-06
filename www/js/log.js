@@ -65,6 +65,14 @@
 		return logs;
 	};
 
+	window.clearConsoleLog = function() {
+		logs = [];
+		if(log_div){
+			log_div.remove();
+			log_div = null;
+		}
+	}
+
 	window.console_reinsert = function() {
 		if(console.log != new_log){
 			console = {};

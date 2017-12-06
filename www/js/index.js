@@ -225,6 +225,8 @@ var app = {
 
     _currentGame:null,
     showGames:function(){
+      clearTimeout(this._gameUpdater);
+
       var f = $('#front');
       var that = this;
       if(!f.length){
@@ -267,6 +269,7 @@ var app = {
         });
 
         f.on('click','.start',function(){
+
           app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
           $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken()},function(data){
 
@@ -301,6 +304,7 @@ var app = {
           this._currentGame = data.game;
 
           $("#front").html(this.gameTmpl(this._currentGame));
+          this._gameUpdater = setTimeout(this.showGames.bind(this),1000);
         }.bind(this));
       } else {
         if(app.all_games){
@@ -319,6 +323,9 @@ var app = {
         console.log('no player when starting game');
         return;
       }
+      //allways clear the updater
+      clearTimeout(this._gameUpdater);
+
       if(!this.player.name){
         console.log('no name, prompt for name');
         var name = window.prompt('Player name');
@@ -343,7 +350,7 @@ var app = {
           $('#front').hide();
           this.startLocationService();
 
-          this._client = window._client = new GameClient(g.game,this.getPlayerToken());
+          this._client = window._client = new GameClient(g.game,this.getPlayerToken(), instance_id);
 
           _client.server = r.instance.url;
           _client.startPinging();
@@ -352,17 +359,43 @@ var app = {
           this.openModal('Starting game','could not join instance:'+r.error,{'ok':function(){return false;}});
           //alert('could not join instance:'+r.error);
         }
-      }.bind(this));
+      }.bind(this)
+    ).fail(function(e){
+      this.openModal('Starting game','An unknown error happened while joining the game',{'ok':function(){return false;}});
+
+    }.bind(this));
 
     },
     exitGame:function(){
+
       if(this._client){
         this._client.exit();
+
+        //fetch the log:
+        var log = window.getConsoleLog();
+        window.clearConsoleLog();
+        $.post(this.server+'/index/saveinstancelog?token='+encodeURIComponent(this.getPlayerToken())+'&instance_id='+encodeURIComponent(this._client.instance_id),JSON.stringify(log),
+        function(r,textStatus){
+            if(r.status == 'ok'){
+              console.log('log saved');
+            } else {
+              debugger;
+            }
+          }.bind(this)
+        ).fail(function(){
+          debugger;
+        });
+
         this._client = null;
       }
       $("body").children().each(function(){
         $(this).remove();
       });
+
+
+
+
+
       this.showGames();
       this.stopLocationService();
     },

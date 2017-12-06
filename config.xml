@@ -9,10 +9,8 @@
     </author>
     <content src="index.html" />
     <preference name="target-device" value="handset" />
-    <preference name="webviewbounce"              value="false" />           <!-- Changed by kezzel because of bounce on ios --><!-- ios: control whether the screen 'bounces' when scrolled beyond the top -->
-    <preference name="DisallowOverscroll"         value="true" />						<!-- Kezzel: Should allow scrolling on internal elements -->
-
-
+    <preference name="webviewbounce" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
