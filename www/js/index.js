@@ -624,11 +624,11 @@ var app = {
           var pos_obj = {
             c:c,
             t:pos.timestamp,
-            rt: new Date().getTime(),
+            rt: new Date().getTime(), //received timestamp
             a: pos.coords.accuracy
           };
 
-          console.log('accuracy:'+pos_obj.a);
+          console.log('GPS:'+pos_obj.t+'/'+pos_obj.rt+'['+pos_obj.c[0]+','+pos_obj.c[1]+'] a'+pos_obj.a);
 
           if(!this._posHist){
             this._posHist = [];

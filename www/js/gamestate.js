@@ -1028,7 +1028,11 @@ ProtoTypeVariable.extend('Player',{
     //update total distance if in a play phase
     if(this.pos._value && ScopeRef._getGameState().currentPhase._name == 'play'){
 
+      //TODO: only accept distance if accuracy is good enough AND OR
+      //TODO: only allow a max of 5m/s... Perhaps the points given to this should be marked as smoothing or something
       var d = Math.sqrt(Math.pow(this.pos._value.x - c[0],2) + Math.pow(this.pos._value.y - c[1],2));
+
+
 
       this.total_distance+=d;
       console.log('t:'+this.total_distance+' ['+this.pos._value.x+','+this.pos._value.y+'] => ['+c[0]+','+c[1]+'] : ['+(c[0]-this.pos._value.x)+','+(c[1]-this.pos._value.y)+']= '+d);
