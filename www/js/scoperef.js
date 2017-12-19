@@ -1021,6 +1021,16 @@ ScopeLookup.extend('ScopeFilter',{
 ScopeRef.extend('ScopeColor',{
 
   init:function(inp){
+    if($.type(inp) == 'string' && inp.match(/\[(\d+),(\d+),(\d+)(?:,(\d+|\d*\.\d+))?\]/)){
+      inp = [1*RegExp.$1,1*RegExp.$2,1*RegExp.$3];
+      if(RegExp.$4 != ""){
+        inp.push(1*RegExp.$4);
+      }
+
+    }
+    if($.type(inp) == 'string' && inp.match(/#[0-9A-F]{3}[0-9A-F]{3}?/i)){
+      inp = ol.color.asArray(inp);
+    }
     if($.type(inp) == 'array'){
       for(var i=0;i<inp.length;i++){
         if(inp[i] instanceof Variable || inp[i] instanceof ScopeNumber){
@@ -1051,6 +1061,9 @@ ScopeRef.extend('ScopeColor',{
           break;
         case 'white':
           this._value = [255,255,255,0.4];
+          break;
+        default:
+          console.log('unknown color:'.inp);
       }
     }
 

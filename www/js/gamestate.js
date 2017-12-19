@@ -453,6 +453,10 @@ Variable.extend('TimerVariable',{
     ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
       ScopeRef._getGameState().currentPhase.deregisterTimer(this);
+      if(!that._value){
+        console.error('timer ended when timer not existing, phase ended?');
+        return;
+      }
       //console.log('timer ended');
       that._value.status = 'ended';
       that.triggerHook('end');
@@ -952,7 +956,8 @@ Variable.extend('ProtoTypeVariable',{
       });
       //add cleanup removing nonexisting entries
       $.each(old_keys,function(i,n){
-        that.remove(n);
+        delete(that._value[n]);
+        //that.remove(n);
       });
     } else
     if(this._value[ref] === undefined){
@@ -993,19 +998,39 @@ ProtoTypeVariable.extend('Player',{
   id:null,
   gsUpdates:null,
   init:function(type,obj){
+    //When called with empty player def {type:"player"} it comes from phase
+    //loading with references to players
+
+    //when called with obj with value, it is a real player creation and the this._value will be set in the following:
     this._super(type,obj ? obj.value:undefined);
     this.gsUpdates = [];
     this.gsUpdates.push(new GameStateUpdate());
 
+
     //if the value is already set (not null Player) check for pos
     if(this._value){
+      this._updateReferences();
+    }
+
+
+    //TODO: register on a change hook on all variables and a 'new' hook on
+    //gamestate, that is triggered when registering new vars.
+  },
+
+
+  _updateReferences: function(){
+    //to add extra player specific vars create them here
+
+    if(!this.pos){
       if(this._value['pos']){
         this.pos = this._value['pos'];
       } else {
         this.pos = new PosVariable();
         this._value['pos'] = this.pos;
       }
+    }
 
+    if(!this.name){
       if(this._value['name']){
         this.name = this._value['name'];
       } else {
@@ -1013,9 +1038,21 @@ ProtoTypeVariable.extend('Player',{
       }
     }
 
+    if(!this.ping){
+      if(this._value['ping']){
+        this.ping = this._value['ping'];
+      } else {
+        this.ping = this._value['ping'] = new PrimitiveVariable();
+      }
+    }
 
-    //TODO: register on a change hook on all variables and a 'new' hook on
-    //gamestate, that is triggered when registering new vars.
+    if(!this.total_distance){
+      if(this._value['total_distance']){
+        this.total_distance = this._value['total_distance'];
+      } else {
+        this.total_distance = this._value['total_distance'] = new PrimitiveVariable();
+      }
+    }
   },
 
   //updates the players position from coordinates in meters*meters
@@ -1034,8 +1071,8 @@ ProtoTypeVariable.extend('Player',{
 
 
 
-      this.total_distance+=d;
-      console.log('t:'+this.total_distance+' ['+this.pos._value.x+','+this.pos._value.y+'] => ['+c[0]+','+c[1]+'] : ['+(c[0]-this.pos._value.x)+','+(c[1]-this.pos._value.y)+']= '+d);
+      this.total_distance._value+=d;
+      console.log('t:'+this.total_distance._value+' ['+this.pos._value.x+','+this.pos._value.y+'] => ['+c[0]+','+c[1]+'] : ['+(c[0]-this.pos._value.x)+','+(c[1]-this.pos._value.y)+']= '+d);
     }
     this.pos.set({
       x:c[0],
@@ -1051,9 +1088,11 @@ ProtoTypeVariable.extend('Player',{
       /*case 'name':
         return this.name ||'[no name]';*/
       case 'total_distance':
-        return ~~this.total_distance;
+        return ~~this.total_distance._value;
       case 'id':
         return this._name;
+      case 'ping':
+        return this.ping;
       case 'heading':
         return this.pos._value.heading !== undefined ? this.pos._value.heading : 0;
     }
@@ -1063,13 +1102,8 @@ ProtoTypeVariable.extend('Player',{
     //if(val =='hej') debugger;
     this._super(ref,val);
 
-    if($.type(ref) == 'object' && !this.pos){
-      if(this._value['pos']){
-        this.pos = this._value['pos'];
-      } else {
-        this.pos = new PosVariable();
-      }
-
+    if($.type(ref) == 'object'){
+      this._updateReferences();
     }
   }
 });
@@ -1303,14 +1337,17 @@ GameStateObject.extend('GameState',{
     if(!phase){
       phase = this.phases.firstKey();
     }
-    console.log('loading phase:'+phase);
+
 
     //if this currentphase trigger hooks for ending the phase
     if(this.currentPhase._value){
+      console.log('unloading phase:'+this.currentPhase._name);
       this.currentPhase.unload();
       this.currentPhase.triggerHook('end');
       Hookable._handleTriggerQueue();
     }
+
+    console.log('loading phase:'+phase);
 
     var new_phase = this.phases.get(phase);
 

@@ -506,7 +506,7 @@ ViewElement.extend('ListElement',{
       $.each(this.list._value,function(i,k){
         //TODO: somehow the elements inside needs to have access to the list element.
         //TODO: how to describe multilevel list elements?
-        var wrapper = new ListElElement(k,that);
+        var wrapper = new ListElElement(k,that,i);
         wrapper.draw(that._dom);
         /*$.each(that.elements._value,function(j,el){
           var e = el.clone();
@@ -524,12 +524,14 @@ ViewElement.extend('ListElement',{
 ViewElement.extend('ListElElement',{
   listel:null, //the input object, this element wraps
   list:null, //the listelement containing this element (same as owner)
-  init:function(listel, list){
+  list_index:null, //the index of list element in the list
+  init:function(listel, list,list_index){
     //this._super({elements:list._elements_obj});
     this._super({});
     this.elements = list.elements;
     this.listel = listel;
     this.list = list;
+    this.list_index = list_index;
   },
   draw:function(c){
     if(!this._dom){
@@ -551,6 +553,8 @@ ViewElement.extend('ListElElement',{
     switch(name){
       case 'listel':
         return this.listel;
+      case 'list_index':
+        return this.list_index;
     }
   }
 });
@@ -691,14 +695,18 @@ ViewElement.extend('TimerElement',{
   init:function(obj){
     this._super(obj);
     this.registerProp('timer',obj.timer);
+    this.registerProp('timertype',obj.timertype,'bartimer');
   },
   draw:function(c){
 
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div></div>').addClass('timer').css({
+
+      var type = this.getProp('timertype',true);
+      var dom = $('<div></div>').addClass(type).css({
 
       });
+
       if(!this.getProp('show',true)){
         dom.hide();
       }
@@ -731,6 +739,62 @@ ViewElement.extend('TimerElement',{
         //background:'blue'
       }).animate({
         width:'100%'
+      },(1-ratioDone)*this._timer.get('duration'),'linear');
+
+    }
+  },
+  update:function(props){
+    if(props['timer'] !== undefined){
+      this._timer = props['timer'];
+      this.updateBar();
+      delete(props['timer']);
+    }
+    this._super(props);
+  }
+});
+
+/**
+ * Element displaying a timer and how far it is
+ */
+ViewElement.extend('RoundtimerElement',{
+  _timer:null,
+  init:function(obj){
+    this._super(obj);
+    this.registerProp('timer',obj.timer);
+  },
+  draw:function(c){
+
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div><div class="roundtimer-content"></div><svg><circle r="18" cx="20" cy="20"></circle></svg></div>').addClass('roundtimer').css({
+
+      });
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      dom.append(this._barDiv);
+
+      this._timer = this.getProp('timer');
+      this._dom = dom;
+    }
+    this.updateBar();
+    c.append(this._dom);
+  },
+  updateBar:function(){
+
+    if(!this._timer){
+      this._dom.addClass('disabled');
+    } else {
+      this._dom.removeClass('disabled');
+      //debugger;
+      var ratioDone = this._timer.get('ratioDone');
+      //console.log(''+(100*ratioDone)+'%');
+      this._dom.find('svg circle').stop().css({
+        strokeDashoffset:''+(113*ratioDone)+'',
+        //background:'blue'
+      }).animate({
+        strokeDashoffset:'113'
       },(1-ratioDone)*this._timer.get('duration'),'linear');
 
     }
@@ -844,9 +908,69 @@ ViewElement.extend('SliderElement',{
 });
 
 
+/**
+ * Element displaying the scoreboard in a fancy way
+ */
+ListElement.extend('ScoreboardElement',{
+  init:function(obj){
+    if(!obj.list){
+      obj.list = "players";
+    }
+    if(!obj.elements){
+      obj.elements = {
+        0:{
+          type:'scoreboardel'
+        }
+      }
+    }
+    this._super(obj);
+  },
+  draw:function(c){
+    this._super(c);
+
+    this._dom.addClass('scoreboard');
+  }
+});
+
+ViewElement.extend('ScoreboardelElement',{
+  init:function(obj){
+    this._super(obj);
+    this.registerProp('player','listel');
+    this.registerProp('player_i','list_index');
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div class="scoreboard-element"></div>');
+
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      var p = this.getProp('player');
+      var i = this.getProp('player_i');
+      //TODO, make sure that we can sort a listvariable so that the winner is first etc.
+
+      dom.text(p.name._value+':'+i);
+
+      this._dom = dom;
+    }
+    c.append(this._dom);
+  }
+});
+
+
+
+
+
+/* START OF MAP ELEMENTS */
+
+
+
 ViewElement.extend('MapElement',{
   geoElements:[],
   _realPos: null, //x,y,r clockwise in radians
+  _class:'map',
   init: function(obj){
     this._realPos = [0,0,0];
     this._super(obj);
@@ -950,7 +1074,8 @@ ViewElement.extend('MapElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div></div>');
+
+      var dom = $('<div class="'+this._class+'"></div>');
       dom.css({
         verticalAlign:'middle',
         textAlign:'center',
@@ -1107,8 +1232,9 @@ ViewElement.extend('MapElement',{
     //var fts = this._vectorSource.getFeaturesAtCoordinate([pos._value.x,pos._value.y]);
     var fts = [];
     var all_fts = this._vectorSource.getFeatures();
+
     for(var i = 0;i<all_fts.length;i++){
-      var g = all_fts[i].el && all_fts[i].el._hitGeom ? all_fts[i].el._hitGeom : all_fts[i].getGeometry();
+      var g = all_fts[i].el && all_fts[i].el._realHitGeom ? all_fts[i].el._realHitGeom : all_fts[i].getGeometry();
       if(!g){
         //TODO:this can happen for wrapper elements. They should not create features, but it does not matter that much
         //console.log('no geometry for feature');
@@ -1116,7 +1242,8 @@ ViewElement.extend('MapElement',{
       } else
       if (g.intersectsCoordinate([pos._value.x,pos._value.y])) {
         fts.push(all_fts[i]);
-        //console.log('intersects:'+fts[i].el._name);
+        console.log('intersects:'+all_fts[i].el._name);
+        //console.log(all_t)
       } else {
         //console.log('not intersects:'+fts[i].el._name);
       }
@@ -1204,6 +1331,63 @@ ViewElement.extend('MapElement',{
   }
 });
 
+
+//when showing the map as a page with overlayed top bar
+MapElement.extend('MappageElement',{
+  _class:'mapPage',
+  init:function(obj){
+    //add player quality
+    if(!obj.elements['quality']){
+      obj.elements['quality'] = {type:'playerquality', player:'player'};
+    }
+
+    this._super(obj);
+  }
+});
+
+ViewElement.extend('PlayerqualityElement',{
+  _player:null,
+  init:function(obj){
+    this._super(obj);
+    this.registerProp('player',obj.player,null,Player);
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div class="playerQuality"><span class="connection">c</span><span class="location">l</span></div>').css({
+
+      });
+      this._dom = dom;
+    }
+    this.updateAllProps();
+    c.append(this._dom);
+  },
+  update:function(props){
+
+    if(props['player'] && this._player != props['player']){
+      this._player = props['player'];
+      props['player'].get('pos').addHook('change',this.updateQuality.bind(this));
+    }
+    this._super(props);
+  },
+  updateQuality:function(){
+    if(this._player){
+
+      var ping = this._player.get('ping');
+      if(ping._value < 200){
+        this._dom.find('.connection').attr('class','connection good');
+      } else
+      if(ping._value < 500){
+        this._dom.find('.connection').attr('class','connection medium');
+      } else {
+        this._dom.find('.connection').attr('class','connection bad');
+      }
+      console.log('quality'+ping._value);
+    }
+  }
+});
+
+
 /**
  * General definition of vector based geo element
  */
@@ -1226,6 +1410,7 @@ ViewElement.extend('GeoElement',{
     this.registerProp('fill',obj.fill,[255,0,0,0.3],ScopeColor);
     this.registerProp('stroke',obj.stroke,2);
     this.registerProp('zIndex',obj.zIndex,0);
+    this.registerProp('textColor',obj.textColor,'black');
   },
   getClientHooks: function(hooks){
     this._super(hooks);
@@ -1266,7 +1451,15 @@ ViewElement.extend('GeoElement',{
       element.draw(vl);
     });
   },
+
   redraw:function(){
+    var show = this.getProp('show');
+    if(!show){
+      if(this._feature.getGeometry()){
+        this._feature.setGeometry(null);
+      }
+      return;
+    }
     /*if(!this._geom){
       console.log('redrawing without _geom')
       return;
@@ -1319,6 +1512,14 @@ ViewElement.extend('GeoElement',{
       g.rotate(this._realPos[2],this._realPos);
       this._feature.setGeometry(g);
 
+      if(this._hitGeom){
+        var g = this._hitGeom.clone();
+        g.translate(this._realPos[0],this._realPos[1]);
+        g.rotate(this._realPos[2],this._realPos);
+
+        this._realHitGeom = g;
+      }
+
       if(window.draw_extent){
         //overwrite the geometry with its extent
         var ext = g.getExtent();
@@ -1333,6 +1534,10 @@ ViewElement.extend('GeoElement',{
           new_g
         );
       }
+
+      if(this._style && this._style.getText()){
+        this._style.getText().setRotation(-this._realPos[2]);
+      }
     }
 
     $.each(this.geoElements._value,function(key,element){
@@ -1342,20 +1547,23 @@ ViewElement.extend('GeoElement',{
   updateStyle:function(){
     var text = this.getProp('text');
     var color = this.getProp('color');
-    var fill = this.getProp('fill');
+    var textColor = this.getProp('textColor');
+    var fill = this.getProp('fill',true);
     var zIndex = this.getProp('zIndex');
     var stroke = this.getProp('stroke');
 
     if(text && text._value){
       text = text._value;
     }
-    if(fill && fill._value && $.type(fill._value) == 'string'){
-      fill = new ScopeColor(fill._value);
-      fill = fill._value;
+
+    if(fill && $.type(fill) == 'string'){
+
+      var s_f = new ScopeColor(fill);
+      fill =s_f._value;
     }
-    if(fill && fill._value){
+    /*if(fill && fill._value){
       fill = fill._value;
-    }
+    }*/
 
 
     this._style = new ol.style.Style({
@@ -1369,13 +1577,16 @@ ViewElement.extend('GeoElement',{
 
 
     if(text !== null){
+      //debugger;
+
       this._style.setText(new ol.style.Text({
         text:''+text,
         font: 'Courier New, monospace',
         scale:'2.0',
-        fill:{
-          color:"black"
-        }/*,
+        rotation:0,
+        fill:new ol.style.Fill({
+          color:textColor
+        })/*,
         stroke:{
           color:"black",
           width:0.0
@@ -1700,13 +1911,12 @@ GeoElement.extend('SvgElement',{
 
     this.svg = obj.svg;
     this.registerProp('radius',obj.radius,10);
-    this.registerProp('scale',obj.scale,15/100);
+    this.registerProp('scale',obj.scale,1);
 
     this._sourceObj = obj;
   },
   draw:function(vl /* vector layer*/){
     //if(this._name=='inner') debugger;
-
     this._super(vl);
 
     if(!this._geom){
@@ -1741,7 +1951,7 @@ GeoElement.extend('SvgElement',{
       this._style.setImage(new ol.style.Icon({
         opacity: 1,
         src: 'data:image/svg+xml;utf8,' + this.svg,
-        rotation:rotation,
+        rotation:-rotation,
         scale: scale,
         snapToPixel: false //removes jittering
       }));
@@ -1834,4 +2044,125 @@ GeoElement.extend('SvgElement',{
      //returns an array of an array with array coordinates
      return [[[-.5*w,-.5*h],[.5*w,-.5*h],[.5*w,.5*h],[-.5*w,.5*h],[-.5*w,-.5*h]]];
    }
- })
+ });
+
+ /**
+  * GeoboxElement
+  */
+  SvgElement.extend('SvgboxElement',{
+    //radius:null,
+    /*_geom:null,*/
+    init:function(obj){
+      /*if(!window.circles) window.circles = [];
+      window.circles.push(this);*/
+      //if(obj.pos.length ==2) debugger;
+      this._super(obj);
+
+      this.registerProp('width',obj.width,10);
+      this.registerProp('height',obj.height,10);
+
+
+      this._sourceObj = obj;
+    },
+    draw:function(vl /* vector layer*/){
+      var w = this.getProp('width',true);
+      var h = this.getProp('height',true);
+
+      this.svg = this._calculateSvg(w,h);
+
+
+      this._super(vl);
+
+      this._hitGeom = new ol.geom.Polygon(this._calculateCoordinates(w,h));
+      this._geom = new ol.geom.Point([0,0]);
+      //this._geom  = new ol.geom.Polygon(this._calculateCoordinates(w,h));
+
+
+      /*//create the geom first
+      if(!this._geom){
+        //var pos = this.getProp('pos');
+        var w = this.getProp('width');
+        var h = this.getProp('height');
+        this._geom = new ol.geom.Polygon(this._calculateCoordinates(w,h));
+      }
+
+      //call super to create the feature
+      this._super(vl);
+      */
+
+      //console.log('drawing box', this._geom, this._feature);
+    },
+    redraw:function(){
+
+      this._super();
+
+      //console.log('redrawing box', this._geom, this._feature);
+    },
+    update:function(props){ //update the following properties by looking up the values
+
+      this._super(props);
+
+      var that = this;
+
+      if(props['width'] !== undefined || props['height'] !== undefined ||
+         props['color'] !== undefined || props['fill'] !== undefined){
+        var w = props['width'] || this.getProp('width',true);
+        var h = props['height'] || this.getProp('height',true);
+        //console.log('drawing');
+        this.svg = this._calculateSvg(w,h);
+
+        if(this._style && this._style.getImage()){
+          var scale = this.getProp('scale');
+          var rotation = this._realPos ? this._realPos[2]: 0;
+
+          this._style.setImage(new ol.style.Icon({
+            opacity: 1,
+            src: 'data:image/svg+xml;utf8,' + this.svg,
+            rotation:-rotation,
+            scale: scale,
+            snapToPixel: false //removes jittering
+          }));
+        }
+
+        if(this._geom){
+
+          this._hitGeom = new ol.geom.Polygon(this._calculateCoordinates(w,h));
+          //this._geom.setCoordinates(this._calculateCoordinates(w,h));
+          this.redraw();
+        }
+      }
+
+
+    },
+    _toColor(inp){
+      var s_c = new ScopeColor(inp);
+
+      if($.type(s_c._value) == 'string'){
+        return s_c._value;
+      }
+      return ol.color.asString(s_c._value);
+    },
+    _calculateSvg:function(w,h){
+      //w=w*10;
+      //h=h*10;
+      var c = this._toColor(this.getProp('color',true));
+      var f = this._toColor(this.getProp('fill',true));
+
+
+
+      var svg = '<svg width="'+w+'" height="'+h+'" version="1.1" xmlns="http://www.w3.org/2000/svg">'
+        + '<rect x="0" y="0" width="'+w+'" height="'+h+'" stroke="'+c+'" fill="'+f+'" rx="2" ry="2" stroke-width=".5"/>'
+        + '</svg>';
+      return svg;
+    },
+    _calculateCoordinates:function(w,h){
+      if(w instanceof Variable){
+        w = w._value;
+      }
+      if(h instanceof Variable){
+        h = h._value;
+      }
+      //returns an array of an array with array coordinates
+      return [[[-.5*w,-.5*h],[.5*w,-.5*h],[.5*w,.5*h],[-.5*w,.5*h],[-.5*w,-.5*h]]];
+    }
+  })

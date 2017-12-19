@@ -51,7 +51,10 @@ exports.game = {
     colors: { // colors available in the game, except the none color
       type: "list",
       prototype: "string",
-      els:["red","blue","green"]//,"yellow"]
+      els:["#bf080f",//"[191,8,15]", //red
+          "#1c3d59",//"[28,61,89]", //blue
+          "#2c5e2f"//"[44,94,47]"
+        ]//,"[255,172,40]"] //yellow
     },
     cardtypes: { //card types in each color
       type: "list",
@@ -325,17 +328,18 @@ exports.game = {
       },
       views:{
         1:{
-          type:"MapView",
-          zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
+          type:"MapPage",
+          zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2.5",//"'fit'",
           center:"game.center",
           rotation:"game.center.heading + player.dir",
-          elements:{
+          elements:{//overlayed elements in top
             'test':{
-              type:"timer",
+              type:"roundtimer",
               timer:"player.nextCard"
             },
             'ends':{
               type:"timer",
+              timertype:"'headerbartimer'",
               timer:"phase.stopTimer"
             },
             'currentCard':{
@@ -343,19 +347,22 @@ exports.game = {
               type:"label",
               text:"player.currentCard ? player.currentCard.value : ''",
               css:{
-                border:"'1px solid black'",
+                border:"'2px solid black'",
                 background: "player.currentCard.color",
                 display:"player.currentCard ? 'flex' : 'none'",
                 position:"'fixed'",
                 width:"'10vh'",
                 height:"'15vh'",
+                color:"'white'",
                 right:"'5vh'",
-                top:"'1em'",
+                bottom:"'-0.7em'",
+                transform:"'rotate(17deg)'",
                 fontSize:"'5vh'",
+                fontWeight:"'bold'",
                 margin:"'0'",
                 alignItems:"'center'",
                 justifyContent:"'center'",
-                borderRadius:"'5px'"
+                borderRadius:"'7px'"
               }
             }
           },
@@ -365,19 +372,20 @@ exports.game = {
               radius:"2",
               pos:"player.pos",
               rotation:"player.heading",
-              color:[0,0,255,1],
+              color:[255,255,255,1],
               zIndex:2,
-              //fill:[0,0,255,0.4]
-              fill:"player.currentCard ? player.currentCard.color : [0,0,0,0]",
-              text:"player.currentCard ? player.currentCard.value : ''",
+              fill:[45,168,199,1],
+              //fill:"player.currentCard ? player.currentCard.color : [0,0,0,0]",
+              //text:"player.currentCard ? player.currentCard.value : ''",
               geoElements:{
-                'tri':{
-                  type:"box",
-                  pos:[0,3],
-                  width:1,
-                  height:2,
-                  color:[0,0,255,1],
-                  zIndex:2
+                'svg':{
+                  type:"SVG",
+                  zIndex:1,
+                  scale:1,
+                  post:[0,0],
+                  svg:'<svg width="10" height="10" version="1.1" xmlns="http://www.w3.org/2000/svg">'+
+                  '<path stroke="none" fill="#00d1ef" d="M 8.213938048432697 1.16977778440511 A 5 5 0 0 0 1.7860619515673033 1.16977778440511 L 5 5 L 8.213938048432697 1.16977778440511"/>'
+                  +'</svg>'
                 }
               }
             },
@@ -400,10 +408,11 @@ exports.game = {
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"game.size",
               rotation:"player.dir*2*3.1415/players.count",
-              fill:[0,0,0,0],
+              fill:"players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
               //if there is a player with only one card show red and big
-              color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
-              stroke:"players[el.hand.length=1].length>0 ? 10 : 2",
+              //color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
+              color:"'transparent'",
+              //stroke:"players[el.hand.length=1].length>0 ? 10 : 2",
               zIndex:-1,
               pos:"game.center",
               geoElements:{
@@ -413,14 +422,15 @@ exports.game = {
                   rotation:"player.hand.length*game.cardWidth/game.size+list.count-list.count",
                   geoElements:{
                     'box':{
-                      type:"box",
+                      type:"svgbox",
                       pos:"[0,game.size+0.5*game.cardHeight]",
                       width:"game.cardWidth",
                       //height:"15",
                       height:"game.cardHeight",
                       text:"'+'",
                       fill:[0,0,0,.5],
-                      color:"element.isinside ? 'white' : 'black'",
+                      color:"element.isinside ? 'black' : [244,240,241]",
+                      textColor:"'white'",
                       hooks:{
                         enter:{
                           actions:{
@@ -463,18 +473,20 @@ exports.game = {
                     'boxlist':{
                       type:"GeoElement",
                       pos:[0,0],
-                      rotation:"index*game.cardWidth/game.size+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
+                      rotation:"index*(game.cardWidth)/game.size+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
                       geoElements:{
                         'box':{
-                          type:"box",
+                          type:"svgbox",
                           //TODO:make it possible to have position referenced to the game
                           pos:"[0,game.size+0.5*game.cardHeight]", //go half the card to the left, and the radius of the circle down
                           width:"game.cardWidth",
                           //height:"15",
                           height:"game.cardHeight",
+                          show:"player.currentCard = listel ? 0 : 1",
                           text:"listel.value",
                           fill:"listel.color",
-                          color:"element.isinside ? 'white' : (player.currentCard = listel ? 'red' : 'black')",
+                          textColor:"[255,255,255]",
+                          color:"element.isinside ? [0,0,0] : (player.currentCard = listel ? 'red' : [244,240,241])",
                           hooks:{
                             enter:{
                               actions:{
@@ -509,8 +521,9 @@ exports.game = {
                   //stroke:"5px rgba(100,100,100,0.5)",
                   radius:"10",
                   //fill:[0,0,0,0],
-                  color:"element.isinside?'white':'black'",
+                  color:"element.isinside?'black':[244,240,241]",
                   fill:"phase.stack.last.color",
+                  textColor:"'white'",
                   text:"phase.stack.last.value",
                   hooks:{
                     enter:{
@@ -901,7 +914,9 @@ exports.game = {
               type:"label",
               text:"'spillets navn:'+game.name"
             },*/
-
+            'sb':{
+              type:'scoreboard'
+            },
             'players':{
               type:'list',
               list:'players',

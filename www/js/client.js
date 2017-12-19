@@ -263,7 +263,8 @@ Class.extend('GameClient',{
         this.time_offset = Math.round(0.9*this.time_offset + 0.1*time_offset);
 
         this.ping = setTimeout(this.startPinging.bind(this),Math.max(0,this.min_send_frequency - (this_t-t)));
-        //this.startStatePinging();
+
+        this.gs.currentPlayer.set('ping',(this_t-t));
       }.bind(this),
       error:function(r,status,error) {
         if(status == 'abort'){

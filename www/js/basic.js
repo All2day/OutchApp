@@ -39,7 +39,7 @@
      var prototype = new this();
      initializing = false;
      Class._init = false;
-
+     
      // Copy the properties over onto the new prototype
      for (var name in prop) {
 

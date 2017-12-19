@@ -1,3 +1,68 @@
+/* line 5, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  font-size: 100%;
+  vertical-align: baseline;
+}
+
+/* line 22, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+html {
+  line-height: 1;
+}
+
+/* line 24, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+ol, ul {
+  list-style: none;
+}
+
+/* line 26, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* line 28, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* line 30, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+q, blockquote {
+  quotes: none;
+}
+/* line 103, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+q:before, q:after, blockquote:before, blockquote:after {
+  content: "";
+  content: none;
+}
+
+/* line 32, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+a img {
+  border: none;
+}
+
+/* line 116, ../../../../../../Ruby22-x64/lib/ruby/gems/2.2.0/gems/compass-core-1.0.3/stylesheets/compass/reset/_utilities.scss */
+article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary {
+  display: block;
+}
+
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -16,149 +81,172 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+/* line 24, sass/_basic.scss */
 * {
-    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+  -webkit-tap-highlight-color: transparent;
+  /* make transparent link selection, adjust last value opacity 0 to 1.0 */
 }
 
-html{
+/* line 28, sass/_basic.scss */
+html {
   width: 100%;
   height: 100%;
 }
 
+/* line 33, sass/_basic.scss */
 body {
-    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
-    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
-    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
-    background-color:#E4E4E4;
-    background-image:linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
-    background-image:-webkit-gradient(
-        linear,
-        left top,
-        left bottom,
-        color-stop(0, #A7A7A7),
-        color-stop(0.51, #E4E4E4)
-    );
-    background-attachment:fixed;
-    font-family:'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
-    font-size:12px;
-    height:100%;
-    margin:0px;
-    padding:0px;
-    text-transform:uppercase;
-    width:100%;
+  -webkit-touch-callout: none;
+  /* prevent callout to copy image, etc when tap to hold */
+  -webkit-text-size-adjust: none;
+  /* prevent webkit from resizing text to fit */
+  -webkit-user-select: none;
+  /* prevent copy paste, to allow, change 'none' to 'text' */
+  background-color: #E4E4E4;
+  background-image: linear-gradient(to bottom, #a7a7a7 0%, #e4e4e4 51%);
+  background-image: -webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+  background-image: -ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+  background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #A7A7A7), color-stop(0.51, #E4E4E4));
+  background-attachment: fixed;
+  font-family: 'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  height: 100%;
+  margin: 0px;
+  padding: 0px;
+  text-transform: uppercase;
+  width: 100%;
 }
 
-
-
 /* Portrait layout (default) */
+/* line 61, sass/_basic.scss */
 .app {
-    background:url(../img/logo.png) no-repeat center top; /* 170px x 200px */
-    position:absolute;             /* position in the center of the screen */
-    left:50%;
-    top:50%;
-    height:50px;                   /* text area height */
-    width:225px;                   /* text area width */
-    text-align:center;
-    padding:180px 0px 0px 0px;     /* image height is 200px (bottom 20px are overlapped with text) */
-    margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
-                                   /* offset horizontal: half of text area width */
+  background: url(../img/logo.png) no-repeat center top;
+  /* 170px x 200px */
+  position: absolute;
+  /* position in the center of the screen */
+  left: 50%;
+  top: 50%;
+  height: 50px;
+  /* text area height */
+  width: 225px;
+  /* text area width */
+  text-align: center;
+  padding: 180px 0px 0px 0px;
+  /* image height is 200px (bottom 20px are overlapped with text) */
+  margin: -115px 0px 0px -112px;
+  /* offset vertical: half of image height and text area height */
+  /* offset horizontal: half of text area width */
 }
 
 /* Landscape layout (with min-width) */
-@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
-    .app {
-        background-position:left center;
-        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
-        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
-                                      /* offset horizontal: half of image width and text area width */
-    }
+@media screen and (min-aspect-ratio: 1 / 1) and (min-width: 400px) {
+  /* line 76, sass/_basic.scss */
+  .app {
+    background-position: left center;
+    padding: 75px 0px 75px 170px;
+    /* padding-top + padding-bottom + text area = image height */
+    margin: -90px 0px 0px -198px;
+    /* offset vertical: half of image height */
+    /* offset horizontal: half of image width and text area width */
+  }
 }
-
+/* line 84, sass/_basic.scss */
 h1 {
-    font-size:24px;
-    font-weight:normal;
-    margin:0px;
-    overflow:visible;
-    padding:0px;
-    text-align:center;
+  font-size: 24px;
+  font-weight: normal;
+  margin: 0px;
+  overflow: visible;
+  padding: 0px;
+  text-align: center;
 }
 
+/* line 93, sass/_basic.scss */
 .event {
-    border-radius:4px;
-    -webkit-border-radius:4px;
-    color:#FFFFFF;
-    font-size:12px;
-    margin:0px 30px;
-    padding:2px 0px;
+  border-radius: 4px;
+  -webkit-border-radius: 4px;
+  color: #FFFFFF;
+  font-size: 12px;
+  margin: 0px 30px;
+  padding: 2px 0px;
 }
 
+/* line 102, sass/_basic.scss */
 .event.listening {
-    background-color:#333333;
-    display:block;
+  background-color: #333333;
+  display: block;
 }
 
+/* line 107, sass/_basic.scss */
 .event.received {
-    background-color:#4B946A;
-    display:none;
+  background-color: #4B946A;
+  display: none;
 }
 
 @keyframes fade {
-    from { opacity: 1.0; }
-    50% { opacity: 0.4; }
-    to { opacity: 1.0; }
+  from {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1.0;
+  }
 }
-
 @-webkit-keyframes fade {
-    from { opacity: 1.0; }
-    50% { opacity: 0.4; }
-    to { opacity: 1.0; }
+  from {
+    opacity: 1.0;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1.0;
+  }
 }
-
+/* line 124, sass/_basic.scss */
 .blink {
-    animation:fade 3000ms infinite;
-    -webkit-animation:fade 3000ms infinite;
+  animation: fade 3000ms infinite;
+  -webkit-animation: fade 3000ms infinite;
 }
 
 /**
  * Our default styling of objects
  */
-#front{
+/* line 132, sass/_basic.scss */
+#front {
   /*background-color:#FFF;*/
-  width:100vw;
-  height:100vh;
-  box-sizing:border-box;
-  text-align:center;
+  width: 100vw;
+  height: 100vh;
+  box-sizing: border-box;
+  text-align: center;
   overflow-y: scroll;
 }
-
-#front .game{
-  width:100%;
-  border-top:1px solid rgb(100,100,100);
-  border-bottom:1px solid rgb(100,100,100);
-  padding:1em;
-  box-sizing:border-box;
+/* line 139, sass/_basic.scss */
+#front .game {
+  width: 100%;
+  border-top: 1px solid #646464;
+  border-bottom: 1px solid #646464;
+  padding: 1em;
+  box-sizing: border-box;
+}
+/* line 145, sass/_basic.scss */
+#front .game .instance {
+  width: 100%;
+  border-top: 1px solid #646464;
+  border-bottom: 1px solid #646464;
+  padding: 1em 0;
+  box-sizing: border-box;
 }
 
-#front .game .instance{
-  width:100%;
-  border-top:1px solid rgb(100,100,100);
-  border-bottom:1px solid rgb(100,100,100);
-  padding:1em 0;
-  box-sizing:border-box;
-}
-
-
-.page{
-  position:absolute;
-  top:0;
-  left:0;
+/* line 156, sass/_basic.scss */
+.page {
+  position: absolute;
+  top: 0;
+  left: 0;
   /*background:#e7e4e6;*/
-  width:100vw;
-  height:100vh;
-  text-align:center;
-
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
   /*vertical-align:middle;
 
   display:flex;
@@ -169,172 +257,244 @@ h1 {
   */
   display: flex;
   flex-direction: column;
-
-  color:#2b465d;
+  color: #2b465d;
 }
-
-.page .header{
-  background: linear-gradient(to bottom, #020f16 0%,#03171f 100%);
+/* line 178, sass/_basic.scss */
+.page .header {
+  background: linear-gradient(to bottom, #020f16 0%, #03171f 100%);
   /*height:4em;*/
   min-height: 4em;
   line-height: 4em;
-  color:#FFFFFF;
-  vertical-align:middle;
-  position:relative;
+  color: #FFFFFF;
+  vertical-align: middle;
+  position: relative;
 }
-
-.iOS7 .page .header{
-  padding-top:20px;
-}
-
+/* line 187, sass/_basic.scss */
 .page .header .title {
-  font-size:2em;
-  font-weight:bold;
-  display:inline-block;
+  font-size: 2em;
+  font-weight: bold;
+  display: inline-block;
 }
-
+/* line 193, sass/_basic.scss */
 .page .header .left {
-  position:absolute;
+  position: absolute;
   padding: 0 1em;
   left: 0;
-  font-size:2em;
-  font-weight:bold;
-
+  font-size: 2em;
+  font-weight: bold;
+}
+/* line 203, sass/_basic.scss */
+.page .inner {
+  flex: 1 1 auto;
+  /*flex: 1 0 auto; // use this to implement sticky footer
+  */
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
+  /*background:#e7e4e6;*/
+  background: #e4f3f8;
+  vertical-align: middle;
+  text-align: center;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  align-content: flex-start;
+  flex-wrap: wrap;
+  color: #2b465d;
 }
 
+/* line 230, sass/_basic.scss */
+.iOS7 .page .header {
+  padding-top: 20px;
+}
+
+/* line 235, sass/_basic.scss */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-.page .inner{
-  flex: 1 1 auto;
-  /*flex: 1 0 auto; // use this to implement sticky footer
-  */
-  overflow-y: scroll;
-
-  -webkit-overflow-scrolling: touch;
-
-  /*background:#e7e4e6;*/
-
-  vertical-align:middle;
-  text-align:center;
-  display:flex;
-  align-items:start;
-  justify-content:center;
-  align-content:flex-start;
-  flex-wrap:wrap;
-
-  color:#2b465d;
+/* line 241, sass/_basic.scss */
+.mapPage .map_controls {
+  background: rgba(0, 0, 0, 0.5);
+  width: 100vw;
 }
 
-.page .footer{
-
+/* line 247, sass/_basic.scss */
+.playerQuality .good {
+  color: green;
+}
+/* line 250, sass/_basic.scss */
+.playerQuality .medium {
+  color: yellow;
+}
+/* line 253, sass/_basic.scss */
+.playerQuality .bad {
+  color: red;
 }
 
+/* line 260, sass/_basic.scss */
 button {
-  width:80vw;
-  margin:1em 0;
+  width: 80vw;
+  margin: 1em 0;
   background: #3092bc;
-  border-radius:.5em;
-  color:#FFFFFF;
+  border-radius: .5em;
+  color: #FFFFFF;
   border: 0;
   padding: .5em;
   font: inherit;
   font-weight: bold;
   font-size: 1.5em;
 }
+
+/* line 272, sass/_basic.scss */
 button:active {
   background: #2b465d;
 }
 
-button.bottom-button{
-  width:100vw;
-  border-radius:0;
+/* line 276, sass/_basic.scss */
+button.bottom-button {
+  width: 100vw;
+  border-radius: 0;
   /*position:absolute;*/
-  bottom:0;
-  left:0;
-  margin:0;
-  padding:1em;
+  bottom: 0;
+  left: 0;
+  margin: 0;
+  padding: 1em;
   /*font-size:2em;*/
 }
 
+/* line 287, sass/_basic.scss */
 input {
-  width:90vw;
-  border:1px solid #3092bc;
-  padding:5vw;
-  margin-top:.5em;
-  margin-bottom:.5em;
-  border-radius:.5em;
-  background:#FFFFFF;
-  boz-sizing:border-box;
+  width: 90vw;
+  border: 1px solid #3092bc;
+  padding: 5vw;
+  margin-top: .5em;
+  margin-bottom: .5em;
+  border-radius: .5em;
+  background: #FFFFFF;
+  boz-sizing: border-box;
   font: inherit;
   font-size: 1.5em;
 }
 
-.label{
-  width:80vw;
-  text-align:left;
-  margin-top:.5em;
-  margin-bottom:.5em;
-  font-size:1.2em;
+/* line 300, sass/_basic.scss */
+.label {
+  width: 80vw;
+  text-align: left;
+  margin-top: .5em;
+  margin-bottom: .5em;
+  font-size: 1.2em;
 }
-.list{
-  width:100%;
+
+/* line 307, sass/_basic.scss */
+.list {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.listel{
-  width:100%;
+
+/* line 313, sass/_basic.scss */
+.listel {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.timer{
-  width:100%;
-  box-sizing:border-box;
-  margin:1em 10vw;
-  height:1em;
-  display:inline-block;
-  position:relative;
-  background:white;
-  border:1px solid black;
-  border-radius:.5em;
+
+/* classic bar timer*/
+/* line 321, sass/_basic.scss */
+.bartimer {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 1em 10vw;
+  height: 1em;
+  display: inline-block;
+  position: relative;
+  background: white;
+  border: 1px solid black;
+  border-radius: .5em;
   overflow: hidden;
 }
-.timer .bar{
-  border-radius:.5em 0 0 .5em;
-  position:absolute;
-  height:100%;
-  width:50%;
-  left:0;
-  top:0;
-  background:linear-gradient(to right, #7db9e8 0%,#1e5799 100%);
+/* line 333, sass/_basic.scss */
+.bartimer .bar {
+  border-radius: .5em 0 0 .5em;
+  position: absolute;
+  height: 100%;
+  width: 50%;
+  left: 0;
+  top: 0;
+  background: linear-gradient(to right, #7db9e8 0%, #1e5799 100%);
+}
+/* line 342, sass/_basic.scss */
+.bartimer .bar.disabled {
+  width: 100%;
+  background: gray;
 }
 
-.timer .bar.disabled{
-  width:100%;
-  background:gray;
+/* version of the timerbar for bottom of headers */
+/* line 351, sass/_basic.scss */
+.headerbartimer {
+  position: absolute;
+  bottom: 0;
+  margin: 0;
+  width: 100%;
+  left: 0;
+  height: 2px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+}
+/* line 361, sass/_basic.scss */
+.headerbartimer .bar {
+  position: absolute;
+  height: 100%;
+  right: 0;
+  top: 0;
+  overflow: visible !important;
+}
+/* line 368, sass/_basic.scss */
+.headerbartimer .bar:before {
+  content: '';
+  position: absolute;
+  background: #7db9e8;
+  width: 100vw;
+  height: 100%;
+  right: 100%;
 }
 
+/* line 382, sass/_basic.scss */
+.scoreboard .scoreboard-element {
+  background: white;
+  width: 80vw;
+  height: 3em;
+  line-height: 3em;
+  margin: .2em 0;
+  font-size: 1.6em;
+  font-weight: bold;
+  border: 0.2em solid yellow;
+  background: #7db9e8;
+  width: 100%;
+}
+
+/* line 404, sass/_basic.scss */
 .slider {
-  width:100vw;
-  box-sizing:border-box;
-  margin:1em 10vw;
-  height:1em;
-  display:inline-block;
-  position:relative;
-  background:white;
+  width: 100vw;
+  box-sizing: border-box;
+  margin: 1em 10vw;
+  height: 1em;
+  display: inline-block;
+  position: relative;
+  background: white;
   /*border:1px solid black;*/
-  border-radius:.5em;
+  border-radius: .5em;
 }
 
-.slider .knob{
-  width:2em;
-  height:2em;
-  border-radius:1em;
+/* line 416, sass/_basic.scss */
+.slider .knob {
+  width: 2em;
+  height: 2em;
+  border-radius: 1em;
   /*border:1px solid black;*/
   position: absolute;
   margin-top: -0.5em;
@@ -342,10 +502,10 @@ input {
   /*background: radial-gradient(ellipse at center, #7db9e8 0%,#1e5799 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 }
 
-
 /**
  * To show modal dialogs with background
  */
+/* line 431, sass/_basic.scss */
 .modal {
   position: fixed;
   top: 0;
@@ -353,48 +513,85 @@ input {
   bottom: 0;
   left: 0;
   /* semi-transparent black  */
-  background-color: rgba(0,0,0,0.75);
-  z-index:999;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-.modal .header{
+/* line 446, sass/_basic.scss */
+.modal .header {
   flex: 0 0 auto;
-
-  width:80vw;
-
-  background:#3092bc;
-  padding:1em;
-  border:1px solid #3092bc;
-  border-radius:1em 1em 0 0;
-  color:white;
-  text-align:center;
+  width: 80vw;
+  background: #3092bc;
+  padding: 1em;
+  border: 1px solid #3092bc;
+  border-radius: 1em 1em 0 0;
+  color: white;
+  text-align: center;
 }
 
-.modal .body{
+/* line 459, sass/_basic.scss */
+.modal .body {
   flex: 0 1 auto;
-  width:80vw;
-
-  background:white;
+  width: 80vw;
+  background: white;
   min-height: 30vh;
-  padding:1em;
-  border:1px solid #3092bc;
+  padding: 1em;
+  border: 1px solid #3092bc;
 }
 
-.modal .footer{
+/* line 469, sass/_basic.scss */
+.modal .footer {
   flex: 0 0 auto;
-  text-align:center;
-  width:80vw;
-  color:white;
-  background:#3092bc;
-  padding:1em;
-  border:1px solid #3092bc;
-  border-radius:0 0 1em 1em;
+  text-align: center;
+  width: 80vw;
+  color: white;
+  background: #3092bc;
+  padding: 1em;
+  border: 1px solid #3092bc;
+  border-radius: 0 0 1em 1em;
 }
 
-.iOS7 .map_controls{
-  margin-top:20px;
+/* line 480, sass/_basic.scss */
+.iOS7 .map_controls {
+  margin-top: 20px;
+}
+
+/*Round timer*/
+/* line 488, sass/_basic.scss */
+.roundtimer {
+  position: relative;
+  margin: auto;
+  height: 40px;
+  width: 40px;
+  text-align: center;
+  display: inline-block;
+}
+/* line 496, sass/_basic.scss */
+.roundtimer .roundtimer-content {
+  color: white;
+  display: inline-block;
+  line-height: 40px;
+}
+/* line 502, sass/_basic.scss */
+.roundtimer svg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  transform: rotateY(-180deg) rotateZ(-90deg);
+}
+/* line 509, sass/_basic.scss */
+.roundtimer svg circle {
+  stroke-dasharray: 113;
+  stroke-dashoffset: 0px;
+  stroke-linecap: round;
+  stroke-width: 2px;
+  stroke: white;
+  fill: none;
+  animation: countdown 10s linear infinite forwards;
 }

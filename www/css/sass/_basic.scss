@@ -1,0 +1,523 @@
+$background_blue: #e4f3f8;
+$blue: #7db9e8;
+$yellow: yellow;
+
+
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+* {
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+}
+
+html{
+  width: 100%;
+  height: 100%;
+}
+
+body {
+    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
+    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
+    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
+    background-color:#E4E4E4;
+    background-image:linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+    background-image:-webkit-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+    background-image:-ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
+    background-image:-webkit-gradient(
+        linear,
+        left top,
+        left bottom,
+        color-stop(0, #A7A7A7),
+        color-stop(0.51, #E4E4E4)
+    );
+    background-attachment:fixed;
+    font-family:'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+    font-size:12px;
+    height:100%;
+    margin:0px;
+    padding:0px;
+    text-transform:uppercase;
+    width:100%;
+}
+
+
+
+/* Portrait layout (default) */
+.app {
+    background:url(../img/logo.png) no-repeat center top; /* 170px x 200px */
+    position:absolute;             /* position in the center of the screen */
+    left:50%;
+    top:50%;
+    height:50px;                   /* text area height */
+    width:225px;                   /* text area width */
+    text-align:center;
+    padding:180px 0px 0px 0px;     /* image height is 200px (bottom 20px are overlapped with text) */
+    margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
+                                   /* offset horizontal: half of text area width */
+}
+
+/* Landscape layout (with min-width) */
+@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
+    .app {
+        background-position:left center;
+        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
+        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
+                                      /* offset horizontal: half of image width and text area width */
+    }
+}
+
+h1 {
+    font-size:24px;
+    font-weight:normal;
+    margin:0px;
+    overflow:visible;
+    padding:0px;
+    text-align:center;
+}
+
+.event {
+    border-radius:4px;
+    -webkit-border-radius:4px;
+    color:#FFFFFF;
+    font-size:12px;
+    margin:0px 30px;
+    padding:2px 0px;
+}
+
+.event.listening {
+    background-color:#333333;
+    display:block;
+}
+
+.event.received {
+    background-color:#4B946A;
+    display:none;
+}
+
+@keyframes fade {
+    from { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    to { opacity: 1.0; }
+}
+
+@-webkit-keyframes fade {
+    from { opacity: 1.0; }
+    50% { opacity: 0.4; }
+    to { opacity: 1.0; }
+}
+
+.blink {
+    animation:fade 3000ms infinite;
+    -webkit-animation:fade 3000ms infinite;
+}
+
+/**
+ * Our default styling of objects
+ */
+#front{
+  /*background-color:#FFF;*/
+  width:100vw;
+  height:100vh;
+  box-sizing:border-box;
+  text-align:center;
+  overflow-y: scroll;
+  .game{
+    width:100%;
+    border-top:1px solid rgb(100,100,100);
+    border-bottom:1px solid rgb(100,100,100);
+    padding:1em;
+    box-sizing:border-box;
+    .instance{
+      width:100%;
+      border-top:1px solid rgb(100,100,100);
+      border-bottom:1px solid rgb(100,100,100);
+      padding:1em 0;
+      box-sizing:border-box;
+    }
+  }
+}
+
+
+.page{
+  position:absolute;
+  top:0;
+  left:0;
+  /*background:#e7e4e6;*/
+  width:100vw;
+  height:100vh;
+  text-align:center;
+
+  /*vertical-align:middle;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  align-content:flex-start;
+  flex-wrap:wrap;
+  */
+  display: flex;
+  flex-direction: column;
+
+  color:#2b465d;
+
+  .header{
+    background: linear-gradient(to bottom, #020f16 0%,#03171f 100%);
+    /*height:4em;*/
+    min-height: 4em;
+    line-height: 4em;
+    color:#FFFFFF;
+    vertical-align:middle;
+    position:relative;
+
+    .title {
+      font-size:2em;
+      font-weight:bold;
+      display:inline-block;
+    }
+
+    .left {
+      position:absolute;
+      padding: 0 1em;
+      left: 0;
+      font-size:2em;
+      font-weight:bold;
+
+    }
+  }
+
+  .inner{
+    flex: 1 1 auto;
+    /*flex: 1 0 auto; // use this to implement sticky footer
+    */
+    overflow-y: scroll;
+
+    -webkit-overflow-scrolling: touch;
+
+    /*background:#e7e4e6;*/
+    background:$background_blue;
+
+    vertical-align:middle;
+    text-align:center;
+    display:flex;
+    align-items:start;
+    justify-content:center;
+    align-content:flex-start;
+    flex-wrap:wrap;
+
+    color:#2b465d;
+  }
+
+  .footer{
+
+  }
+}
+
+.iOS7 .page .header{
+  padding-top:20px;
+}
+
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.mapPage .map_controls{
+  background:rgba(0,0,0,0.5);
+  width:100vw;
+}
+
+.playerQuality {
+  .good{
+    color:green;
+  }
+  .medium{
+    color:yellow;
+  }
+  .bad{
+    color:red;
+  }
+}
+
+
+
+button {
+  width:80vw;
+  margin:1em 0;
+  background: #3092bc;
+  border-radius:.5em;
+  color:#FFFFFF;
+  border: 0;
+  padding: .5em;
+  font: inherit;
+  font-weight: bold;
+  font-size: 1.5em;
+}
+button:active {
+  background: #2b465d;
+}
+
+button.bottom-button{
+  width:100vw;
+  border-radius:0;
+  /*position:absolute;*/
+  bottom:0;
+  left:0;
+  margin:0;
+  padding:1em;
+  /*font-size:2em;*/
+}
+
+input {
+  width:90vw;
+  border:1px solid #3092bc;
+  padding:5vw;
+  margin-top:.5em;
+  margin-bottom:.5em;
+  border-radius:.5em;
+  background:#FFFFFF;
+  boz-sizing:border-box;
+  font: inherit;
+  font-size: 1.5em;
+}
+
+.label{
+  width:80vw;
+  text-align:left;
+  margin-top:.5em;
+  margin-bottom:.5em;
+  font-size:1.2em;
+}
+.list{
+  width:100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.listel{
+  width:100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* classic bar timer*/
+.bartimer{
+  width:100%;
+  box-sizing:border-box;
+  margin:1em 10vw;
+  height:1em;
+  display:inline-block;
+  position:relative;
+  background:white;
+  border:1px solid black;
+  border-radius:.5em;
+  overflow: hidden;
+
+  .bar{
+    border-radius:.5em 0 0 .5em;
+    position:absolute;
+    height:100%;
+    width:50%;
+    left:0;
+    top:0;
+    background:linear-gradient(to right, #7db9e8 0%,#1e5799 100%);
+
+    &.disabled{
+      width:100%;
+      background:gray;
+    }
+  }
+}
+
+
+/* version of the timerbar for bottom of headers */
+.headerbartimer{
+  position:absolute;
+  bottom:0;
+  margin:0;
+  width:100%;
+  left:0;
+  height:2px;
+  overflow:hidden;
+  background:rgba(0,0,0,0.3);
+
+  .bar{
+    position:absolute;
+    height:100%;
+    right:0;
+    top:0;
+    overflow:visible !important;
+
+    &:before{
+      content:'';
+      position:absolute;
+      background:$blue;
+      width:100vw;
+      height:100%;
+      right:100%;
+    }
+  }
+}
+
+//scoreboard
+.scoreboard{
+
+  .scoreboard-element{
+    background:white;
+    width:80vw;
+    height:3em;
+    line-height:3em;
+    margin:.2em 0;
+
+    font-size:1.6em;
+    font-weight:bold;
+
+    //&.me{
+      border:.2em solid $yellow;
+      background:$blue;
+      width:100%;
+    //}
+
+
+  }
+}
+
+
+
+.slider {
+  width:100vw;
+  box-sizing:border-box;
+  margin:1em 10vw;
+  height:1em;
+  display:inline-block;
+  position:relative;
+  background:white;
+  /*border:1px solid black;*/
+  border-radius:.5em;
+}
+
+.slider .knob{
+  width:2em;
+  height:2em;
+  border-radius:1em;
+  /*border:1px solid black;*/
+  position: absolute;
+  margin-top: -0.5em;
+  background: #3092bc;
+  /*background: radial-gradient(ellipse at center, #7db9e8 0%,#1e5799 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+}
+
+
+/**
+ * To show modal dialogs with background
+ */
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  /* semi-transparent black  */
+  background-color: rgba(0,0,0,0.75);
+  z-index:999;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+.modal .header{
+  flex: 0 0 auto;
+
+  width:80vw;
+
+  background:#3092bc;
+  padding:1em;
+  border:1px solid #3092bc;
+  border-radius:1em 1em 0 0;
+  color:white;
+  text-align:center;
+}
+
+.modal .body{
+  flex: 0 1 auto;
+  width:80vw;
+
+  background:white;
+  min-height: 30vh;
+  padding:1em;
+  border:1px solid #3092bc;
+}
+
+.modal .footer{
+  flex: 0 0 auto;
+  text-align:center;
+  width:80vw;
+  color:white;
+  background:#3092bc;
+  padding:1em;
+  border:1px solid #3092bc;
+  border-radius:0 0 1em 1em;
+}
+
+.iOS7 .map_controls{
+  margin-top:20px;
+}
+
+
+
+
+/*Round timer*/
+.roundtimer{
+  position: relative;
+  margin: auto;
+  height: 40px;
+  width: 40px;
+  text-align: center;
+  display: inline-block;
+
+  .roundtimer-content {
+    color: white;
+    display: inline-block;
+    line-height: 40px;
+  }
+
+  svg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    transform: rotateY(-180deg) rotateZ(-90deg);
+    circle {
+      stroke-dasharray: 113;
+      stroke-dashoffset: 0px;
+      stroke-linecap: round;
+      stroke-width: 2px;
+      stroke: white;
+      fill: none;
+      animation: countdown 10s linear infinite forwards;
+    }
+  }
+}
+
+.longheadertimer{
+
+}

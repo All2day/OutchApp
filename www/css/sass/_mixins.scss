@@ -1,0 +1,23 @@
+@mixin border-box(){
+	box-sizing:border-box;
+	-moz-box-sizing: border-box;	
+}
+
+@mixin full-width(){
+	width:100%;
+	@include border-box();
+}
+
+@mixin shadow(){
+	@include box-shadow(#d8d8d8 0 0 3px 3px);
+}
+
+
+$experimental-support-for-svg: true;
+
+@mixin linear-image($start-color, $end-color){
+	//@include filter-gradient($start-color, $end-color);
+	background-color:$start-color;
+	@include background-image(linear-gradient($start-color,$end-color));
+		
+}
