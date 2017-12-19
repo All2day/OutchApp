@@ -18,7 +18,7 @@ Hookable.extend('Variable',{
       val = val._value;
     } else
     if(val instanceof Variable){
-      this._p = val._id;
+      this._p = val._id; // set the pointer
       val = val._value;
     }
 
@@ -57,6 +57,17 @@ Hookable.extend('Variable',{
       return this._value.getObject();
     }*/
     return this._value;
+  },
+  _pointerCheck:function(v){
+    while(v._p){
+      if(v._p == v._id){
+        debugger;
+        delete(v._p);
+        break;
+      }
+      v = Variable._vars[v._p];
+    }
+    return v;
   }
 });
 
@@ -64,7 +75,7 @@ Variable._nextId = 1;
 Variable._vars = {};
 Variable._registerVar = function(v,id){
   // Client elements should not be a part of what is transfered and thus not registered
-  if(v instanceof ClientElement){
+  if(v instanceof ClientElement || v instanceof TempListVariable){
     return;
   }
   //GamestatList that are not changeable should be the same on the client and thus not transfered
@@ -295,9 +306,8 @@ Variable.extend('ListVariable',{
       return;
     }
 
-    while(v._p){
-      v = Variable._vars[v._p];
-    }
+    v = this._pointerCheck(v);
+
     this._value.push(v);
 
     /*var ids = [];
@@ -316,9 +326,7 @@ Variable.extend('ListVariable',{
       return;
     }
 
-    while(v._p){
-      v = Variable._vars[v._p];
-    }
+    v = this._pointerCheck(v);
 
     var i = this._value.indexOf(v);
     //console.log('removing['+this._id+']:'+v._id);
@@ -369,9 +377,7 @@ Variable.extend('ListVariable',{
       console.log('cannot set i in list');
       return;
     }
-    while(v._p){
-      v = Variable._vars[v._p];
-    }
+    v = this._pointerCheck(v);
     this._value[i] = v;
   },
   get:function(ref){
@@ -414,6 +420,10 @@ Variable.extend('ListVariable',{
     return a;
   }
 });
+
+//A temp version that is not registered in Variables.
+ListVariable.extend('TempListVariable',{});
+
 
 //timer
 Variable.extend('TimerVariable',{
@@ -927,7 +937,10 @@ Variable.extend('ProtoTypeVariable',{
     }
     if(ref instanceof ProtoTypeVariable && ref.prototype == this.prototype){
       this._value = ref._value;
-      this._p = ref._id; //register a pointer for this
+      if(this._id !== ref._id){
+        this._p = ref._id; //register a pointer for this
+      }
+
       //TODO: if pointing to an object that are later changed in this same update this may not chnage
       //It does not matter that much, only when creating objects
 

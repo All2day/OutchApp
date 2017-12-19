@@ -453,6 +453,7 @@ var app = {
         this._smoothPosUpdates = function(){
           this._smoothPosUpdates._run_count = (this._smoothPosUpdates._run_count || 0)+1;
           //console.log('smooth update');
+
           //calculate best position based on time
           var delay = 200;
           var expected_frequency = 1200; //The expected ms between updates
@@ -634,6 +635,7 @@ var app = {
             this._posHist = [];
             this._posHist.push(pos_obj);
             console.log('starting smoothing');
+
             this._smoothPosUpdates(); //fire first time
           } else {
             //if matching the one before, ignore it

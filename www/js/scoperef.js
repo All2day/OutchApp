@@ -347,6 +347,16 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
         }
       }
 
+      if(s.c[1].type == '{'){
+        var next = new ScopeSort(ScopeRef._prepareScopeRef(s.c[1].c),ScopeRef._prepareScopeRef(s.c.slice(3),type,lookup_depth+1));
+
+        if(lookup_depth){
+          return new ScopeLookup(s.c[0],next,type);
+        } else {
+          return new ScopeRootLookup(s.c[0],next,type);
+        }
+      }
+
       //check for colors
       if(s.c[1].type == '('){
         switch(s.c[0]){
@@ -1000,7 +1010,7 @@ ScopeLookup.extend('ScopeFilter',{
 
     //create an empty list
     //TODO: The Listvariable currently registers in Variable. it should not
-    var new_list = new ListVariable({prototype:scp.prototype});
+    var new_list = new TempListVariable({prototype:scp.prototype});
     var that = this;
     $.each(scp._value,function(k,v){
       gso.el = v;
@@ -1016,6 +1026,70 @@ ScopeLookup.extend('ScopeFilter',{
     return this.getNext(new_list,inf);
   }
 });
+
+
+/**
+ * Can only be used a s a next element for a scope lookup, where the result is sorted if a list.
+ */
+ScopeLookup.extend('ScopeSort',{
+  condition:null,
+  init:function(condition,next,type){
+    this.condition = condition;
+    this.next = next;
+    this.type = type;
+  },
+  traverse:function(f){
+    this.condition.traverse(f);
+    this._super(f);
+  },
+  eval:function(scp,inf){
+    if(!(scp instanceof ListVariable || scp instanceof GameStateList)){
+      return null;
+    }
+
+    var gso = new GameStateObject({});
+    ScopeRef._pushScope(gso);
+
+    //create an empty temporary list
+    var new_list = new TempListVariable({prototype:scp.prototype});
+    var that = this;
+    var temp_array = [];
+
+
+    $.each(scp._value,function(k,v){
+      gso.el = v;
+      ScopeRef._pushScope(v);
+
+      var con = that.condition.eval(undefined,inf);
+      if(con instanceof Variable){
+        con = con._value;
+      }
+
+      temp_array.push({con:con,el:v});
+
+      ScopeRef._popScope();
+    });
+    if(ScopeRef._chatty){console.log('ScopeSort '+new_list._value.length + ' / '+scp._value.length);}
+
+    //sort the array
+    temp_array.sort(function(a,b){
+      if(a.con < b.con){
+        return -1;
+      }
+      if(a.con > b.con){
+        return 1;
+      }
+      return 0;
+    });
+
+    $.each(temp_array,function(i,t){
+      new_list.add(t.el);
+    });
+
+    return this.getNext(new_list,inf);
+  }
+});
+
 
 
 ScopeRef.extend('ScopeColor',{

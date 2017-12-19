@@ -119,7 +119,7 @@ Class.extend('GameClient',{
     //set the value of all variables
     $.each(update,function(id,u){
       //if(id==12 && u.value.length != window.last_v){window.last_v = u.value.length;debugger;}
-
+      //if(id==48 && ScopeRef._gs.players && ScopeRef._gs.players.mads1 && ScopeRef._gs.players.mads1._p === null){ debugger;};
       if(window._watch && window._watch.indexOf(id*1) >= 0){ debugger;}
       if(p && id == p.pos._id){
         return; //ignore updates of position
@@ -261,6 +261,8 @@ Class.extend('GameClient',{
         var this_t = new Date().getTime();
         var time_offset = (this_t - t - r.rt)/2 + r.t + r.rt - this_t;
         this.time_offset = Math.round(0.9*this.time_offset + 0.1*time_offset);
+
+        //console.log('next ping in:',this.min_send_frequency - (this_t-t));
 
         this.ping = setTimeout(this.startPinging.bind(this),Math.max(0,this.min_send_frequency - (this_t-t)));
 

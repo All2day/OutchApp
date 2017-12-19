@@ -408,7 +408,7 @@ exports.game = {
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"game.size",
               rotation:"player.dir*2*3.1415/players.count",
-              fill:"players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
+              fill:"^players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
               //if there is a player with only one card show red and big
               //color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
               color:"'transparent'",

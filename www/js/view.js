@@ -914,7 +914,7 @@ ViewElement.extend('SliderElement',{
 ListElement.extend('ScoreboardElement',{
   init:function(obj){
     if(!obj.list){
-      obj.list = "players";
+      obj.list = "players{-el.cards.count}";
     }
     if(!obj.elements){
       obj.elements = {
@@ -925,7 +925,12 @@ ListElement.extend('ScoreboardElement',{
     }
     this._super(obj);
   },
+  update:function(props){
+
+    this._super(props);
+  },
   draw:function(c){
+    //debugger;
     this._super(c);
 
     this._dom.addClass('scoreboard');
