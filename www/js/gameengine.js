@@ -40,12 +40,28 @@ Class.extend('GameServer',{
 
     //add hook to update the server on the current phase
     this.gs.currentPhase.addHook('change',function(){
+      var data = {phase:this.gs.currentPhase._value._name,process_id:process_id};
+
+      if(this.gs.currentPhase._value._name == 'scoreboard'){
+        console.log('scoreboard phase, calculate rank');
+        this.gs.calculateRanking();
+
+        data.results = {};
+        //update the server with the ranking:
+        $.each(this.gs.players._value,function(i,p){
+          data.results[i] = p._getResultVars();
+        });
+
+      }
+
       if(!this.control_url){
         console.log('no control url, dont use');
         return;
       }
+
+
       console.log('phase changed sending to server',this.control_url);
-      $.getJSON(this.control_url,{phase:this.gs.currentPhase._value._name,process_id:process_id},function(r){
+      $.getJSON(this.control_url,data,function(r){
         console.log('phase change result')
         console.log(r);
       }.bind(this)).fail(function(r){
@@ -109,8 +125,15 @@ Class.extend('GameServer',{
 
     //handle data updates from the player
     if(data.p){
-      //console.log('setting player pos:',data.p);
-      player.pos.set(data.p);
+      //console.log('setting player data:',data.p);
+      $.each(data.p,function(k,v){
+        if(player[k]){
+          player[k].set(v);
+        } else {
+          console.log('cannot set ',k);
+        }
+      });
+      //player.pos.set(data.p);
     }
 
 

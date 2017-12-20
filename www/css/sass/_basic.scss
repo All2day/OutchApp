@@ -198,6 +198,13 @@ h1 {
       font-weight:bold;
 
     }
+
+    .playerQuality{
+      position:absolute;
+      right:1em;
+      top:50%;
+      transform:translateY(-50%);
+    }
   }
 
   .inner{
@@ -241,18 +248,36 @@ h1 {
 .mapPage .map_controls{
   background:rgba(0,0,0,0.5);
   width:100vw;
+
+  .playerQuality{
+    position:absolute;
+    right:1em;
+    top:50%;
+    transform:translateY(-50%);
+  }
 }
 
 .playerQuality {
-  .good{
-    color:green;
+  svg{
+    width:2em;
+    height:2em;
+    fill:red;
+    display:block;
+
+    .good{
+      color:green;
+      fill:green;
+    }
+    .medium{
+      color:yellow;
+      fill:yellow;
+    }
+    /*.bad{
+      color:red;
+      fill:red;
+    }*/
   }
-  .medium{
-    color:yellow;
-  }
-  .bad{
-    color:red;
-  }
+
 }
 
 
@@ -309,6 +334,7 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 .listel{
   width:100%;
@@ -376,30 +402,73 @@ input {
   }
 }
 
+.playerlist{
+  background-color:white;
+  padding:1em;
+
+  .listel{
+    width:100%;
+    position:relative;
+    .name{
+      font-size:2em;
+      font-weight:bold;
+    }
+
+    .playerQuality{
+      position:absolute;
+      right:1em;
+      top:50%;
+      transform:translateY(-50%);
+    }
+  }
+}
+
 //scoreboard
 .scoreboard{
-
+  .listel{
+    width:100%;
+  }
   .scoreboard-element{
+    .position{
+      font-size: 3rem;
+      position: absolute;
+      line-height: 100%;
+      margin-left: 1rem;
+      &:after{
+        content:'TH';
+        font-size:.6em;
+        vertical-align: text-top;
+      }
+    }
     background:white;
     width:80vw;
-    height:3em;
+    //height:3em;
     line-height:3em;
     margin:.2em 0;
 
     font-size:1.6em;
     font-weight:bold;
 
-    //&.me{
+    &.me{
       border:.2em solid $yellow;
       background:$blue;
       width:100%;
-    //}
+    }
+  }
 
+  .listel{
+    .position.r1:after{
+      content:'ST';
+    }
+    .position.r2:after{
+      content:'ND';
+    }
+    .position.r3:after{
+      content:'RD';
+    }
 
   }
 }
-
-
 
 .slider {
   width:100vw;

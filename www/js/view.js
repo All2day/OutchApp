@@ -10,12 +10,15 @@ Hookable.extend('ClientElement',{
     this._props = {};
     this._attachedHooks = [];
   },
-  registerProp(name,s,d/*default*/,t/*type*/){
+  registerProp:function(name,s,d/*default*/,t/*type*/){
     //only clients should register properties
     if(!(window||global)._client){
       return;
     }
-
+    if(s instanceof Variable){
+      this._props[name] = s;
+      return;
+    }
     this._props[name] = new GameProperty(s,d,t);
   },
   _update:function(name){ //internal update
@@ -372,6 +375,11 @@ ViewElement.extend('PageElement',{
           app.exitGame();
         }
       });
+
+
+      var pq = new PlayerqualityElement({player:'player'});
+      pq.draw(dom.find('header'));
+
       var inner = dom.find('.inner');
       $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
         if(el instanceof BottombuttonElement){
@@ -486,7 +494,24 @@ ViewElement.extend('ListElement',{
   },
   redraw:function(new_list){
     if(!this._dom) return;
+
+
+
     if(this.list){
+
+      //if the lists are the same, dont redraw
+      if(new_list && this.list._value.length == new_list._value.length){
+        var the_same = true;
+        $.each(this.list._value,function(i,k){
+          the_same = the_same && (new_list._value[i] == k);
+        });
+        if(the_same){
+          //console.log('the same returning');
+          return;
+        }
+      }
+
+
       $.each(this._wrapperels,function(i,k){
         //TODO:destroy it unhooking etc.
       });
@@ -907,6 +932,81 @@ ViewElement.extend('SliderElement',{
   }
 });
 
+/**
+ * Element displaying the players in a fancy way
+ */
+ListElement.extend('PlayerlistElement',{
+  init:function(obj){
+    if(!obj.list){
+      obj.list = "players";
+    }
+    if(!obj.elements){
+      obj.elements = {
+        0:{
+          type:'playerlistel'
+        }
+      }
+    }
+    this._super(obj);
+  },
+  update:function(props){
+
+    this._super(props);
+  },
+  draw:function(c){
+    //debugger;
+    this._super(c);
+
+    this._dom.addClass('playerlist').prepend('<div class="list-header">Joined players</div>');
+  }
+});
+
+
+ViewElement.extend('PlayerlistelElement',{
+  init:function(obj){
+    /*if(!obj){
+      obj = {}
+    };
+    if(!obj.elements){
+      obj.elements ={};
+    }
+    if(!obj.elements['quality']){
+      obj.elements['quality'] = {type:'playerquality', player:'listel'};
+    }*/
+    this._super(obj);
+
+
+    this.registerProp('player','listel');
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div class="playerlist-element"><div class="name"></div></div>');
+
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      var p = this.getProp('player');
+
+      var pq = new PlayerqualityElement({player:p});
+      pq.draw(dom);
+
+      //debugger;
+      //var i = this.getProp('player_i');
+
+      if(p == ScopeRef._gs.currentPlayer){
+        dom.addClass('me');
+      }
+
+      dom.find('.name').text(p.name._value);
+
+      this._dom = dom;
+    }
+    c.append(this._dom);
+  }
+});
+
 
 /**
  * Element displaying the scoreboard in a fancy way
@@ -914,7 +1014,7 @@ ViewElement.extend('SliderElement',{
 ListElement.extend('ScoreboardElement',{
   init:function(obj){
     if(!obj.list){
-      obj.list = "players{-el.cards.count}";
+      obj.list = "players{el.rank}";
     }
     if(!obj.elements){
       obj.elements = {
@@ -941,22 +1041,28 @@ ViewElement.extend('ScoreboardelElement',{
   init:function(obj){
     this._super(obj);
     this.registerProp('player','listel');
-    this.registerProp('player_i','list_index');
+    //this.registerProp('player_i','list_index');
   },
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="scoreboard-element"></div>');
+      var dom = $('<div class="scoreboard-element"><div class="position"></div><div class="content"></div></div>');
 
       if(!this.getProp('show',true)){
         dom.hide();
       }
 
       var p = this.getProp('player');
-      var i = this.getProp('player_i');
-      //TODO, make sure that we can sort a listvariable so that the winner is first etc.
+      //debugger;
+      //var i = this.getProp('player_i');
+      var r = p.get('rank')._value;
+      dom.find('.position').text(r).addClass('r'+r);
 
-      dom.text(p.name._value+':'+i);
+      if(p == ScopeRef._gs.currentPlayer){
+        dom.addClass('me');
+      }
+
+      dom.find('.content').text(p.name._value);
 
       this._dom = dom;
     }
@@ -1247,7 +1353,7 @@ ViewElement.extend('MapElement',{
       } else
       if (g.intersectsCoordinate([pos._value.x,pos._value.y])) {
         fts.push(all_fts[i]);
-        console.log('intersects:'+all_fts[i].el._name);
+        //console.log('intersects:'+all_fts[i].el._name);
         //console.log(all_t)
       } else {
         //console.log('not intersects:'+fts[i].el._name);
@@ -1347,6 +1453,13 @@ MapElement.extend('MappageElement',{
     }
 
     this._super(obj);
+  },
+  draw:function(c){
+    this._super(c);
+
+    this._dom.find('.playerQuality').on('click',function(){
+      window.toggle_log();
+    });
   }
 });
 
@@ -1354,14 +1467,19 @@ ViewElement.extend('PlayerqualityElement',{
   _player:null,
   init:function(obj){
     this._super(obj);
+
     this.registerProp('player',obj.player,null,Player);
   },
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="playerQuality"><span class="connection">c</span><span class="location">l</span></div>').css({
+      var dom = $('<div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">'+
+      '<polygon class="connection" points="0 180 180 180 180 0 0 180"/>'+
+      '<path class="location" d="M106.56,18.14h0a61.94,61.94,0,0,0-87.59,0h0C-2.83,39.93-5.28,81,13.21,105.63l49.55,71.56,49.55-71.56C130.81,81,128.35,39.93,106.56,18.14ZM63.36,81.78A20.45,20.45,0,1,1,83.81,61.33,20.44,20.44,0,0,1,63.36,81.78Z"/>'+
+      '</svg></div>').css({
 
       });
+      //<span class="connection">c</span><span class="location">l</span>
       this._dom = dom;
     }
     this.updateAllProps();
@@ -1371,7 +1489,8 @@ ViewElement.extend('PlayerqualityElement',{
 
     if(props['player'] && this._player != props['player']){
       this._player = props['player'];
-      props['player'].get('pos').addHook('change',this.updateQuality.bind(this));
+      props['player'].pos_accuracy.addHook('change',this.updateQuality.bind(this));
+      props['player'].ping.addHook('change',this.updateQuality.bind(this));
     }
     this._super(props);
   },
@@ -1387,10 +1506,24 @@ ViewElement.extend('PlayerqualityElement',{
       } else {
         this._dom.find('.connection').attr('class','connection bad');
       }
-      console.log('quality'+ping._value);
+
+      var pos_accuracy = this._player.get('pos_accuracy')._value;
+      if(pos_accuracy < 10){
+        this._dom.find('.location').attr('class','location good');
+      } else
+      if(pos_accuracy < 20){
+        this._dom.find('.location').attr('class','location medium');
+      } else {
+        this._dom.find('.location').attr('class','location bad');
+      }
+
+      //console.log('quality'+ping._value);
     }
   }
 });
+
+
+
 
 
 /**

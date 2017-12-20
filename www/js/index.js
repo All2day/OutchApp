@@ -437,7 +437,7 @@ var app = {
           console.log('got pos change:'+c[0]+','+c[1]);
           if(this._client && !window.pos){
 
-            this._client.updatePosition(c);
+            this._client.updatePosition({c:c,t:new Date().getTime(),a:8});
           } else {
             console.log('got location update, but no client or ',window.pos);
           }
@@ -494,7 +494,8 @@ var app = {
               //store the new point in last pos
               this._lastPos = {
                 c:[new_pos.c[0],new_pos.c[1],0],
-                t: t
+                t: t,
+                a: new_pos.a
               };
             } else
             if(t < new_pos.t + delay){
@@ -526,7 +527,8 @@ var app = {
               //store the new point in last pos
               this._lastPos = {
                 c:new_point,
-                t: t
+                t: t,
+                a: this._lastPos.a
               };
 
             } else {
@@ -567,7 +569,8 @@ var app = {
               //store the new point in the last pos
               this._lastPos = {
                 c:new_point,
-                t: t
+                t: t,
+                a:new_pos.a
               };
 
             }
@@ -593,7 +596,7 @@ var app = {
           //if a client is available, use the position of the last pos and update
           if(this._client){
             //console.log('updating client pos', this._lastPos.c);
-            this._client.updatePosition(this._lastPos.c);
+            this._client.updatePosition(this._lastPos);
           }
 
           if(this._smoothPosUpdates._run_count % 50 == 49){
@@ -656,11 +659,6 @@ var app = {
 
 
           return;
-          /*if(this._client && !window.pos){
-            this._client.updatePosition(c);
-          } else {
-            console.log('got location update, but no client or '+window.pos);
-          }*/
         }.bind(this),
           function(err){
             console.log('error in gps:'+err.code +' '+err.message);
@@ -724,7 +722,9 @@ var app = {
 
           var pos_obj = {
             c:pos,
-            t:new Date().getTime()
+            t:new Date().getTime(),
+            rt: new Date().getTime(), //received timestamp
+            a:8 //default acuracy
           };
 
           if(!this._posHist){

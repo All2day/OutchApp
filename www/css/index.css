@@ -283,7 +283,14 @@ h1 {
   font-size: 2em;
   font-weight: bold;
 }
-/* line 203, sass/_basic.scss */
+/* line 202, sass/_basic.scss */
+.page .header .playerQuality {
+  position: absolute;
+  right: 1em;
+  top: 50%;
+  transform: translateY(-50%);
+}
+/* line 210, sass/_basic.scss */
 .page .inner {
   flex: 1 1 auto;
   /*flex: 1 0 auto; // use this to implement sticky footer
@@ -302,38 +309,54 @@ h1 {
   color: #2b465d;
 }
 
-/* line 230, sass/_basic.scss */
+/* line 237, sass/_basic.scss */
 .iOS7 .page .header {
   padding-top: 20px;
 }
 
-/* line 235, sass/_basic.scss */
+/* line 242, sass/_basic.scss */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* line 241, sass/_basic.scss */
+/* line 248, sass/_basic.scss */
 .mapPage .map_controls {
   background: rgba(0, 0, 0, 0.5);
   width: 100vw;
 }
+/* line 252, sass/_basic.scss */
+.mapPage .map_controls .playerQuality {
+  position: absolute;
+  right: 1em;
+  top: 50%;
+  transform: translateY(-50%);
+}
 
-/* line 247, sass/_basic.scss */
-.playerQuality .good {
+/* line 261, sass/_basic.scss */
+.playerQuality svg {
+  width: 2em;
+  height: 2em;
+  fill: red;
+  display: block;
+  /*.bad{
+    color:red;
+    fill:red;
+  }*/
+}
+/* line 267, sass/_basic.scss */
+.playerQuality svg .good {
   color: green;
+  fill: green;
 }
-/* line 250, sass/_basic.scss */
-.playerQuality .medium {
+/* line 271, sass/_basic.scss */
+.playerQuality svg .medium {
   color: yellow;
-}
-/* line 253, sass/_basic.scss */
-.playerQuality .bad {
-  color: red;
+  fill: yellow;
 }
 
-/* line 260, sass/_basic.scss */
+/* line 285, sass/_basic.scss */
 button {
   width: 80vw;
   margin: 1em 0;
@@ -347,12 +370,12 @@ button {
   font-size: 1.5em;
 }
 
-/* line 272, sass/_basic.scss */
+/* line 297, sass/_basic.scss */
 button:active {
   background: #2b465d;
 }
 
-/* line 276, sass/_basic.scss */
+/* line 301, sass/_basic.scss */
 button.bottom-button {
   width: 100vw;
   border-radius: 0;
@@ -364,7 +387,7 @@ button.bottom-button {
   /*font-size:2em;*/
 }
 
-/* line 287, sass/_basic.scss */
+/* line 312, sass/_basic.scss */
 input {
   width: 90vw;
   border: 1px solid #3092bc;
@@ -378,7 +401,7 @@ input {
   font-size: 1.5em;
 }
 
-/* line 300, sass/_basic.scss */
+/* line 325, sass/_basic.scss */
 .label {
   width: 80vw;
   text-align: left;
@@ -387,15 +410,16 @@ input {
   font-size: 1.2em;
 }
 
-/* line 307, sass/_basic.scss */
+/* line 332, sass/_basic.scss */
 .list {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
 }
 
-/* line 313, sass/_basic.scss */
+/* line 339, sass/_basic.scss */
 .listel {
   width: 100%;
   display: flex;
@@ -404,7 +428,7 @@ input {
 }
 
 /* classic bar timer*/
-/* line 321, sass/_basic.scss */
+/* line 347, sass/_basic.scss */
 .bartimer {
   width: 100%;
   box-sizing: border-box;
@@ -417,7 +441,7 @@ input {
   border-radius: .5em;
   overflow: hidden;
 }
-/* line 333, sass/_basic.scss */
+/* line 359, sass/_basic.scss */
 .bartimer .bar {
   border-radius: .5em 0 0 .5em;
   position: absolute;
@@ -427,14 +451,14 @@ input {
   top: 0;
   background: linear-gradient(to right, #7db9e8 0%, #1e5799 100%);
 }
-/* line 342, sass/_basic.scss */
+/* line 368, sass/_basic.scss */
 .bartimer .bar.disabled {
   width: 100%;
   background: gray;
 }
 
 /* version of the timerbar for bottom of headers */
-/* line 351, sass/_basic.scss */
+/* line 377, sass/_basic.scss */
 .headerbartimer {
   position: absolute;
   bottom: 0;
@@ -445,7 +469,7 @@ input {
   overflow: hidden;
   background: rgba(0, 0, 0, 0.3);
 }
-/* line 361, sass/_basic.scss */
+/* line 387, sass/_basic.scss */
 .headerbartimer .bar {
   position: absolute;
   height: 100%;
@@ -453,7 +477,7 @@ input {
   top: 0;
   overflow: visible !important;
 }
-/* line 368, sass/_basic.scss */
+/* line 394, sass/_basic.scss */
 .headerbartimer .bar:before {
   content: '';
   position: absolute;
@@ -463,21 +487,75 @@ input {
   right: 100%;
 }
 
-/* line 382, sass/_basic.scss */
+/* line 405, sass/_basic.scss */
+.playerlist {
+  background-color: white;
+  padding: 1em;
+}
+/* line 409, sass/_basic.scss */
+.playerlist .listel {
+  width: 100%;
+  position: relative;
+}
+/* line 412, sass/_basic.scss */
+.playerlist .listel .name {
+  font-size: 2em;
+  font-weight: bold;
+}
+/* line 417, sass/_basic.scss */
+.playerlist .listel .playerQuality {
+  position: absolute;
+  right: 1em;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* line 428, sass/_basic.scss */
+.scoreboard .listel {
+  width: 100%;
+}
+/* line 431, sass/_basic.scss */
 .scoreboard .scoreboard-element {
   background: white;
   width: 80vw;
-  height: 3em;
   line-height: 3em;
   margin: .2em 0;
   font-size: 1.6em;
   font-weight: bold;
+}
+/* line 432, sass/_basic.scss */
+.scoreboard .scoreboard-element .position {
+  font-size: 3rem;
+  position: absolute;
+  line-height: 100%;
+  margin-left: 1rem;
+}
+/* line 437, sass/_basic.scss */
+.scoreboard .scoreboard-element .position:after {
+  content: 'TH';
+  font-size: .6em;
+  vertical-align: text-top;
+}
+/* line 452, sass/_basic.scss */
+.scoreboard .scoreboard-element.me {
   border: 0.2em solid yellow;
   background: #7db9e8;
   width: 100%;
 }
+/* line 460, sass/_basic.scss */
+.scoreboard .listel .position.r1:after {
+  content: 'ST';
+}
+/* line 463, sass/_basic.scss */
+.scoreboard .listel .position.r2:after {
+  content: 'ND';
+}
+/* line 466, sass/_basic.scss */
+.scoreboard .listel .position.r3:after {
+  content: 'RD';
+}
 
-/* line 404, sass/_basic.scss */
+/* line 473, sass/_basic.scss */
 .slider {
   width: 100vw;
   box-sizing: border-box;
@@ -490,7 +568,7 @@ input {
   border-radius: .5em;
 }
 
-/* line 416, sass/_basic.scss */
+/* line 485, sass/_basic.scss */
 .slider .knob {
   width: 2em;
   height: 2em;
@@ -505,7 +583,7 @@ input {
 /**
  * To show modal dialogs with background
  */
-/* line 431, sass/_basic.scss */
+/* line 500, sass/_basic.scss */
 .modal {
   position: fixed;
   top: 0;
@@ -521,7 +599,7 @@ input {
   align-items: center;
 }
 
-/* line 446, sass/_basic.scss */
+/* line 515, sass/_basic.scss */
 .modal .header {
   flex: 0 0 auto;
   width: 80vw;
@@ -533,7 +611,7 @@ input {
   text-align: center;
 }
 
-/* line 459, sass/_basic.scss */
+/* line 528, sass/_basic.scss */
 .modal .body {
   flex: 0 1 auto;
   width: 80vw;
@@ -543,7 +621,7 @@ input {
   border: 1px solid #3092bc;
 }
 
-/* line 469, sass/_basic.scss */
+/* line 538, sass/_basic.scss */
 .modal .footer {
   flex: 0 0 auto;
   text-align: center;
@@ -555,13 +633,13 @@ input {
   border-radius: 0 0 1em 1em;
 }
 
-/* line 480, sass/_basic.scss */
+/* line 549, sass/_basic.scss */
 .iOS7 .map_controls {
   margin-top: 20px;
 }
 
 /*Round timer*/
-/* line 488, sass/_basic.scss */
+/* line 557, sass/_basic.scss */
 .roundtimer {
   position: relative;
   margin: auto;
@@ -570,13 +648,13 @@ input {
   text-align: center;
   display: inline-block;
 }
-/* line 496, sass/_basic.scss */
+/* line 565, sass/_basic.scss */
 .roundtimer .roundtimer-content {
   color: white;
   display: inline-block;
   line-height: 40px;
 }
-/* line 502, sass/_basic.scss */
+/* line 571, sass/_basic.scss */
 .roundtimer svg {
   position: absolute;
   top: 0;
@@ -585,7 +663,7 @@ input {
   height: 40px;
   transform: rotateY(-180deg) rotateZ(-90deg);
 }
-/* line 509, sass/_basic.scss */
+/* line 578, sass/_basic.scss */
 .roundtimer svg circle {
   stroke-dasharray: 113;
   stroke-dashoffset: 0px;

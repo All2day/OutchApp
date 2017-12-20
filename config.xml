@@ -28,7 +28,6 @@
         <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption" platform="ios" target="*-Info.plist">
             <false />
         </gap:config-file>
-
     </platform>
     <platform name="android">
     </platform>
@@ -39,7 +38,7 @@
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
-    <plugin name="cordova-plugin-geolocation" spec="https://github.com/Kezzel/cordova-plugin-geolocation.git" />
+    <plugin name="cordova-plugin-geolocation" spec="git+https://github.com/Kezzel/cordova-plugin-geolocation.git" />
     <plugin name="cordova-plugin-is-debug" spec="^1.0.0" />
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />
     <plugin name="cordova-plugin-whitelist" spec="1" />

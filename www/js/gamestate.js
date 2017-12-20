@@ -284,7 +284,7 @@ Variable.extend('ListVariable',{
   _type:'list',
   prototype:null,
   init:function(obj){
-    this._super();
+    this._super(obj);
     this._value = [];
     this.prototype = obj.prototype;
     //test the type by creating a test object
@@ -364,6 +364,17 @@ Variable.extend('ListVariable',{
       value.push(this._value.clone());
     }
     v._value = value;
+    //console.log('cloning listvar',this);
+    v._hooks = new GameStateList();
+    $.each(this._hooks._value, function(ht,hs){
+      //console.log('adding hook to listvar:'+ht,v);
+      var v_hs = new GameStateList();
+      $.each(hs._value,function(n,h){
+        v_hs.add(n,h.clone());
+      });
+      v._hooks.add(ht,v_hs);
+    });
+
     return v;
   },
   set:function(i,v){
@@ -525,7 +536,7 @@ Variable.extend('TimerVariable',{
   clone: function(){
     //when cloning a timer, all hooks must be cloned as well
     var v = this._super();
-    console.log('cloning timer');
+    //console.log('cloning timer');
     v._hooks = new GameStateList();
     $.each(this._hooks._value, function(ht,hs){
       var v_hs = new GameStateList();
@@ -1010,6 +1021,16 @@ ProtoTypeVariable.extend('Player',{
   total_distance:0,
   id:null,
   gsUpdates:null,
+  _clientVars:{ //variables controlled by the client, send to the server and not directly updated
+    pos:PosVariable,
+    pos_accuracy:PrimitiveVariable,
+    ping:PrimitiveVariable,
+    total_distance:PrimitiveVariable
+  },
+  _defaultVars:{ //Default vars defining what a player as minimum should have defined by the server
+    name:PrimitiveVariable,
+    rank:PrimitiveVariable
+  },
   init:function(type,obj){
     //When called with empty player def {type:"player"} it comes from phase
     //loading with references to players
@@ -1029,47 +1050,78 @@ ProtoTypeVariable.extend('Player',{
     //TODO: register on a change hook on all variables and a 'new' hook on
     //gamestate, that is triggered when registering new vars.
   },
+  //returns an object of the client vars to update the server
+  _getClientVars: function(){
+    var obj = {};
 
+    $.each(this._clientVars,function(k,type){
+      var t = this._value[k];
+      if(!t){
+        return;
+      }
+
+      if(t instanceof PosVariable){
+        if(t._lastValue && t._value.x == t._lastValue.x && t._value.y == t._lastValue.y){
+          return;
+        }
+      } else
+      if(t instanceof PrimitiveVariable && t._lastValue == t._value){
+        return;
+      }
+
+
+      obj[k] = t._value;
+      if(t instanceof PosVariable){
+        t._lastValue = Object.assign({},t._value);
+      } else
+      if(t instanceof PrimitiveVariable){
+        t._lastValue = t._value;
+      }
+    }.bind(this));
+
+    return obj;
+  },
+
+  _getResultVars: function(){
+    return {
+      rank:this.rank._value
+    };
+  },
 
   _updateReferences: function(){
-    //to add extra player specific vars create them here
+    //to add extra player specific vars create in the _clientVars
+    $.each(this._clientVars,function(k,t){
+      if(!this[k]){
+        if(this._value[k]){
+          this[k] = this._value[k];
+        } else {
+          this[k] = new t();
+          this._value[k] = this[k];
+        }
 
-    if(!this.pos){
-      if(this._value['pos']){
-        this.pos = this._value['pos'];
-      } else {
-        this.pos = new PosVariable();
-        this._value['pos'] = this.pos;
+        this[k]._owner = this;
       }
-    }
+    }.bind(this));
 
-    if(!this.name){
-      if(this._value['name']){
-        this.name = this._value['name'];
-      } else {
-        this.name = this._value['name'] = new PrimitiveVariable();
+    $.each(this._defaultVars,function(k,t){
+      if(!this[k]){
+        if(this._value[k]){
+          this[k] = this._value[k];
+        } else {
+          this[k] = new t();
+          this._value[k] = this[k];
+        }
       }
-    }
+    }.bind(this));
 
-    if(!this.ping){
-      if(this._value['ping']){
-        this.ping = this._value['ping'];
-      } else {
-        this.ping = this._value['ping'] = new PrimitiveVariable();
-      }
-    }
-
-    if(!this.total_distance){
-      if(this._value['total_distance']){
-        this.total_distance = this._value['total_distance'];
-      } else {
-        this.total_distance = this._value['total_distance'] = new PrimitiveVariable();
-      }
-    }
+    return;
   },
 
   //updates the players position from coordinates in meters*meters
-  updatePosition:function(c){
+  updatePosition:function(pos){
+    var c = pos.c;
+
+    this.pos_accuracy.set(pos.a);
 
     if(Number.isNaN(c[0]) || Number.isNaN(c[1])){
       console.log('bad player pos update:',c[0],c[1],c[2]);
@@ -1261,6 +1313,7 @@ GameStateObject.extend('GameState',{
   currentPhase:null,
   vars:null,
   players:null,
+  ranking:null,
   init:function(game){
     this._super();
 
@@ -1304,6 +1357,56 @@ GameStateObject.extend('GameState',{
 
     //set players
     this.players = new PlayerList({},Player);
+
+    //store the ranking for later use
+    this.ranking = ScopeRef._prepareScopeRef(game.ranking);
+
+  },
+  //update the rank var on each player according to "ranking"
+  calculateRanking:function(){
+    debugger;
+    //use the same method as in ScopeSort
+    var temp_array = [];
+    var gso = new GameStateObject({});
+    ScopeRef._pushScope(gso);
+
+    $.each(this.players._value,function(k,v){
+      gso.el = v;
+      ScopeRef._pushScope(v);
+
+      //calculate the rank function, since heigher is better, negate it
+      var con = -this.ranking.eval(undefined);
+      if(con instanceof Variable){
+        con = con._value;
+      }
+
+      temp_array.push({con:con,el:v});
+
+      ScopeRef._popScope();
+    }.bind(this));
+
+
+    //sort the array
+    temp_array.sort(function(a,b){
+      if(a.con < b.con){
+        return -1;
+      }
+      if(a.con > b.con){
+        return 1;
+      }
+      return 0;
+    });
+    console.log(temp_array);
+
+    var rank = 0;
+    var last_con = undefined;
+    $.each(temp_array,function(i,t){
+      if(t.con != last_con){
+        last_con = t.con;
+        rank++;
+      }
+      t.el.rank.set(rank)
+    });
   },
   addPlayer:function(player_data){
     console.log('adding player:'+player_data.name);

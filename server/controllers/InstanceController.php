@@ -59,7 +59,7 @@ class InstanceController extends Zend_Controller_Action
 	public function updateAction(){
 		$status = $this->_getParam('status');
 		$settings = $this->_getParam('settings');
-		$result = $this->_getParam('result');
+		$results = $this->_getParam('results');
 		$phase = $this->_getParam('phase');
 		$process_id = $this->_getParam('process_id');
 
@@ -74,6 +74,17 @@ class InstanceController extends Zend_Controller_Action
 		}
 		if($phase){
 			$this->instance->currentPhase = $phase;
+
+			if($results){
+				$ips = $this->instance->getPlayers();
+
+				foreach($results as $token => $result){
+					$p = PlayerTable::getFromToken($token);
+					$this->instance->setPlayerResult($p->player_id,$result);
+
+					unset($ips[$p->player_id]);
+				}
+			}
 		} else {
 
 			$live_players = 0;

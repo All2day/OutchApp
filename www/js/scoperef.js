@@ -595,6 +595,8 @@ LeftRightRef.extend('ScopeMinus',{
     if(this.left){
       l = this.left.eval(scp,inf);
       if(l instanceof Variable){l = l._value;}
+    } else{
+      l = 0;
     }
 
     var r = this.right.eval(scp,inf);
@@ -793,6 +795,10 @@ ScopeRef.extend('ScopeRootLookup',{
         scp = ScopeRef._getScopeRoot();
         while(scp && !(scp instanceof TimerVariable)){scp = scp.owner;}
         break;
+      case 'list':
+        scp = ScopeRef._getScopeRoot();
+        while(scp && !(scp instanceof ListVariable)){scp = scp.owner;}
+        break;
       case 'el':
         //scope stack lookups for a container with an 'el'
         //TODO:check that it is on purpose, that it does NOT check the root?
@@ -890,8 +896,8 @@ ScopeRef.extend('ScopeRootLookup',{
     //first test all scopes in scope stac for having a var with ref, or being a prototype of that name
     var scp_temp;
     for(var i=ScopeRef._scp.length-1;i>0;i--){
-
-      if(scp_temp = ScopeRef._scp[i].get(this.ref)){
+      scp_temp = ScopeRef._scp[i].get(this.ref);
+      if(scp_temp !== undefined){
         scp = scp_temp;
         return this.getNext(scp,inf);
       }
@@ -902,7 +908,8 @@ ScopeRef.extend('ScopeRootLookup',{
     }
     var scp = ScopeRef._getScopeRoot();
     while(scp){
-      if(scp_temp = scp.get(this.ref)){
+      scp_temp = scp.get(this.ref);
+      if(scp_temp !== undefined){
         scp = scp_temp;
         return this.getNext(scp,inf);
       }

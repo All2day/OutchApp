@@ -192,4 +192,5 @@
 			}
 		});
 	}
+	window.toggle_log = toggle_log;
 })();

@@ -4,7 +4,23 @@ exports.game = {
     player: {
       hand: {
         type: "list",
-        prototype: "card"
+        prototype: "card",
+        hooks:{
+          change:{
+            actions:{
+              '_1':{
+                type:"if", // does not work!
+                condition:"(list.length+1)*game.cardWidth/game.size > 2*3.1415)",
+                actions:{
+                  1:{
+                    type:"startphase",
+                    phase:"scoreboard"
+                  }
+                }
+              }
+            }
+          }
+        }
       },
       currentCard: {
         type: "card"
@@ -66,6 +82,9 @@ exports.game = {
     cardWidth:10,
     newCardDelay:15
   },
+  ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
+  //possibly multiple rankings could be used in array form [el.points, -el.finish_time], where a tie in the fist would then take the second into account
+  //we could here define the type of ranking between the ones defined in https://en.wikipedia.org/wiki/Ranking
   phases:{
     /*create:{
       //goal is to choose a center (and heading) of the game together with a game name
@@ -89,7 +108,8 @@ exports.game = {
                 'outer':{
                   type:"circle",
                   radius:"game.size+game.cardHeight",
-                  fill:[0,0,0,0],
+                  fill:[255,255,255,0.5],
+                  color:[0,0,0,0],
                   pos:"players.gameowner.pos",
                 },
                 'inner':{
@@ -149,7 +169,7 @@ exports.game = {
                     '_1':{
                       type:"set",
                       target:"game.newCardDelay",
-                      source:"^element.value"
+                      source:"element.value"
                     }
                   }
                 }
@@ -177,27 +197,19 @@ exports.game = {
                 }
               }
             },
-            'players':{
+            'players2':{
+              type:'playerlist'
+            },
+            /*'players':{
               type:'list',
               list:'players',
               elements:{
                 0:{
                   type:"label",
                   text:"listel.name",
-                  /*hooks:{
-                    click:{
-                      actions:{
-                        '_set':{
-                          type:"set",
-                          target:"game.name",
-                          source:"listel.id"
-                        }
-                      }
-                    }
-                  }*/
                 }
               }
-            },
+            },*/
             '_1':{
               type:'bottombutton',
               text:"'Start game'",
@@ -408,7 +420,7 @@ exports.game = {
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"game.size",
               rotation:"player.dir*2*3.1415/players.count",
-              fill:"^players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
+              fill:"players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
               //if there is a player with only one card show red and big
               //color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
               color:"'transparent'",

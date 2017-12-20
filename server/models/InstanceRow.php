@@ -186,8 +186,19 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		$sql = "UPDATE instance_player SET status=".$db->quote($status)." WHERE instance_id =  ".$db->quote($this->instance_id)." AND player_id=".$db->quote($player_id);
 
 		$db->query($sql);
+	}
 
+	public function setPlayerResult($player_id,$result){
+		$db = $this->getTable()->getAdapter();
+		//find the player
+		$ip = $this->getPlayer($player_id);
 
+		if(!$ip){
+			throw new Exception('no such player for this instance');
+		}
+		$sql = "UPDATE instance_player SET result_obj=".$db->quote(json_encode($result)).", rank=".$db->quote(1*$result['rank'])." WHERE instance_id =  ".$db->quote($this->instance_id)." AND player_id=".$db->quote($player_id);
+
+		$db->query($sql);
 	}
 
 	public function message($message,$params){

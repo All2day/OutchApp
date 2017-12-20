@@ -121,9 +121,15 @@ Class.extend('GameClient',{
       //if(id==12 && u.value.length != window.last_v){window.last_v = u.value.length;debugger;}
       //if(id==48 && ScopeRef._gs.players && ScopeRef._gs.players.mads1 && ScopeRef._gs.players.mads1._p === null){ debugger;};
       if(window._watch && window._watch.indexOf(id*1) >= 0){ debugger;}
-      if(p && id == p.pos._id){
-        return; //ignore updates of position
+
+      //ignore client based vars on this player when updating
+      if(p && Variable._vars[id] && Variable._vars[id]._owner == p){
+        return;
       }
+      /*if(p && id == p.pos._id){
+        debugger;
+        return; //ignore updates of position
+      }*/
 
       if(u.p){
         //TODO: check how it will work if setting pointer to object as it defines its own set method
@@ -232,8 +238,11 @@ Class.extend('GameClient',{
       this.remoteTriggerQueue = [];
     }
 
-    if(this.gs.currentPlayer && this.gs.currentPlayer.pos._value){
-      d.p = this.gs.currentPlayer.pos._value;
+    if(this.gs.currentPlayer /*&& this.gs.currentPlayer.pos._value*/){
+
+      d.p = this.gs.currentPlayer._getClientVars();
+      //d.p = this.gs.currentPlayer.pos._value;
+      //debugger;
     }
 
     /*$.each(this.remoteTriggerQueue,function(i,h){
@@ -266,7 +275,8 @@ Class.extend('GameClient',{
 
         this.ping = setTimeout(this.startPinging.bind(this),Math.max(0,this.min_send_frequency - (this_t-t)));
 
-        this.gs.currentPlayer.set('ping',(this_t-t));
+        //console.log('ping:',this_t-t);
+        this.gs.currentPlayer.ping.set((this_t-t));
       }.bind(this),
       error:function(r,status,error) {
         if(status == 'abort'){
