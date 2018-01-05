@@ -357,11 +357,13 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
         }
       }
 
-      //check for colors
+      //check for colors and other functions
       if(s.c[1].type == '('){
         switch(s.c[0]){
           case 'rgba':
             return new ScopeColor(s.c[1].c);
+          case 'formattime':
+            return new ScopeFormattedtime(ScopeRef._prepareScopeRef(s.c[1].c));
         }
       }
   }
@@ -1153,6 +1155,36 @@ ScopeRef.extend('ScopeColor',{
     return this._value;
   }
 });
+
+ScopeRef.extend('ScopeFormattedtime',{
+  time:null,
+  init:function(time){
+    this.time=time;
+
+  },
+  eval:function(scp,inf){
+
+    var t = this.time.eval(scp,inf);
+    if(t instanceof Variable){t = t._value;}
+
+    t = Math.floor(t/1000);
+
+    var d = Math.floor(t/86400),
+        h = ('0'+Math.floor(t/3600) % 24).slice(-2),
+        m = ('0'+Math.floor(t/60)%60).slice(-2),
+        s = ('0' + t % 60).slice(-2);
+    return (d>0?d+'d ':'')+(h>0?h+':':'')+(m>0?m+':':'')+(t>60?s:s+'s');
+
+    //return 'time:'+t;
+  },
+  traverse:function(f){
+    this._super(f);
+    if(this.time){
+      this.time.traverse(f);
+    }
+  }
+});
+
 
 ScopeRef.extend('ScopeIfThenElse',{
 

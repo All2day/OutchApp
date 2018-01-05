@@ -10,7 +10,7 @@ exports.game = {
             actions:{
               '_1':{
                 type:"if", // does not work!
-                condition:"(list.length+1)*game.cardWidth/game.size > 2*3.1415)",
+                condition:"(list.length+1)*game.cardWidth/game.size > (2*3.1415)",
                 actions:{
                   1:{
                     type:"startphase",
@@ -80,7 +80,9 @@ exports.game = {
     size:25,
     cardHeight:15,
     cardWidth:10,
-    newCardDelay:15
+    newCardDelay:15,
+    maxtime:300,
+    playtime:0
   },
   ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
   //possibly multiple rankings could be used in array form [el.points, -el.finish_time], where a tie in the fist would then take the second into account
@@ -96,48 +98,127 @@ exports.game = {
         '_1':{
           type:'page',
           elements:{
-            'map':{
-              type:'MapView',
-              //width:80,
-              height:20,
-              zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
-              //zoom:"'fit'",
-              center:"players.gameowner.pos",
-              heading:"players.gameowner.heading",
-              geoElements:{
-                'outer':{
-                  type:"circle",
-                  radius:"game.size+game.cardHeight",
-                  fill:[255,255,255,0.5],
-                  color:[0,0,0,0],
-                  pos:"players.gameowner.pos",
-                },
-                'inner':{
-                  type:"circle",
-                  radius:"10",
-                  fill:[0,0,0,0],
-                  pos:"players.gameowner.pos",
-                }/*,
-                'players':{
-                  type:"geolist",
-                  list:"players",
-                  elements:{
-                    'p':{
+            'title':{
+              type:"gamebar"
+            },
+            'gamesize_':{
+              type:'setting',
+              elements:{
+                'map':{
+                  type:'MapView',
+                  //width:80,
+                  height:20,
+                  zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
+                  //zoom:"'fit'",
+                  center:"players.gameowner.pos",
+                  heading:"players.gameowner.heading",
+                  geoElements:{
+                    'outer':{
                       type:"circle",
-                      radius:"2",
-                      fill:"'blue'",
-                      pos:"listel.pos"
+                      radius:"game.size+game.cardHeight",
+                      fill:[255,255,255,0.5],
+                      color:[0,0,0,0],
+                      pos:"players.gameowner.pos",
+                    },
+                    'inner':{
+                      type:"circle",
+                      radius:"10",
+                      fill:[0,0,0,0],
+                      pos:"players.gameowner.pos",
+                    }/*,
+                    'players':{
+                      type:"geolist",
+                      list:"players",
+                      elements:{
+                        'p':{
+                          type:"circle",
+                          radius:"2",
+                          fill:"'blue'",
+                          pos:"listel.pos"
+                        }
+                      }
+                    }*/
+                  }
+                },//end of map
+                'radius':{
+                  type:"label",
+                  text:"'Game radius:'+game.size+'m'"
+                },
+                'gameSize':{
+                  show:"player = players.gameowner",
+                  type:"slider",
+                  min:25,
+                  max:100,
+                  default:"game.size",
+                  hooks:{
+                    change:{
+                      actions:{
+                        '_1':{
+                          type:"set",
+                          target:"game.size",
+                          source:"element.value"
+                        }
+                      }
                     }
                   }
-                }*/
+                }
               }
-            },//end of map
-            'gamename':{
-              type:"label",
-              text:"'spillets navn:'+game.name"
+            }, //end of game size setting
+            'delay':{
+              type:'setting',
+              elements:{
+                'delay':{
+                  type:"label",
+                  text:"'Time before extra card:'+game.newCardDelay+'s'"
+                },
+                'newCardDelay':{
+                  show:"player = players.gameowner",
+                  type:"slider",
+                  default:"game.newCardDelay",
+                  min:10,
+                  max:300,
+                  hooks:{
+                    change:{
+                      actions:{
+                        '_1':{
+                          type:"set",
+                          target:"game.newCardDelay",
+                          source:"element.value"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             },
-
-            'input':{
+            'speed':{
+              type:'setting',
+              elements:{
+                'speed':{
+                  type:"label",
+                  text:"'Play time'+game.maxtime+'s'"
+                },
+                'speedinput':{
+                  show:"player = players.gameowner",
+                  type:"slider",
+                  default:"game.maxtime",
+                  min:10,
+                  max:600,
+                  hooks:{
+                    change:{
+                      actions:{
+                        '_1':{
+                          type:"set",
+                          target:"game.maxtime",
+                          source:"element.value"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            /*'input':{
               show:"player = players.gameowner",
               type:"input",
               default:"'fedt navn'",
@@ -152,51 +233,9 @@ exports.game = {
                   }
                 }
               }
-            },
-            'delay':{
-              type:"label",
-              text:"'Tid før nyt kort:'+game.newCardDelay+'s'"
-            },
-            'newCardDelay':{
-              show:"player = players.gameowner",
-              type:"slider",
-              default:"game.newCardDelay",
-              min:10,
-              max:300,
-              hooks:{
-                change:{
-                  actions:{
-                    '_1':{
-                      type:"set",
-                      target:"game.newCardDelay",
-                      source:"element.value"
-                    }
-                  }
-                }
-              }
-            },
-            'radius':{
-              type:"label",
-              text:"'Radius af spil:'+game.size+'m'"
-            },
-            'gameSize':{
-              show:"player = players.gameowner",
-              type:"slider",
-              min:25,
-              max:100,
-              default:"game.size",
-              hooks:{
-                change:{
-                  actions:{
-                    '_1':{
-                      type:"set",
-                      target:"game.size",
-                      source:"element.value"
-                    }
-                  }
-                }
-              }
-            },
+            },*/
+
+
             'players2':{
               type:'playerlist'
             },
@@ -264,7 +303,7 @@ exports.game = {
         },
         stopTimer:{
           type:"timer",
-          duration:600000, // 10 min
+          duration:'game.maxtime*1000', // 10 min
           hooks:{
             end:{
               actions:{
@@ -354,6 +393,10 @@ exports.game = {
               timertype:"'headerbartimer'",
               timer:"phase.stopTimer"
             },
+            /*'left':{
+              type:"label",
+              text:"formattime(phase.stopTimer.timeleft)"
+            },*/
             'currentCard':{
               show:"player.currentCard",
               type:"label",
@@ -396,7 +439,7 @@ exports.game = {
                   scale:1,
                   post:[0,0],
                   svg:'<svg width="10" height="10" version="1.1" xmlns="http://www.w3.org/2000/svg">'+
-                  '<path stroke="none" fill="#00d1ef" d="M 8.213938048432697 1.16977778440511 A 5 5 0 0 0 1.7860619515673033 1.16977778440511 L 5 5 L 8.213938048432697 1.16977778440511"/>'
+                  '<path stroke="none" fill="#00d1ef" style="opacity:0.5" d="M 8.213938048432697 1.16977778440511 A 5 5 0 0 0 1.7860619515673033 1.16977778440511 L 5 5 L 8.213938048432697 1.16977778440511"/>'
                   +'</svg>'
                 }
               }
@@ -914,7 +957,16 @@ exports.game = {
               }
             }
           }
-        } //end of start hook
+        }, //end of start hook
+        end:{
+          actions:{
+            '_settime':{
+              type:'set',
+              target:'game.playtime',
+              source:'^phase.stopTimer.time'
+            }
+          }
+        } //end of end hook
       }
     },
     scoreboard:{
@@ -938,8 +990,26 @@ exports.game = {
                   text:"listel.name+':'+(listel.hand.count=0 ? ' winner!!!':' loser:'+listel.hand.count) + ' total distance:'+listel.total_distance+'m'",
                 }
               }
-            }
-          }
+            },
+            '_play time':{
+              type:'label',
+              text:"'Playtime:'+formattime(game.playtime)"
+            },
+            '_1':{
+              type:'bottombutton',
+              text:"'Back'",
+              hooks:{
+                click:{
+                  actions:{
+                    '_0':{
+                      type:"exit",
+                    }
+                  }
+                }
+              }
+            },
+          },
+
 
         }//end of page
       }

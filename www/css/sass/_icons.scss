@@ -10,155 +10,38 @@
 	font-style: normal;
 }
 
-/* Use the following CSS code if you want to use data attributes for inserting your icons */
-[data-icon]:before {
-	font-family: 'icomoon';
-	content: attr(data-icon);
-	speak: none;
-	font-weight: normal;
-	font-variant: normal;
-	text-transform: none;
-	font-style: normal;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-}
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
 
-[class*="icon-"] {
-	font-family: 'icomoon';
-	speak: none;
-	font-style: normal;
-	font-weight: normal;
-	font-variant: normal;
-	text-transform: none;
-	line-height: 1;
-	-webkit-font-smoothing: antialiased;
-}
-.icon-arrow-right:before {
-	content: "\e000";
-}
-.icon-eye:before {
-	content: "\e001";
-}
-.icon-other:before {
-	content: "\e002";
-}
-.icon-wellness:before {
-	content: "\e003";
-}
-.icon-settings:before {
-	content: "\e004";
-}
-.icon-restauration:before {
-	content: "\e005";
-}
-.icon-shopping:before {
-	content: "\e006";
-}
-.icon-travel:before {
-	content: "\f0f2";
-}
-.icon-share:before {
-	content: "\e007";
-}
-.icon-add:before {
-	content: "\e008";
-}
-.icon-comment:before {
-	content: "\e00a";
-}
-.icon-menu:before {
-	content: "\e009";
-}
-.icon-search:before {
-	content: "\e00b";
-}
-.icon-close:before {
-	content: "\e00c";
-}
-.icon-edit:before {
-	content: "\e00d";
-}
-.icon-world:before {
-	content: "\e00e";
-}
-.icon-user:before {
-	content: "\e00f";
-}
-.icon-save:before {
-	content: "\e010";
-}
-.icon-newsletter:before {
-	content: "\e011";
-}
-.icon-unsubscribe:before {
-	content: "\e012";
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
 }
 
 
-.icon-back:before {
-	content: "\f060";
+.icon-Back-Arrow:before {
+  content: "\e900";
 }
-.icon-contents:before {
-	content: "\f0cb";
+.icon-Close:before {
+  content: "\e901";
 }
-
-
-.icon-eatout:before {
-	content: "\e600";
+.icon-Play:before {
+  content: "\e902";
 }
-.icon-more:before {
-	content: "\e601";
+.icon-Players:before {
+  content: "\e903";
 }
-.icon-agent:before {
-	content: "\e602";
+.icon-Profile:before {
+  content: "\e904";
 }
-.icon-trash:before {
-	content: "\e603";
-}
-.icon-cofee:before {
-	content: "\e604";
-}
-.icon-smiley-wink:before {
-	content: "\e605";
-}
-.icon-smiley-grin:before {
-	content: "\e606";
-}
-.icon-smiley-confused:before {
-	content: "\e607";
-}
-.icon-star:before {
-	content: "\e608";
-}
-.icon-order:before {
-	content: "\e609";
-}
-.icon-tree:before {
-	content: "\e60a";
-}
-.icon-gift:before {
-	content: "\e60b";
-}
-.icon-go:before {
-  content: "\e60c";
-}
-.icon-dollar:before {
-	content: "\e900";
-}
-
-
-.icon-fvs-smiley-1:before {
-  content: "\31";
-}
-.icon-fvs-smiley-2:before {
-  content: "\32";
-}
-.icon-fvs-smiley-3:before {
-  content: "\33";
-}
-.icon-fvs-smiley-4:before {
-  content: "\34";
-}
-.icon-fvs-smiley-0:before {
-  content: "\30";
+.icon-Front-Arrow:before {
+  content: "\e905";
 }

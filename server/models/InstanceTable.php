@@ -20,7 +20,7 @@ class InstanceTable extends Zend_Db_Table_Abstract
 	}
 
 
-	public static function startInstance($game_id,$owner){
+	public static function startInstance($game_id,$owner, $name){
     $db = Zend_Db_Table_Abstract::getDefaultAdapter();
     //create a new instance
 		$instanceTable = new InstanceTable();
@@ -30,6 +30,9 @@ class InstanceTable extends Zend_Db_Table_Abstract
 		$instance->owner = $owner->player_id;
 		//TODO: check that the token does not already exist in a running game
 		$instance->token = md5(uniqid(rand(), true));
+
+		$instance->name = $name;
+
     $instance->save();
 
     //find free port

@@ -116,11 +116,11 @@ exports.game = {
               timer:"phase.test_timer"
             },
             'gamename':{
-              show:"player != players.gameowner",
+              //show:"player != players.gameowner",
               type:"label",
               text:"'spillets navn:'+game.name"
             },
-            'input':{
+            /*'input':{
               show:"player = players.gameowner",
               type:"input",
               default:"'fedt navn'",
@@ -135,7 +135,7 @@ exports.game = {
                   }
                 }
               }
-            },
+            },*/
             'players':{
               type:'list',
               list:'players',

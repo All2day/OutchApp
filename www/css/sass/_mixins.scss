@@ -1,6 +1,6 @@
 @mixin border-box(){
 	box-sizing:border-box;
-	-moz-box-sizing: border-box;	
+	-moz-box-sizing: border-box;
 }
 
 @mixin full-width(){
@@ -19,5 +19,13 @@ $experimental-support-for-svg: true;
 	//@include filter-gradient($start-color, $end-color);
 	background-color:$start-color;
 	@include background-image(linear-gradient($start-color,$end-color));
-		
+
+}
+
+@mixin ellipsis {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  -ms-text-overflow: ellipsis;
 }

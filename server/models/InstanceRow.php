@@ -3,14 +3,16 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 	public function start(){
 		$game = $this->getGame();
 
-		$control_url = 'http://'.$_SERVER['HTTP_HOST'].'/instance/'.$this->token;
+		$control_url = 'http://'.$_SERVER['HTTP_HOST'].'/instance';
 
-		$command = 'node ../gameServer '.($this->instance_id).' '.($this->port*1).' '.($game->name).' '.($control_url);
+		$command = 'node ../gameServer '.($this->instance_id).' '.($this->port*1).' '.($game->name).' '.($control_url).' '.($this->token);
 
 		if (substr(php_uname(), 0, 7) == "Windows"){
 			//die('starting local');
 			set_time_limit(5);
-      pclose(popen("start \"instance_".$this->instance_id."\" /B ". $command.'> cache/log/instance_'.$this->instance_id.'.log', "r"));
+      //pclose(popen("start \"instance_".$this->instance_id."\" /B ". $command.'> cache/log/instance_'.$this->instance_id.'.log', "r"));
+
+			pclose(popen("start \"instance_".$this->instance_id."\" /B ". $command.' 1> cache/log/instance_'.$this->instance_id.'.log 2>&1', "r"));
 
 			$this->pid = 0;
 

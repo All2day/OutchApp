@@ -357,7 +357,7 @@ ViewElement.extend('PageElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="page"><header class="header"><a class="left exit">&lt</a><div class="title"></div></header><content class="inner"></content><footer class="footer"></footer></div>').css({
+      var dom = $('<div class="page"><header class="header"><a class="left exit"><i class="icon-Back-Arrow"></i></a><div class="title"></div></header><content class="inner"></content><footer class="footer"></footer></div>').css({
 
       }).addClass('page');
 
@@ -454,6 +454,59 @@ ViewElement.extend('LabelElement',{
     this._super();
   }
 });
+
+ViewElement.extend('GamebarElement',{
+  init:function(obj){
+    this._super(obj);
+
+    this.registerProp('name',obj.name || 'game.name');
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div class="gamebar"><div class="gameimage"></div><div class="title"></div></div>');
+
+      var name = this.getProp('name');
+
+      if($.type(name)== 'object'){
+        name = name._value;
+      }
+
+      dom.find('.title').text(name);
+
+      this._dom = dom;
+    }
+
+    c.append(this._dom);
+  }
+});
+
+ViewElement.extend('SettingElement',{
+  init:function(obj){
+    this._super(obj);
+  },
+  draw:function(c){
+
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<div class="setting"></div>');
+
+      c.append(dom);
+      if(!this.getProp('show',true)){
+        dom.hide();
+      }
+
+      $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
+        el.draw(dom);
+        //el.updateAllProps();
+      });
+      this._dom = dom;
+    }
+
+    this._super();
+  }
+});
+
 
 ViewElement.extend('DialogElement',{
   init:function(obj){
@@ -791,7 +844,7 @@ ViewElement.extend('RoundtimerElement',{
 
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div><div class="roundtimer-content"></div><svg><circle r="18" cx="20" cy="20"></circle></svg></div>').addClass('roundtimer').css({
+      var dom = $('<div><div class="roundtimer-content"></div><svg viewBox="0 0 40 40"><circle r="18" cx="20" cy="20"></circle></svg></div>').addClass('roundtimer').css({
 
       });
       if(!this.getProp('show',true)){
@@ -812,7 +865,7 @@ ViewElement.extend('RoundtimerElement',{
       this._dom.addClass('disabled');
     } else {
       this._dom.removeClass('disabled');
-      //debugger;
+
       var ratioDone = this._timer.get('ratioDone');
       //console.log(''+(100*ratioDone)+'%');
       this._dom.find('svg circle').stop().css({
@@ -870,10 +923,14 @@ ViewElement.extend('SliderElement',{
       dom.append(this._knobDiv);
 
       this._dom = dom;
+      c.append(this._dom);
     }
-    this._val = this.getProp('default');
+    var d = this.getProp('default',true);
+
+    this._val = d;
+
     this.updateSlider();
-    c.append(this._dom);
+
   },
   startDrag:function(e){
     if(e.originalEvent.touches.length != 1){
@@ -902,19 +959,27 @@ ViewElement.extend('SliderElement',{
     var val = this._min + (left/total_width)*(this._max - this._min);
 
     this._val = val;
-    this._knobDiv.css({
+    this.updateSlider();
+    /*this._knobDiv.css({
       left:left
     });
 
+    this._dom.css({backgroundPositionX:(100-100*left/total_width)+'%'});
+    */
     this.triggerHook('change');
 
     //this.updateSlider();
     //debugger;
   },
   updateSlider:function(){
+    var total_width = this._dom.width() - this._knobDiv.width();
+
+    var ratio = (this._val - this._min)/(this._max - this._min);
+    console.log(ratio,total_width);
     this._knobDiv.css({
-      left:100*(this._val - this._min)/(this._max - this._min)+'%'
+      left:ratio*total_width//100*(this._val - this._min)/(this._max - this._min)+'%'
     });
+    this._dom.css({backgroundPositionX:(100-100*ratio)+'%'});
   },
   update:function(props){
     if(props['timer'] !== undefined){
@@ -981,7 +1046,7 @@ ViewElement.extend('PlayerlistelElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="playerlist-element"><div class="name"></div></div>');
+      var dom = $('<div class="playerlist-element"><i class="icon-Profile"></i><span class="name"></span></div>');
 
       if(!this.getProp('show',true)){
         dom.hide();
@@ -1105,6 +1170,7 @@ ViewElement.extend('MapElement',{
     var that = this;
     $.each(props,function(prop,val){
       val = val ? (val._value || val) : null;
+
       switch(prop){
         case 'center':
           var s = that._map.getSize();
@@ -1119,7 +1185,6 @@ ViewElement.extend('MapElement',{
           break;
         case 'zoom':
           if(val == 'fit'){
-            //debugger;
             var ext = ol.extent.createEmpty();
             that._vectorSource.forEachFeature(function(ft){
               var g = ft.getGeometry();
@@ -1159,7 +1224,6 @@ ViewElement.extend('MapElement',{
             }
           } else
           if($.type(val) == 'object' && val.x !== undefined && val.y !== undefined){
-
             //var ext = ol.extent.createEmpty();
             var center = that._map.getView().getCenter();
 
@@ -1169,6 +1233,12 @@ ViewElement.extend('MapElement',{
             ]);
             //ol.extent.extend(ext,[center[0] - 0.5*val.x,center[1] - 0.5*val.y]);
             //ol.extent.extend(ext,[center[0] + 0.5*val.x,center[1] + 0.5*val.y]);
+
+            //check if empty
+            if(ol.extent.isEmpty(ext)){
+              //dont use it
+              break;
+            }
             that._map.getView().fit(ext,{
               constrainResolution:false,
               size:that._map.getSize()
@@ -1473,9 +1543,11 @@ ViewElement.extend('PlayerqualityElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">'+
-      '<polygon class="connection" points="0 180 180 180 180 0 0 180"/>'+
-      '<path class="location" d="M106.56,18.14h0a61.94,61.94,0,0,0-87.59,0h0C-2.83,39.93-5.28,81,13.21,105.63l49.55,71.56,49.55-71.56C130.81,81,128.35,39.93,106.56,18.14ZM63.36,81.78A20.45,20.45,0,1,1,83.81,61.33,20.44,20.44,0,0,1,63.36,81.78Z"/>'+
+      var dom = $('<div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">'+
+      //'<polygon class="connection" points="0 180 180 180 180 0 0 180"/>'+
+      '<path class="location" d="M18.2,13.17h0V4L4,18.21h8.81A5.41,5.41,0,0,1,18.2,13.17Z"/>'+
+      '<path  class="connection" d="M16.23,14.33a2,2,0,0,0-2,2c0,1.48,2,3.68,2,3.68s2-2.19,2-3.68A2,2,0,0,0,16.23,14.33Zm0,2.69a.71.71,0,1,1,.71-.71A.71.71,0,0,1,16.23,17Z"/>'+
+      //'<path class="location" d="M106.56,18.14h0a61.94,61.94,0,0,0-87.59,0h0C-2.83,39.93-5.28,81,13.21,105.63l49.55,71.56,49.55-71.56C130.81,81,128.35,39.93,106.56,18.14ZM63.36,81.78A20.45,20.45,0,1,1,83.81,61.33,20.44,20.44,0,0,1,63.36,81.78Z"/>'+
       '</svg></div>').css({
 
       });

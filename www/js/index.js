@@ -4,6 +4,7 @@
 });
 alert('device ready fired');
 */
+require('js/handlebars-setup.js');
 require('js/log.js');
 require('js/client.js');
 
@@ -194,7 +195,19 @@ var app = {
 
 
         this.login();
-        this.showGames();
+
+        /*this._currentGame = {
+          src:this.server+'/index/gamesrc/game_id/'+'uno'
+        };*/
+        this._fetching = $.getJSON(this.server+'/index/game',{game_id:'uno',token:this.getPlayerToken()},function(data){
+
+          this._currentGame = data.game;
+          this.showGames();
+        }.bind(this)).fail(function(e){
+          debugger;
+        });
+
+        //this.showGames();
     },
 
 
@@ -231,13 +244,15 @@ var app = {
       var that = this;
       if(!f.length){
         f = $('<div id="front"></div>').appendTo("body");
-        f.on('click','.stop',function(){
+        f.on('click','.stop',function(e){
+          e.preventDefault();
           app.openModal('Stopping game','Stopping game instance',{'waiting...':function(){return true;}});
           $.getJSON(that.server+'/index/stop',{instance_id:$(this).attr('data-instance_id')},function(data){
             this.showGames();
           }.bind(that)).always(function(){
             app.closeModal();
           });
+          return false;
         });
 
         f.on('click','.open',function(){
@@ -269,14 +284,30 @@ var app = {
         });
 
         f.on('click','.start',function(){
+          var name = null;
+          app.openModal('Game name','<h2>Game title</h2><input name="game_name" value=""/>',{
+            'Create Game':function(){
 
-          app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
-          $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken()},function(data){
+            name = $('#modal input[name=game_name]').val();
+            app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
 
-            this.startGame(data.instance_id);
-            //this.showGames();
-          }.bind(that));
-        });
+            $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken(),name:name},function(data){
+              this.startGame(data.instance_id);
+              //this.showGames();
+            }.bind(that)).fail(function(e){
+              app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
+            }.bind(this));
+          }.bind(this),
+            'cancel':function(){return false;}});
+
+
+          $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'´s game' : 'My game').focus();
+          /*var name = window.prompt('Please choose a name for the game','');
+          if(name===null){
+            return;
+          }*/
+
+        }.bind(this));
 
         f.on('click','.back',function(){
           if(that._fetching){
@@ -288,7 +319,8 @@ var app = {
           that.showGames();
         });
 
-        f.on('click','.join',function(){
+        f.on('click','.instance',function(){
+
           var instance_id = $(this).attr('data-instance_id');
           that.startGame(instance_id);
         });
@@ -298,6 +330,7 @@ var app = {
       console.log('showgames',this._currentGame);
 
       if(this._currentGame){
+
         $("#front").html(this.gameTmpl(this._currentGame));
         //update data
         this._fetching = $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
@@ -326,6 +359,7 @@ var app = {
       //allways clear the updater
       clearTimeout(this._gameUpdater);
 
+
       if(!this.player.name){
         console.log('no name, prompt for name');
         var name = window.prompt('Player name');
@@ -341,7 +375,7 @@ var app = {
 
       var g = require(this._currentGame.src,true);
 
-      this.openModal('Starting game','joining game',{'waiting...':function(){return true;}});
+      this.openModal('Starting game','joining game:'+instance_id,{'waiting...':function(){return true;}});
       //join the game instance
       $.getJSON(this.server+'/index/joininstance',{token:this.getPlayerToken(),instance_id:instance_id},function(r){
         if(r.status == 'ok'){
@@ -404,7 +438,7 @@ var app = {
 
       templates.each(function(i,t){
         t = $(t);
-        this[t.attr('id')+'Tmpl'] = 							Handlebars.compile(t.remove().html());
+        this[t.attr('id')+'Tmpl'] =	Handlebars.compile(t.remove().html());
       }.bind(this));
 
     },
@@ -792,7 +826,7 @@ var app = {
           app.closeModal();
         }
       });
-
+      $("#modal").show();
     },
     closeModal:function(){
       $("#modal").hide().off('click','.footer');

@@ -559,6 +559,18 @@ Variable.extend('TimerVariable',{
         var r = Math.min(1,(t - this._value.start_time)/this._value.duration);
         //console.log('ratioDone:',r);
         return r;
+      case 'time':
+
+        var t = ScopeRef._gs.getTime();
+        var r = (t - this.start_time);
+        //console.log('time is:'+t+' start time is:'+this.start_time);
+        return r;
+      case 'timeleft':
+
+        var t = ScopeRef._gs.getTime();
+        var r = Math.max(this.duration,this.duration - (t - this.start_time)) ;
+
+        return r;
       case 'duration':
         return this._value === null ? Infinity : this._value.duration;
     }
@@ -1423,6 +1435,8 @@ GameStateObject.extend('GameState',{
         p._value[n].set(pd);
       }
     });
+
+
     this.players.add(player_data.token,p);
   },
   /**
@@ -1458,8 +1472,9 @@ GameStateObject.extend('GameState',{
     //if this currentphase trigger hooks for ending the phase
     if(this.currentPhase._value){
       console.log('unloading phase:'+this.currentPhase._name);
-      this.currentPhase.unload();
+
       this.currentPhase.triggerHook('end');
+      this.currentPhase.unload();
       Hookable._handleTriggerQueue();
     }
 

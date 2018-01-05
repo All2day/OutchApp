@@ -40,19 +40,25 @@
 
 <script id="game" type="text/x-handlebars-template">
   <div class="page">
-    <header class="header"><a class="left back">&lt;</a> <div class="title">{{name}}</div></header>
+    <header class="header"><a class="left back"><i class="icon-Back-Arrow"></i></a> <div class="title">{{name}}</div></header>
     <content class="inner">
       <div class="game">
         <p>{{description}}</p>
+
+        <h2>Games to join nearby</h2>
         {{#each instances}}
-          <div class="instance">
-            <h2>id:{{instance_id}}</h2>
-            <div>url:{{url}}</div>
-            <div>created by:{{owner.name}} at {{created}}</div>
-            {{#if control}}
-            <button class="stop" data-instance_id="{{instance_id}}">Stop</button>
-            {{/if}}
-            <button class="join" data-instance_id="{{instance_id}}" data-url="{{url}}">Join</button>
+          <div class="instance" data-instance_id="{{instance_id}}">
+
+            <!--<div>url:{{url}}</div>-->
+            <div class="info"><i class="icon-Profile"></i> {{owner.name}}</div>
+            <div class="info"><i class="icon-Players"></i> {{pluralCount playercount 'player'}}</div>
+
+            <h3>{{name}} ({{instance_id}})
+              {{#if control}}
+              <span class="stop" data-instance_id="{{instance_id}}"><i class="icon-Close"></i></span>
+              {{/if}}
+            </h3>
+            <div class="join" data-instance_id="{{instance_id}}" data-url="{{url}}"><i class="icon-Front-Arrow"></i></div>
           </div>
         {{/each}}
 

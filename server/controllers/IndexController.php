@@ -1,3 +1,4 @@
+
 <?php
 /**
  * IndexController
@@ -51,12 +52,14 @@ class IndexController extends Zend_Controller_Action{
 		$game_id = $this->_getParam('game_id');
 		$token = $this->_getParam('token');
 		$p = PlayerTable::getFromToken($token);
+		$name = $this->_getParam('name');
+
 		if(!$p){
 			throw new Exception('no such player');
 			exit;
 		}
 
-		$instance = InstanceTable::startInstance($game_id,$p);
+		$instance = InstanceTable::startInstance($game_id,$p, $name);
 
 		$res = array(
 			'instance_id' => $instance->instance_id,
@@ -105,6 +108,7 @@ class IndexController extends Zend_Controller_Action{
 		foreach($instances as $instance){
 			$i = $instance->toArray();
 			$i['owner'] = $instance->getOwner();
+			$i['playercount'] = count($intance->getPlayers());
 			$ins[] = $i;
 		}
 
@@ -182,6 +186,8 @@ class IndexController extends Zend_Controller_Action{
 			$i = $instance->toArray();
 			$i['control'] = $p && $i['owner'] == $p['player_id']; //can this user control this instance
 			$i['owner'] = $instance->getOwner()->getObject();
+
+			$i['playercount'] = count($instance->getPlayers());
 
 
 			$ins[] = $i;

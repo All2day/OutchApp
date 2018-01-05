@@ -55,17 +55,17 @@ Class.extend('GameServer',{
       }
 
       if(!this.control_url){
-        console.log('no control url, dont use');
+        console.log('[phase change]no control url, dont use');
         return;
       }
 
 
-      console.log('phase changed sending to server',this.control_url);
-      $.getJSON(this.control_url,data,function(r){
+      console.log('phase changed sending to server',this.control_url+'/update');
+      $.getJSON(this.control_url+'/update',data,function(r){
         console.log('phase change result')
         console.log(r);
       }.bind(this)).fail(function(r){
-        console.log('error',r);
+        console.log('phase change update error',r);
       });
     }.bind(this));
 
@@ -156,6 +156,8 @@ Class.extend('GameServer',{
     return response_data;
   },
   handleRequest:function(request,response){
+    console.log('request:'+request.url);
+
     var t = new Date().getTime();
     try {
 
@@ -169,6 +171,7 @@ Class.extend('GameServer',{
       var data = JSON.parse(json_data);
       if(m = requestUrl.pathname.match(/^\/message\/(.*)$/)){
         response_data = this.handleMessage(m[1],data);
+        console.log('\nmessage handled');
       } else
       if(m = requestUrl.pathname.match(/^\/ping$/)){
         response_data = this.handlePing(data);
@@ -199,12 +202,14 @@ Class.extend('GameServer',{
       response.writeHead(500)
       response.end()     // end the response so browsers don't hang
     }
+    console.log('request handled');
   },
   serverPing:function(){
     if(!this.control_url){
-      console.log('no control url, dont use');
+      console.log('[serverping]no control url, dont use');
+      return;
     }
-    console.log('sending server ping to:'+this.control_url+ ' with process_id:'+this.process_id);
+    console.log('sending server ping to:'+this.control_url+'/update'+ ' with process_id:'+this.process_id);
 
 
     var players = [];
@@ -233,11 +238,8 @@ Class.extend('GameServer',{
       });
     }.bind(this));
 
-    if(!this.control_url){
-      console.log('no control url, dont use');
-      return;
-    }
-    $.getJSON(this.control_url,{
+
+    $.getJSON(this.control_url+'/update',{
         process_id:this.process_id,
         players: players
       },function(r){
@@ -251,10 +253,29 @@ Class.extend('GameServer',{
 
   },
   start:function(){
-    this.serverPing();
-    this.http = http.createServer(this.handleRequest.bind(this));
-    this.http.listen(this.port)
+    //fetch initial state
 
-    console.log("listening on port "+this.port);
+    //use the control url to fetch more info of this game instance
+    $.getJSON(this.control_url+'/info',function(data){
+      console.log('got info, setting name to:'+data.instance.name);
+      this.gs.vars.set('name',data.instance.name);
+
+      this.serverPing();
+      this.http = http.createServer(this.handleRequest.bind(this));
+      this.http.listen(this.port)
+
+      console.log("listening on port "+this.port);
+
+
+    }.bind(this));
+    //exit;
+
+    if(!this.control_url){
+      console.log('[init] no control url, start directly without info');
+      this.serverPing();
+      this.http = http.createServer(this.handleRequest.bind(this));
+      this.http.listen(this.port)
+    }
+
   }
 });

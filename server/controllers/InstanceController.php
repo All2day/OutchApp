@@ -13,10 +13,19 @@ class InstanceController extends Zend_Controller_Action
 	public function init(){
 		$token = $this->_getParam('token');
 
+		if(!$token && isset($_SERVER['HTTP_X_INSTANCE_TOKEN'])){
+			$token = $header_token = $_SERVER['HTTP_X_INSTANCE_TOKEN'];
+			//die($token);
+		} else {
+			//die('no token');
+		}
+
+		All2day_Log::action('instance',0,$token);
+
 		$this->instance = InstanceTable::getFromToken($token);
 
 		if(!$this->instance){
-			die('could not find with token');
+			die('could not find with token:'.$token. ' '. $header_token);
 		}
 
 		$rawpost = file_get_contents("php://input");
@@ -54,6 +63,10 @@ class InstanceController extends Zend_Controller_Action
 	 */
 	public function indexAction(){
 
+	}
+
+	public function infoAction(){
+		$this->res['instance'] = $this->instance->toArray();
 	}
 
 	public function updateAction(){

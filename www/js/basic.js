@@ -329,10 +329,14 @@ TreeObject.extend('Hookable',{
    //console.log('handling trigger queue:'+Hookable._triggerQueue.length);
    while(Hookable._triggerQueue.length){
      var h = Hookable._triggerQueue.shift();
-     if($.type(h[0]) == 'function'){
-        h[0].apply(h[1]);
-     } else {
-       h[0].trigger(h[1]);
+     try{
+       if($.type(h[0]) == 'function'){
+          h[0].apply(h[1]);
+       } else {
+         h[0].trigger(h[1]);
+       }
+     } catch(e){
+       console.log('Caught exception while handling trigger queue:'+e);
      }
    }
  };

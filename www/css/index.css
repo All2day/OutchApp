@@ -81,19 +81,20 @@ article, aside, details, figcaption, figure, footer, header, hgroup, main, menu,
  * specific language governing permissions and limitations
  * under the License.
  */
-/* line 24, sass/_basic.scss */
+/* line 43, sass/_basic.scss */
 * {
   -webkit-tap-highlight-color: transparent;
   /* make transparent link selection, adjust last value opacity 0 to 1.0 */
 }
 
-/* line 28, sass/_basic.scss */
+/* line 47, sass/_basic.scss */
 html {
   width: 100%;
   height: 100%;
+  font-size: 80%;
 }
 
-/* line 33, sass/_basic.scss */
+/* line 54, sass/_basic.scss */
 body {
   -webkit-touch-callout: none;
   /* prevent callout to copy image, etc when tap to hold */
@@ -107,17 +108,62 @@ body {
   background-image: -ms-linear-gradient(top, #A7A7A7 0%, #E4E4E4 51%);
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #A7A7A7), color-stop(0.51, #E4E4E4));
   background-attachment: fixed;
-  font-family: 'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-family: Arial,'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, sans-serif;
+  font-size: 1rem;
   height: 100%;
   margin: 0px;
   padding: 0px;
-  text-transform: uppercase;
   width: 100%;
 }
 
+@font-face {
+  font-family: norwester;
+  src: url(../fonts/norwester.otf);
+}
+/* line 86, sass/_basic.scss */
+.headline-font, .scoreboard .scoreboard-element {
+  font-size: 4rem;
+  font-family: "norwester";
+}
+
+/* line 91, sass/_basic.scss */
+.title-font, #front .game .instance h3, #front .game .instance .join, .page .header, .mapPage .map_controls, .modal .header, .modal .footer, .gamebar .title {
+  font-size: 2rem;
+  font-family: 'norwester';
+}
+
+/* line 96, sass/_basic.scss */
+.subheader-font, .playerlist .listel, .scoreboard .scoreboard-element .content, .modal .body h2 {
+  font-size: 1.5rem;
+  font-family: 'norwester';
+}
+
+/* line 101, sass/_basic.scss */
+.subtitle-font, #front .game h2, #front .game .instance .info, .label, .playerlist .list-header {
+  font-size: 1.0rem;
+  font-family: 'norwester';
+}
+
+/* line 106, sass/_basic.scss */
+.button-font, button {
+  font-size: 2rem;
+  font-family: 'norwester';
+}
+
+/* line 111, sass/_basic.scss */
+.large-body-font, #front .game p {
+  font-size: 1.4rem;
+  font-family: Arial;
+}
+
+/* line 116, sass/_basic.scss */
+.body-font, .modal .body {
+  font-size: 1.0rem;
+  font-family: Arial;
+}
+
 /* Portrait layout (default) */
-/* line 61, sass/_basic.scss */
+/* line 127, sass/_basic.scss */
 .app {
   background: url(../img/logo.png) no-repeat center top;
   /* 170px x 200px */
@@ -139,7 +185,7 @@ body {
 
 /* Landscape layout (with min-width) */
 @media screen and (min-aspect-ratio: 1 / 1) and (min-width: 400px) {
-  /* line 76, sass/_basic.scss */
+  /* line 142, sass/_basic.scss */
   .app {
     background-position: left center;
     padding: 75px 0px 75px 170px;
@@ -149,7 +195,7 @@ body {
     /* offset horizontal: half of image width and text area width */
   }
 }
-/* line 84, sass/_basic.scss */
+/* line 150, sass/_basic.scss */
 h1 {
   font-size: 24px;
   font-weight: normal;
@@ -159,7 +205,7 @@ h1 {
   text-align: center;
 }
 
-/* line 93, sass/_basic.scss */
+/* line 159, sass/_basic.scss */
 .event {
   border-radius: 4px;
   -webkit-border-radius: 4px;
@@ -169,13 +215,13 @@ h1 {
   padding: 2px 0px;
 }
 
-/* line 102, sass/_basic.scss */
+/* line 168, sass/_basic.scss */
 .event.listening {
   background-color: #333333;
   display: block;
 }
 
-/* line 107, sass/_basic.scss */
+/* line 173, sass/_basic.scss */
 .event.received {
   background-color: #4B946A;
   display: none;
@@ -203,7 +249,7 @@ h1 {
     opacity: 1.0;
   }
 }
-/* line 124, sass/_basic.scss */
+/* line 190, sass/_basic.scss */
 .blink {
   animation: fade 3000ms infinite;
   -webkit-animation: fade 3000ms infinite;
@@ -212,7 +258,7 @@ h1 {
 /**
  * Our default styling of objects
  */
-/* line 132, sass/_basic.scss */
+/* line 198, sass/_basic.scss */
 #front {
   /*background-color:#FFF;*/
   width: 100vw;
@@ -221,24 +267,64 @@ h1 {
   text-align: center;
   overflow-y: scroll;
 }
-/* line 139, sass/_basic.scss */
+/* line 205, sass/_basic.scss */
 #front .game {
   width: 100%;
-  border-top: 1px solid #646464;
-  border-bottom: 1px solid #646464;
-  padding: 1em;
   box-sizing: border-box;
 }
-/* line 145, sass/_basic.scss */
+/* line 213, sass/_basic.scss */
+#front .game p {
+  padding: 1.2rem 2.8rem;
+  background: #FFFFFF;
+  min-height: 8rem;
+  text-align: left;
+}
+/* line 221, sass/_basic.scss */
+#front .game h2 {
+  padding: 0 2.8rem;
+  color: #C9C9C9;
+  line-height: 3em;
+  text-align: left;
+}
+/* line 229, sass/_basic.scss */
 #front .game .instance {
   width: 100%;
-  border-top: 1px solid #646464;
-  border-bottom: 1px solid #646464;
-  padding: 1em 0;
+  background: #FFFFFF;
+  position: relative;
+  padding: 1.2rem 2.8rem;
   box-sizing: border-box;
+  margin-top: 0.4rem;
+  text-align: left;
+}
+/* line 239, sass/_basic.scss */
+#front .game .instance .info {
+  color: #0095BF;
+  width: 35vw;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  -ms-text-overflow: ellipsis;
+}
+/* line 246, sass/_basic.scss */
+#front .game .instance h3 {
+  margin-top: 1.2rem;
+}
+/* line 251, sass/_basic.scss */
+#front .game .instance .join {
+  position: absolute;
+  right: 2.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #E4F3F8;
+}
+/* line 261, sass/_basic.scss */
+#front .game .instance .stop {
+  color: #E4F3F8;
 }
 
-/* line 156, sass/_basic.scss */
+/* line 269, sass/_basic.scss */
 .page {
   position: absolute;
   top: 0;
@@ -257,40 +343,35 @@ h1 {
   */
   display: flex;
   flex-direction: column;
-  color: #2b465d;
 }
-/* line 178, sass/_basic.scss */
+/* line 291, sass/_basic.scss */
 .page .header {
-  background: linear-gradient(to bottom, #020f16 0%, #03171f 100%);
-  /*height:4em;*/
-  min-height: 4em;
-  line-height: 4em;
+  background: #000000;
+  min-height: 2.6em;
+  line-height: 2.6em;
   color: #FFFFFF;
   vertical-align: middle;
   position: relative;
 }
-/* line 187, sass/_basic.scss */
+/* line 302, sass/_basic.scss */
 .page .header .title {
-  font-size: 2em;
-  font-weight: bold;
   display: inline-block;
 }
-/* line 193, sass/_basic.scss */
+/* line 310, sass/_basic.scss */
 .page .header .left {
   position: absolute;
   padding: 0 1em;
   left: 0;
-  font-size: 2em;
   font-weight: bold;
 }
-/* line 202, sass/_basic.scss */
+/* line 319, sass/_basic.scss */
 .page .header .playerQuality {
   position: absolute;
   right: 1em;
   top: 50%;
   transform: translateY(-50%);
 }
-/* line 210, sass/_basic.scss */
+/* line 327, sass/_basic.scss */
 .page .inner {
   flex: 1 1 auto;
   /*flex: 1 0 auto; // use this to implement sticky footer
@@ -298,7 +379,7 @@ h1 {
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   /*background:#e7e4e6;*/
-  background: #e4f3f8;
+  background: #E4F3F8;
   vertical-align: middle;
   text-align: center;
   display: flex;
@@ -308,25 +389,36 @@ h1 {
   flex-wrap: wrap;
   color: #2b465d;
 }
+/* line 348, sass/_basic.scss */
+.page .inner .setting, .page .inner .gamebar {
+  width: 100%;
+  background: #FFFFFF;
+  margin-bottom: 0.4rem;
+}
 
-/* line 237, sass/_basic.scss */
+/* line 360, sass/_basic.scss */
 .iOS7 .page .header {
   padding-top: 20px;
 }
 
-/* line 242, sass/_basic.scss */
+/* line 365, sass/_basic.scss */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* line 248, sass/_basic.scss */
+/* line 371, sass/_basic.scss */
 .mapPage .map_controls {
   background: rgba(0, 0, 0, 0.5);
   width: 100vw;
+  min-height: 2.6em;
+  line-height: 2.6em;
+  color: #FFFFFF;
+  vertical-align: middle;
+  position: relative;
 }
-/* line 252, sass/_basic.scss */
+/* line 385, sass/_basic.scss */
 .mapPage .map_controls .playerQuality {
   position: absolute;
   right: 1em;
@@ -334,48 +426,45 @@ h1 {
   transform: translateY(-50%);
 }
 
-/* line 261, sass/_basic.scss */
+/* line 394, sass/_basic.scss */
 .playerQuality svg {
-  width: 2em;
-  height: 2em;
-  fill: red;
+  width: 1em;
+  height: 1em;
+  overflow: visible;
   display: block;
   /*.bad{
     color:red;
     fill:red;
   }*/
 }
-/* line 267, sass/_basic.scss */
-.playerQuality svg .good {
-  color: green;
-  fill: green;
+/* line 403, sass/_basic.scss */
+.playerQuality svg * {
+  fill: #BF0404;
+  transition: fill 3s;
 }
-/* line 271, sass/_basic.scss */
+/* line 408, sass/_basic.scss */
+.playerQuality svg .good {
+  color: #2C5E2E;
+  fill: #2C5E2E;
+}
+/* line 412, sass/_basic.scss */
 .playerQuality svg .medium {
-  color: yellow;
-  fill: yellow;
+  color: #FFCC00;
+  fill: #FFCC00;
 }
 
-/* line 285, sass/_basic.scss */
+/* line 426, sass/_basic.scss */
 button {
   width: 80vw;
-  margin: 1em 0;
-  background: #3092bc;
+  margin: .8em 0;
+  background: #0095BF;
   border-radius: .5em;
   color: #FFFFFF;
   border: 0;
   padding: .5em;
-  font: inherit;
-  font-weight: bold;
-  font-size: 1.5em;
 }
 
-/* line 297, sass/_basic.scss */
-button:active {
-  background: #2b465d;
-}
-
-/* line 301, sass/_basic.scss */
+/* line 444, sass/_basic.scss */
 button.bottom-button {
   width: 100vw;
   border-radius: 0;
@@ -383,14 +472,14 @@ button.bottom-button {
   bottom: 0;
   left: 0;
   margin: 0;
-  padding: 1em;
+  padding: .8em;
   /*font-size:2em;*/
 }
 
-/* line 312, sass/_basic.scss */
+/* line 455, sass/_basic.scss */
 input {
   width: 90vw;
-  border: 1px solid #3092bc;
+  border: 1px solid #0095BF;
   padding: 5vw;
   margin-top: .5em;
   margin-bottom: .5em;
@@ -401,16 +490,17 @@ input {
   font-size: 1.5em;
 }
 
-/* line 325, sass/_basic.scss */
-.label {
-  width: 80vw;
+/* line 468, sass/_basic.scss */
+.label, .playerlist .list-header {
+  padding: 0 2.8rem;
+  display: block;
   text-align: left;
-  margin-top: .5em;
-  margin-bottom: .5em;
-  font-size: 1.2em;
+  margin: 1.2rem 0;
+  width: 100%;
+  color: #5B6163;
 }
 
-/* line 332, sass/_basic.scss */
+/* line 477, sass/_basic.scss */
 .list {
   width: 100%;
   display: flex;
@@ -419,7 +509,7 @@ input {
   flex-direction: column;
 }
 
-/* line 339, sass/_basic.scss */
+/* line 484, sass/_basic.scss */
 .listel {
   width: 100%;
   display: flex;
@@ -428,7 +518,7 @@ input {
 }
 
 /* classic bar timer*/
-/* line 347, sass/_basic.scss */
+/* line 492, sass/_basic.scss */
 .bartimer {
   width: 100%;
   box-sizing: border-box;
@@ -441,7 +531,7 @@ input {
   border-radius: .5em;
   overflow: hidden;
 }
-/* line 359, sass/_basic.scss */
+/* line 504, sass/_basic.scss */
 .bartimer .bar {
   border-radius: .5em 0 0 .5em;
   position: absolute;
@@ -451,14 +541,14 @@ input {
   top: 0;
   background: linear-gradient(to right, #7db9e8 0%, #1e5799 100%);
 }
-/* line 368, sass/_basic.scss */
+/* line 513, sass/_basic.scss */
 .bartimer .bar.disabled {
   width: 100%;
-  background: gray;
+  background: #5B6163;
 }
 
 /* version of the timerbar for bottom of headers */
-/* line 377, sass/_basic.scss */
+/* line 522, sass/_basic.scss */
 .headerbartimer {
   position: absolute;
   bottom: 0;
@@ -469,7 +559,7 @@ input {
   overflow: hidden;
   background: rgba(0, 0, 0, 0.3);
 }
-/* line 387, sass/_basic.scss */
+/* line 532, sass/_basic.scss */
 .headerbartimer .bar {
   position: absolute;
   height: 100%;
@@ -477,98 +567,117 @@ input {
   top: 0;
   overflow: visible !important;
 }
-/* line 394, sass/_basic.scss */
+/* line 539, sass/_basic.scss */
 .headerbartimer .bar:before {
   content: '';
   position: absolute;
-  background: #7db9e8;
+  background: #0095BF;
   width: 100vw;
   height: 100%;
   right: 100%;
 }
 
-/* line 405, sass/_basic.scss */
+/* line 550, sass/_basic.scss */
 .playerlist {
-  background-color: white;
-  padding: 1em;
+  background-color: #FFFFFF;
+  margin-bottom: 0.4rem;
+  display: block;
 }
-/* line 409, sass/_basic.scss */
-.playerlist .listel {
+/* line 555, sass/_basic.scss */
+.playerlist .list-header {
   width: 100%;
+}
+/* line 560, sass/_basic.scss */
+.playerlist .listel {
+  width: auto;
   position: relative;
+  text-align: left;
+  display: block;
+  margin: 1.2rem 2.8rem;
+  /*&>*{
+    margin:0 $side-padding;
+  }*/
 }
-/* line 412, sass/_basic.scss */
-.playerlist .listel .name {
-  font-size: 2em;
-  font-weight: bold;
+/* line 574, sass/_basic.scss */
+.playerlist .listel i {
+  margin-right: 1em;
 }
-/* line 417, sass/_basic.scss */
+/* line 583, sass/_basic.scss */
 .playerlist .listel .playerQuality {
   position: absolute;
-  right: 1em;
+  right: 0;
   top: 50%;
   transform: translateY(-50%);
 }
 
-/* line 428, sass/_basic.scss */
+/* line 594, sass/_basic.scss */
 .scoreboard .listel {
   width: 100%;
 }
-/* line 431, sass/_basic.scss */
+/* line 597, sass/_basic.scss */
 .scoreboard .scoreboard-element {
-  background: white;
+  background: #FFFFFF;
   width: 80vw;
-  line-height: 3em;
+  line-height: 1.5em;
   margin: .2em 0;
-  font-size: 1.6em;
-  font-weight: bold;
 }
-/* line 432, sass/_basic.scss */
+/* line 600, sass/_basic.scss */
 .scoreboard .scoreboard-element .position {
-  font-size: 3rem;
   position: absolute;
   line-height: 100%;
   margin-left: 1rem;
+  color: #000000;
 }
-/* line 437, sass/_basic.scss */
+/* line 606, sass/_basic.scss */
 .scoreboard .scoreboard-element .position:after {
   content: 'TH';
-  font-size: .6em;
+  font-size: .75em;
   vertical-align: text-top;
 }
-/* line 452, sass/_basic.scss */
+/* line 626, sass/_basic.scss */
 .scoreboard .scoreboard-element.me {
-  border: 0.2em solid yellow;
-  background: #7db9e8;
+  border: 0.4rem solid #FFCC00;
+  background: #0095BF;
   width: 100%;
 }
-/* line 460, sass/_basic.scss */
+/* line 630, sass/_basic.scss */
+.scoreboard .scoreboard-element.me .position {
+  font-size: 1.2em;
+}
+/* line 637, sass/_basic.scss */
 .scoreboard .listel .position.r1:after {
   content: 'ST';
 }
-/* line 463, sass/_basic.scss */
+/* line 640, sass/_basic.scss */
 .scoreboard .listel .position.r2:after {
   content: 'ND';
 }
-/* line 466, sass/_basic.scss */
+/* line 643, sass/_basic.scss */
 .scoreboard .listel .position.r3:after {
   content: 'RD';
 }
 
-/* line 473, sass/_basic.scss */
+/* line 650, sass/_basic.scss */
 .slider {
-  width: 100vw;
   box-sizing: border-box;
-  margin: 1em 10vw;
-  height: 1em;
-  display: inline-block;
+  margin: 1.2rem 2.8rem;
+  height: 1rem;
+  display: block;
   position: relative;
-  background: white;
+  background: #C9C9C9;
+  background-position: 0px 0px;
+  background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4gPHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiBncmFkaWVudFVuaXRzPSJvYmplY3RCb3VuZGluZ0JveCIgeDE9IjAuMCIgeTE9IjAuNSIgeDI9IjEuMCIgeTI9IjAuNSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzAwOTViZiIvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjMDA5NWJmIi8+PHN0b3Agb2Zmc2V0PSI1MCUiIHN0b3AtY29sb3I9IiNjOWM5YzkiLz48c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNjOWM5YzkiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPjwvc3ZnPiA=');
+  background-size: 100%;
+  background-image: -webkit-gradient(linear, 0% 50%, 100% 50%, color-stop(0%, #0095bf), color-stop(50%, #0095bf), color-stop(50%, #c9c9c9), color-stop(100%, #c9c9c9));
+  background-image: -moz-linear-gradient(left, #0095bf 0%, #0095bf 50%, #c9c9c9 50%, #c9c9c9 100%);
+  background-image: -webkit-linear-gradient(left, #0095bf 0%, #0095bf 50%, #c9c9c9 50%, #c9c9c9 100%);
+  background-image: linear-gradient(to right, #0095bf 0%, #0095bf 50%, #c9c9c9 50%, #c9c9c9 100%);
+  background-size: 200% 200%;
+  background-position-x: 100%;
   /*border:1px solid black;*/
   border-radius: .5em;
 }
-
-/* line 485, sass/_basic.scss */
+/* line 666, sass/_basic.scss */
 .slider .knob {
   width: 2em;
   height: 2em;
@@ -576,14 +685,17 @@ input {
   /*border:1px solid black;*/
   position: absolute;
   margin-top: -0.5em;
-  background: #3092bc;
+  background: #0095BF;
   /*background: radial-gradient(ellipse at center, #7db9e8 0%,#1e5799 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  -moz-box-shadow: inset 1px 1px 2px 0px rgba(255, 255, 255, 0.2), 0px 0px 1em 0px rgba(0, 0, 0, 0.15);
+  -webkit-box-shadow: inset 1px 1px 2px 0px rgba(255, 255, 255, 0.2), 0px 0px 1em 0px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 1px 1px 2px 0px rgba(255, 255, 255, 0.2), 0px 0px 1em 0px rgba(0, 0, 0, 0.15);
 }
 
 /**
  * To show modal dialogs with background
  */
-/* line 500, sass/_basic.scss */
+/* line 684, sass/_basic.scss */
 .modal {
   position: fixed;
   top: 0;
@@ -599,71 +711,85 @@ input {
   align-items: center;
 }
 
-/* line 515, sass/_basic.scss */
+/* line 699, sass/_basic.scss */
 .modal .header {
   flex: 0 0 auto;
   width: 80vw;
-  background: #3092bc;
-  padding: 1em;
-  border: 1px solid #3092bc;
-  border-radius: 1em 1em 0 0;
-  color: white;
-  text-align: center;
+  background: #C9C9C9;
+  height: 2.6em;
+  border: 0.1rem solid #C9C9C9;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* line 528, sass/_basic.scss */
+/* line 715, sass/_basic.scss */
 .modal .body {
   flex: 0 1 auto;
   width: 80vw;
-  background: white;
+  background: #FFFFFF;
   min-height: 30vh;
   padding: 1em;
-  border: 1px solid #3092bc;
+  border: 0.1rem solid #C9C9C9;
+}
+/* line 726, sass/_basic.scss */
+.modal .body h2 {
+  color: #0095BF;
+}
+/* line 731, sass/_basic.scss */
+.modal .body input {
+  width: 100%;
+  border: 1px solid #0095BF;
+  border-radius: 0;
 }
 
-/* line 538, sass/_basic.scss */
+/* line 738, sass/_basic.scss */
 .modal .footer {
   flex: 0 0 auto;
   text-align: center;
   width: 80vw;
-  color: white;
-  background: #3092bc;
-  padding: 1em;
-  border: 1px solid #3092bc;
-  border-radius: 0 0 1em 1em;
+  color: #FFFFFF;
+  background: #C9C9C9;
+  height: 2.6em;
+  border: 0.1rem solid #C9C9C9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* line 549, sass/_basic.scss */
+/* line 755, sass/_basic.scss */
 .iOS7 .map_controls {
   margin-top: 20px;
 }
 
 /*Round timer*/
-/* line 557, sass/_basic.scss */
+/* line 763, sass/_basic.scss */
 .roundtimer {
   position: relative;
   margin: auto;
-  height: 40px;
-  width: 40px;
+  height: 1em;
+  width: 1em;
   text-align: center;
   display: inline-block;
+  vertical-align: middle;
 }
-/* line 565, sass/_basic.scss */
+/* line 772, sass/_basic.scss */
 .roundtimer .roundtimer-content {
-  color: white;
+  color: #FFFFFF;
   display: inline-block;
-  line-height: 40px;
+  line-height: 1em;
 }
-/* line 571, sass/_basic.scss */
+/* line 778, sass/_basic.scss */
 .roundtimer svg {
   position: absolute;
   top: 0;
   right: 0;
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  height: 100%;
   transform: rotateY(-180deg) rotateZ(-90deg);
 }
-/* line 578, sass/_basic.scss */
+/* line 785, sass/_basic.scss */
 .roundtimer svg circle {
   stroke-dasharray: 113;
   stroke-dashoffset: 0px;
@@ -672,4 +798,75 @@ input {
   stroke: white;
   fill: none;
   animation: countdown 10s linear infinite forwards;
+}
+
+/* line 801, sass/_basic.scss */
+.gamebar {
+  position: relative;
+}
+/* line 805, sass/_basic.scss */
+.gamebar .title {
+  margin: 1.6rem 0;
+  color: #000000;
+}
+/* line 811, sass/_basic.scss */
+.gamebar .gameimage {
+  height: 5.2rem;
+  width: 5.2rem;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: url(../img/game_square.png);
+}
+
+@font-face {
+  font-family: 'icomoon';
+  src: url("/fonts/icomoon.eot");
+  src: url("/fonts/icomoon.eot?#iefix") format("embedded-opentype"), url("/fonts/icomoon.woff?v5") format("woff"), url("/fonts/icomoon.ttf?v5") format("truetype"), url("/fonts/icomoon.svg#icomoon") format("svg");
+  font-weight: normal;
+  font-style: normal;
+}
+/* line 13, sass/_icons.scss */
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* line 30, sass/_icons.scss */
+.icon-Back-Arrow:before {
+  content: "\e900";
+}
+
+/* line 33, sass/_icons.scss */
+.icon-Close:before {
+  content: "\e901";
+}
+
+/* line 36, sass/_icons.scss */
+.icon-Play:before {
+  content: "\e902";
+}
+
+/* line 39, sass/_icons.scss */
+.icon-Players:before {
+  content: "\e903";
+}
+
+/* line 42, sass/_icons.scss */
+.icon-Profile:before {
+  content: "\e904";
+}
+
+/* line 45, sass/_icons.scss */
+.icon-Front-Arrow:before {
+  content: "\e905";
 }

@@ -1,7 +1,26 @@
-$background_blue: #e4f3f8;
-$blue: #7db9e8;
-$yellow: yellow;
 
+
+$white: #FFFFFF;
+$grey: #C9C9C9;
+$dark-grey: #5B6163;
+$black: #000000;
+$light-blue: #E4F3F8;
+$blue: #0095BF;
+$dark-blue: #1D3D59;
+$dark-red: #BF0404;
+$dark-green: #2C5E2E;
+$dark-yellow: #FFCC00;
+
+$yellow: $dark-yellow;
+$main-text-color: #2b465d;
+$background_blue: $light-blue;
+
+$side-padding: 2.8rem; //used for content side padding
+$top-padding: 1.2rem;
+$border-width:.1rem;
+$list-space:.4rem;
+
+//blueish color used as border for inputs: #3092bc
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -28,6 +47,8 @@ $yellow: yellow;
 html{
   width: 100%;
   height: 100%;
+  //font-size:62.5%; //1 rem = 10px for default font size with 16px
+  font-size:80%;
 }
 
 body {
@@ -46,14 +67,59 @@ body {
         color-stop(0.51, #E4E4E4)
     );
     background-attachment:fixed;
-    font-family:'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, Arial, sans-serif;
-    font-size:12px;
+    font-family:Arial,'Open Sans Condensed','HelveticaNeue-Light', 'HelveticaNeue', Helvetica, sans-serif;
+    font-size:1rem;
     height:100%;
     margin:0px;
     padding:0px;
-    text-transform:uppercase;
+    //text-transform:uppercase;
     width:100%;
 }
+
+
+@font-face {
+    font-family: norwester;
+    src: url(../fonts/norwester.otf);
+}
+
+
+.headline-font{
+  font-size:4rem;
+  font-family:'norwester'
+}
+
+.title-font{
+  font-size:2rem;
+  font-family:'norwester';
+}
+
+.subheader-font{
+  font-size:1.5rem;
+  font-family: 'norwester';
+}
+
+.subtitle-font{
+  font-size:1.0rem;
+  font-family: 'norwester';
+}
+
+.button-font{
+  font-size:2rem;
+  font-family:'norwester';
+}
+
+.large-body-font{
+  font-size:1.4rem;
+  font-family:Arial;
+}
+
+.body-font{
+  font-size:1.0rem;
+  font-family:Arial;
+}
+
+
+
 
 
 
@@ -138,16 +204,63 @@ h1 {
   overflow-y: scroll;
   .game{
     width:100%;
-    border-top:1px solid rgb(100,100,100);
-    border-bottom:1px solid rgb(100,100,100);
-    padding:1em;
+    //border-top:1px solid rgb(100,100,100);
+    //border-bottom:1px solid rgb(100,100,100);
+    //padding:1em;
     box-sizing:border-box;
+
+    //description
+    p{
+      padding: $top-padding $side-padding;
+      @extend .large-body-font;
+      background: $white;
+      min-height:8rem;
+      text-align:left;
+    }
+
+    h2 {
+      padding: 0 $side-padding;
+      color:$grey;
+      @extend .subtitle-font;
+      line-height:3em;
+      text-align:left;
+    }
+
     .instance{
       width:100%;
-      border-top:1px solid rgb(100,100,100);
-      border-bottom:1px solid rgb(100,100,100);
-      padding:1em 0;
+      background:$white;
+      position:relative;
+
+      padding:$top-padding $side-padding;
       box-sizing:border-box;
+      margin-top:$list-space;
+      text-align: left;
+
+      .info{
+        color:$blue;
+        width:35vw;
+        display:inline-block;
+        @extend .subtitle-font;
+        @include ellipsis();
+      }
+      h3{
+        margin-top:$top-padding;
+        @extend .title-font;
+      }
+
+      .join{
+        position: absolute;
+        right:$side-padding;
+        top:50%;
+        transform:translateY(-50%);
+
+        color:$light-blue;
+        @extend .title-font;
+      }
+
+      .stop{
+        color:$light-blue;
+      }
     }
   }
 }
@@ -173,20 +286,24 @@ h1 {
   display: flex;
   flex-direction: column;
 
-  color:#2b465d;
+  //color:#2b465d;
 
   .header{
-    background: linear-gradient(to bottom, #020f16 0%,#03171f 100%);
-    /*height:4em;*/
-    min-height: 4em;
-    line-height: 4em;
-    color:#FFFFFF;
+    background: $black;
+
+    @extend .title-font;
+
+    min-height: 2.6em;//5.2rem; //padding is 1.6rem
+    line-height: 2.6em;//5.2rem;
+    color:$white;
     vertical-align:middle;
     position:relative;
 
     .title {
-      font-size:2em;
-      font-weight:bold;
+
+      //font-size:2em;
+      //font-weight:bold;
+      //line-height:2.6em; //padding 0.8rem
       display:inline-block;
     }
 
@@ -194,7 +311,7 @@ h1 {
       position:absolute;
       padding: 0 1em;
       left: 0;
-      font-size:2em;
+      //font-size:2em;
       font-weight:bold;
 
     }
@@ -226,7 +343,13 @@ h1 {
     align-content:flex-start;
     flex-wrap:wrap;
 
-    color:#2b465d;
+    color:$main-text-color;
+
+    .setting{
+      width:100%;
+      background:$white;
+      margin-bottom:$list-space;
+    }
   }
 
   .footer{
@@ -249,6 +372,16 @@ h1 {
   background:rgba(0,0,0,0.5);
   width:100vw;
 
+  @extend .title-font;
+
+  min-height: 2.6em;//5.2rem; //padding is 1.6rem
+  line-height: 2.6em;//5.2rem;
+  color:$white;
+  vertical-align:middle;
+  position:relative;
+
+
+
   .playerQuality{
     position:absolute;
     right:1em;
@@ -259,18 +392,26 @@ h1 {
 
 .playerQuality {
   svg{
-    width:2em;
-    height:2em;
-    fill:red;
+    width:1em;
+    height:1em;
+    overflow: visible;
+
     display:block;
 
+
+
+    * {
+      fill:$dark-red;
+      transition: fill 3s;
+    }
+
     .good{
-      color:green;
-      fill:green;
+      color:$dark-green;
+      fill:$dark-green;
     }
     .medium{
-      color:yellow;
-      fill:yellow;
+      color:$dark-yellow;
+      fill:$dark-yellow;
     }
     /*.bad{
       color:red;
@@ -283,19 +424,21 @@ h1 {
 
 
 button {
+  @extend .button-font;
+
   width:80vw;
-  margin:1em 0;
-  background: #3092bc;
+  margin:.8em 0;
+  background: $blue;//#3092bc;
   border-radius:.5em;
-  color:#FFFFFF;
+  color:$white;
   border: 0;
   padding: .5em;
-  font: inherit;
-  font-weight: bold;
-  font-size: 1.5em;
+  //font: inherit;
+  //font-weight: bold;
+  //font-size: 1em;
 }
 button:active {
-  background: #2b465d;
+  //background: #2b465d;
 }
 
 button.bottom-button{
@@ -305,29 +448,31 @@ button.bottom-button{
   bottom:0;
   left:0;
   margin:0;
-  padding:1em;
+  padding:.8em;
   /*font-size:2em;*/
 }
 
 input {
   width:90vw;
-  border:1px solid #3092bc;
+  border:1px solid $blue;
   padding:5vw;
   margin-top:.5em;
   margin-bottom:.5em;
   border-radius:.5em;
-  background:#FFFFFF;
+  background:$white;
   boz-sizing:border-box;
   font: inherit;
   font-size: 1.5em;
 }
 
 .label{
-  width:80vw;
+  padding:0 $side-padding;
+  display:block;
   text-align:left;
-  margin-top:.5em;
-  margin-bottom:.5em;
-  font-size:1.2em;
+  margin:$top-padding 0;
+  width:100%;
+  @extend .subtitle-font;
+  color: $dark-grey;
 }
 .list{
   width:100%;
@@ -367,7 +512,7 @@ input {
 
     &.disabled{
       width:100%;
-      background:gray;
+      background:$dark-grey;
     }
   }
 }
@@ -403,20 +548,41 @@ input {
 }
 
 .playerlist{
-  background-color:white;
-  padding:1em;
+  background-color:$white;
+  margin-bottom:$list-space;
+  display:block;
+
+  .list-header{
+    width:100%;
+    @extend .label;
+  }
 
   .listel{
-    width:100%;
+    width:auto;
     position:relative;
+    text-align: left;
+    //justify-content: left;
+    display:block;
+    margin:$top-padding $side-padding;
+
+    @extend .subheader-font;
+
+    /*&>*{
+      margin:0 $side-padding;
+    }*/
+
+    i{
+      //margin-left:$side-padding;
+      margin-right:1em;
+    }
+
     .name{
-      font-size:2em;
-      font-weight:bold;
+
     }
 
     .playerQuality{
       position:absolute;
-      right:1em;
+      right:0;//$side-padding;
       top:50%;
       transform:translateY(-50%);
     }
@@ -429,30 +595,41 @@ input {
     width:100%;
   }
   .scoreboard-element{
+    @extend .headline-font;
+
     .position{
-      font-size: 3rem;
+      //font-size: 4rem; //40pt
       position: absolute;
       line-height: 100%;
       margin-left: 1rem;
+      color:$black;
       &:after{
         content:'TH';
-        font-size:.6em;
+        font-size:.75em; //30pt
         vertical-align: text-top;
       }
     }
-    background:white;
+    background:$white;
     width:80vw;
     //height:3em;
-    line-height:3em;
+    line-height:1.5em;
     margin:.2em 0;
 
-    font-size:1.6em;
-    font-weight:bold;
+    //font-size:1.6em;
+    //font-weight:bold;
+
+
+    .content{
+      @extend .subheader-font;
+    }
 
     &.me{
-      border:.2em solid $yellow;
+      border:$list-space solid $yellow;
       background:$blue;
       width:100%;
+      .position{
+        font-size:1.2em;
+      }
     }
   }
 
@@ -471,26 +648,33 @@ input {
 }
 
 .slider {
-  width:100vw;
+  //width:80vw;
   box-sizing:border-box;
-  margin:1em 10vw;
-  height:1em;
-  display:inline-block;
+  margin:$top-padding $side-padding;
+  height:1rem;
+  display:block;
   position:relative;
-  background:white;
+  background:$grey;
+  background-position:0px 0px;
+
+  @include background-image(linear-gradient(left, $blue 0%,$blue 50%,$grey 50%,$grey 100%));
+  background-size: 200% 200%;
+  background-position-x:100%;
+
   /*border:1px solid black;*/
   border-radius:.5em;
-}
+  .knob{
+    width:2em;
+    height:2em;
+    border-radius:1em;
+    /*border:1px solid black;*/
+    position: absolute;
+    margin-top: -0.5em;
+    background: $blue;//#3092bc;
+    /*background: radial-gradient(ellipse at center, #7db9e8 0%,#1e5799 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
 
-.slider .knob{
-  width:2em;
-  height:2em;
-  border-radius:1em;
-  /*border:1px solid black;*/
-  position: absolute;
-  margin-top: -0.5em;
-  background: #3092bc;
-  /*background: radial-gradient(ellipse at center, #7db9e8 0%,#1e5799 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    @include box-shadow(inset 1px 1px 2px 0px rgba(255,255,255,0.2), 0px 0px 1em 0px rgba(0,0,0,0.15));
+  }
 }
 
 
@@ -516,34 +700,56 @@ input {
   flex: 0 0 auto;
 
   width:80vw;
+  @extend .title-font;
 
-  background:#3092bc;
-  padding:1em;
-  border:1px solid #3092bc;
-  border-radius:1em 1em 0 0;
-  color:white;
-  text-align:center;
+  background:$grey;//#3092bc;
+  height:2.6em;
+  border:$border-width solid $grey;
+  //border-radius:1em 1em 0 0;
+  color:$white;
+  display:flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal .body{
   flex: 0 1 auto;
   width:80vw;
 
-  background:white;
+  @extend .body-font;
+
+  background:$white;
   min-height: 30vh;
   padding:1em;
-  border:1px solid #3092bc;
+  border:$border-width solid $grey;
+
+  h2{
+    @extend .subheader-font;
+    color: $blue;
+  }
+
+  input{
+    width:100%;
+    border:1px solid $blue;
+    border-radius:0;
+  }
 }
 
 .modal .footer{
   flex: 0 0 auto;
   text-align:center;
   width:80vw;
-  color:white;
-  background:#3092bc;
-  padding:1em;
-  border:1px solid #3092bc;
-  border-radius:0 0 1em 1em;
+
+  @extend .title-font;
+
+  color:$white;
+  background:$grey;
+  height:2.6em;
+  border:$border-width solid $grey;
+  //border-radius:0 0 .8em .8em;
+  display:flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .iOS7 .map_controls{
@@ -557,23 +763,24 @@ input {
 .roundtimer{
   position: relative;
   margin: auto;
-  height: 40px;
-  width: 40px;
+  height: 1em;
+  width: 1em;
   text-align: center;
   display: inline-block;
+  vertical-align: middle;
 
   .roundtimer-content {
-    color: white;
+    color: $white;
     display: inline-block;
-    line-height: 40px;
+    line-height: 1em;
   }
 
   svg {
     position: absolute;
     top: 0;
     right: 0;
-    width: 40px;
-    height: 40px;
+    width: 100%;
+    height: 100%;
     transform: rotateY(-180deg) rotateZ(-90deg);
     circle {
       stroke-dasharray: 113;
@@ -589,4 +796,24 @@ input {
 
 .longheadertimer{
 
+}
+
+.gamebar{
+  @extend .setting;
+  position:relative;
+
+  .title{
+    margin:1.6rem 0;
+    color:$black;
+    @extend .title-font;
+  }
+
+  .gameimage{
+    height:5.2rem;
+    width:5.2rem;
+    position:absolute;
+    left:0;
+    top:0;
+    background:url(../img/game_square.png);
+  }
 }

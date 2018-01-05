@@ -18,15 +18,27 @@ $.ajaxSettings.xhr = function() {
 };
 
 
+
 global.window = null; //required to be able to make (window || global)
 
 var instance_id = process.argv[2];
 var port = process.argv[3];
 var name = process.argv[4];
 var control_url = process.argv[5]; //token used to communicate
+var instance_token = process.argv[6];
 var process_id = process.pid;
 
-console.log(instance_id,port,process_id);
+$.ajaxSetup({
+    headers: { 'x-instance-token': instance_token },
+    beforeSend: function(xhr) {
+      //console.log('setting oken when sending');
+      if(instance_token){
+        xhr.setRequestHeader('x-instance-token', instance_token);
+      }
+    }
+});
+
+console.log(instance_id,port,process_id, instance_token);
 
 //var uno = require('./www/js/uno.js');
 var g = require('./server/games/'+name+'.js');

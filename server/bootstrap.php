@@ -126,8 +126,8 @@ try{
 	# set up routes
 	$router = $frontController->getRouter();
 
-	//route for restaurents
-	$route = new Zend_Controller_Router_Route_Regex(
+	//route for instance updates
+	/*$route = new Zend_Controller_Router_Route_Regex(
 		'instance/(.*)',
 		array(
 			'controller' => 'instance',
@@ -137,8 +137,8 @@ try{
 			1 => 'token'
 		)
 	);
-	$router->addRoute('restauranter', $route);
-
+	$router->addRoute('instances', $route);
+*/
 
 	# set up routes
 	$router = $frontController->getRouter();
