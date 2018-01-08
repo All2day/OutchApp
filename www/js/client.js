@@ -17,12 +17,15 @@ Class.extend('GameClient',{
     this.token = token;
     //read the gameobject and create a game state
 
+
+
     this.gs = new GameState(gameobject);
 
     //register time function
     this.gs.getTime = this.getServerTime.bind(this);
 
     //this.gs.getFullState();
+
     this.gs.currentPhase.addHook('change',function(){
       if(this.currentPhase){
 
@@ -48,8 +51,11 @@ Class.extend('GameClient',{
       var view = this.gs.currentPhase.views[view_name];
 
       //debugger;
+      console.log('setting client hooks');
       this.gs.clientHooks = [];
       this.gs.currentPhase.getClientHooks(this.gs.clientHooks);
+
+      console.log(this.gs.clientHooks);
 
       if(view._dom){
         view._dom.show(); //if hidden ensure that it is shown
@@ -60,13 +66,15 @@ Class.extend('GameClient',{
   },
   exit:function(){
 
+    this.status = 'exited';
+
     if(typeof this.ping ==="object"){
       this.ping.abort();
     } else {
       clearTimeout(this.ping)
     }
 
-    this.status = 'exited';
+
     //clean up
     Variable._nextId = 1;
     Variable._vars = {};
@@ -197,6 +205,10 @@ Class.extend('GameClient',{
       }
     }.bind(this));
 
+    if(this.status == 'exited'){
+      return false;//dont continue
+    }
+
     //if first time update the current player in gs
     if(!this.gs.currentPlayer){
       this.gs.currentPlayer = this.gs.players.get(this.token);
@@ -254,6 +266,11 @@ Class.extend('GameClient',{
       dataType: "json",
       url: this.server+'/ping?'+JSON.stringify(d),
       success: function(r){
+        if(this.status === "exited"){
+          console.log('recieved update after exit ignoring');
+          debugger;
+          return;
+        }
         if(this.game_id === null){
           this.game_id = r.game_id;
         }
@@ -293,6 +310,9 @@ Class.extend('GameClient',{
   },
   registerRemoteTrigger: function(hook,vars){
     var hook_id = null;
+    if(!this.gs.clientHooks){
+      debugger;
+    }
 
     for(var i=0;i< this.gs.clientHooks.length;i++){
       if(hook == this.gs.clientHooks[i]){

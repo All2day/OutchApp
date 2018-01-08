@@ -10,13 +10,42 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		if (substr(php_uname(), 0, 7) == "Windows"){
 			//die('starting local');
 			set_time_limit(5);
-      //pclose(popen("start \"instance_".$this->instance_id."\" /B ". $command.'> cache/log/instance_'.$this->instance_id.'.log', "r"));
 
-			pclose(popen("start \"instance_".$this->instance_id."\" /B ". $command.' 1> cache/log/instance_'.$this->instance_id.'.log 2>&1', "r"));
+			$win_cmd = "start \"instance_".$this->instance_id."\" /B ". $command.'> cache/log/instance_'.$this->instance_id.'.log';
 
+			//this overwrite will Open in a new window
+			$win_cmd = "start \"instance_".$this->instance_id."\"  ". $command.'> cache/log/instance_'.$this->instance_id.'.log';
+
+			pclose(popen($win_cmd, "r"));
+
+			//exec($command,$op);
+			//Zend_Debug::dump($op);exit;
+			/*$win_cmd = "start \"instance_".$this->instance_id."\" /B ". $command.' --debug 1> cache/log/instance_'.$this->instance_id.'.log 2>&1';
+			//die($win_cmd);
+			$f = popen($win_cmd, "r");
+			Zend_Debug::dump($f);
+			$output = "";
+			if($f) {
+			  while($tmp = fgets($f))
+			      $output .= $tmp;
+			  $output .= "\n\nResult = " . pclose($f);
+			}
+			else $output = "popen failed";
+
+			echo 'output:'.$output;
+
+			//$return = pclose($f);
+			//Zend_Debug::dump($return);
+			die('');
+			*/
 			$this->pid = 0;
 
-			$this->status = 'starting';
+			if($this->isProcessRunning()){
+				$this->status = 'starting';
+			} else {
+				$this->status = 'error';
+			}
+			//$this->status = 'starting';
     } else {
 			exec('nohup '.$command.'> cache/log/instance_'.$this->instance_id.'.log 2>&1 & echo $!' ,$op);
 
@@ -54,12 +83,27 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 
 				//exit;
 			} else {
+
+
+				//one can lookup based on the title part
+				//die('tasklist /FI "WINDOWTITLE eq instance_'.($this->instance_id).'"');
+				exec('tasklist /nh /fo CSV /FI "WINDOWTITLE eq instance_'.($this->instance_id).'"',$op);
+				$res = implode($op," ");
+
+				if($res){
+					$data = str_getcsv($res);
+					//Zend_Debug::dump($data);
+					$pid = $data[1];
+					$this->pid = $pid;
+					$this->save();
+					return true;
+				}
+
 				//look into the port
 				exec('netstat -na | find "'.$this->port.'"',$op);
 				if(count($op) == 0){
 					return false; //best guess
 				}
-				Zend_Debug::dump($op);
 				exit;
 				return true; //at least the port is taken
 			}

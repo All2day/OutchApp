@@ -30,7 +30,7 @@ require('js/client.js');
 var app = {
     //debug settings that will take over if in debug mode
     debug: {
-      server: 'http://alphagames.localhost'
+      server: 'http://alphagames.all2day.dk'
     },
     server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
     //server: 'http://alphagames.all2day.dk',
@@ -38,6 +38,7 @@ var app = {
 
     // Application Constructor
     initialize: function() {
+
       if(window.deviceisready){
         console.log('already deviceready');
         try{
@@ -95,20 +96,7 @@ var app = {
     onDeviceReady: function() {
         console.log('device ready');
 
-        if(window.cordova && cordova.plugins && cordova.plugins.IsDebug){
-          cordova.plugins.IsDebug.getIsDebug(function(isDebug) {
-            console.log('Is debug:'+ (!!isDebug));
-            if(isDebug){
-              $.each(this.debug,function(key,setting){
-                this[key] = setting;
-              }.bind(this));
-            }
-          }.bind(this), function(err) {
-            console.error(err);
-          });
-        }
-
-        var qs = (function(a) {
+        var qs = this.qs = (function(a) {
             if (a == "") return {};
             var b = {};
             for (var i = 0; i < a.length; ++i)
@@ -122,92 +110,122 @@ var app = {
             return b;
         })(window.location.search.substr(1).split('&'));
 
-
-
         $.each(qs,function(k,v){
           window[k] = v;
         });
 
-        if(qs['UUID']){
-          app.fake_uuid = qs['UUID'];
+
+
+
+        if(window.cordova && cordova.plugins && cordova.plugins.IsDebug || qs['debug']){
+          var useDebugSettings = function(isDebug) {
+            console.log('Is debug:'+ (!!isDebug));
+            if(isDebug){
+              $.each(this.debug,function(key,setting){
+                this[key] = setting;
+              }.bind(this));
+            }
+            this.gameStartup();
+          }.bind(this);
+
+          if(qs['debug']){
+            useDebugSettings(true);
+          } else {
+            cordova.plugins.IsDebug.getIsDebug(useDebugSettings, function(err) {
+              console.error(err);
+            });
+          }
+        } else {
+          this.gameStartup();
         }
-        if(!!qs['local']){
-          this.server = 'http://geogames.localhost';
-        }
+    },
+
+    gameStartup:function(){
+      if(this.qs['UUID']){
+        app.fake_uuid = this.qs['UUID'];
+      }
+      if(!!this.qs['local']){
+        console.log('setting server to local');
+        this.server = 'http://geogames.localhost';
+      }
+      if(this.qs['server']){
+        console.log('setting server to:'+this.qs['server']);
+        this.server = this.qs['server'];
+      }
 
 
+      /*if(qs['port']){
+        this.server = this.server+':'+qs['port'];
+      }
+
+      window._client = new GameClient(uno.game,qs['UUID']||'mads');
+
+      _client.server = this.server; //'http://52.208.48.54:9615'; //'http://localhost:9615';
+      _client.startPinging();
+
+      window._client = this._client = _client;
+      */
+      //register volume buttons
+      window.addEventListener("volumebuttonslistener", this.onVolumeButtonsListener.bind(this), false);
+
+      //fake volume button
+      //if(navigator.userAgent.match(/(iPhone|iPod|iPad)/)){
+        $(document.body).on('touchstart',function(e){
+      		if(e.originalEvent.touches.length == 2){
+      			this.onVolumeButtonsListener.call(this,{signal:'volume-up'});
+      			e.stopPropagation();
+      		}
+      	}.bind(this));
+      //}
 
 
-        /*if(qs['port']){
-          this.server = this.server+':'+qs['port'];
-        }
+      //perhaps: http://phonegap-plugins.com/plugins/rja235/volumebuttons
+      //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
+      //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
 
-        window._client = new GameClient(uno.game,qs['UUID']||'mads');
+      //Kezzel 2017-10-12 - should not be necessary according to:
+      //https://github.com/ftlabs/fastclick
+      //var attachFastClick = Origami.fastclick;
+  		//attachFastClick(document.body);
 
-        _client.server = this.server; //'http://52.208.48.54:9615'; //'http://localhost:9615';
+      this.setupTemplates();
+
+      if(this.qs['test_game']){
+        var port = this.qs['port'];
+        this._currentGame = {
+          src:this.server+'/index/gamesrc/game_id/'+this.qs['test_game']
+        };
+        var url = 'http://localhost:'+port;
+        $('#front').hide();
+        this.startLocationService();
+
+        var g = require(this._currentGame.src,true);
+
+        this._client = window._client = new GameClient(g.game,this.getPlayerToken());
+
+        _client.server = url;
         _client.startPinging();
-
-        window._client = this._client = _client;
-        */
-        //register volume buttons
-        window.addEventListener("volumebuttonslistener", this.onVolumeButtonsListener.bind(this), false);
-
-        //fake volume button
-        //if(navigator.userAgent.match(/(iPhone|iPod|iPad)/)){
-          $(document.body).on('touchstart',function(e){
-        		if(e.originalEvent.touches.length == 2){
-        			this.onVolumeButtonsListener.call(this,{signal:'volume-up'});
-        			e.stopPropagation();
-        		}
-        	}.bind(this));
-        //}
+        //to start local server: node gameServer 1 9000 scorched_earth
+        return;
+      }
 
 
-        //perhaps: http://phonegap-plugins.com/plugins/rja235/volumebuttons
-        //using https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git
-        //create our own plugin, perhaps using: https://github.com/jpsim/JPSVolumeButtonHandler
+      this.login();
 
-        //Kezzel 2017-10-12 - should not be necessary according to:
-        //https://github.com/ftlabs/fastclick
-        //var attachFastClick = Origami.fastclick;
-    		//attachFastClick(document.body);
+      /*this._currentGame = {
+        src:this.server+'/index/gamesrc/game_id/'+'uno'
+      };*/
+      console.log('fetching game info');
+      this._fetching = $.getJSON(this.server+'/index/game',{game_id:'uno',token:this.getPlayerToken()},function(data){
+        console.log('got game info');
+        this._currentGame = data.game;
+        this.showGames();
+      }.bind(this)).fail(function(e){
+        console.log('could not find game info:'+e);
+        debugger;
+      });
 
-        this.setupTemplates();
-
-        if(qs['test_game']){
-          var port = qs['port'];
-          this._currentGame = {
-            src:this.server+'/index/gamesrc/game_id/'+qs['test_game']
-          };
-          var url = 'http://localhost:'+port;
-          $('#front').hide();
-          this.startLocationService();
-
-          var g = require(this._currentGame.src,true);
-
-          this._client = window._client = new GameClient(g.game,this.getPlayerToken());
-
-          _client.server = url;
-          _client.startPinging();
-          //to start local server: node gameServer 1 9000 scorched_earth
-          return;
-        }
-
-
-        this.login();
-
-        /*this._currentGame = {
-          src:this.server+'/index/gamesrc/game_id/'+'uno'
-        };*/
-        this._fetching = $.getJSON(this.server+'/index/game',{game_id:'uno',token:this.getPlayerToken()},function(data){
-
-          this._currentGame = data.game;
-          this.showGames();
-        }.bind(this)).fail(function(e){
-          debugger;
-        });
-
-        //this.showGames();
+      //this.showGames();
     },
 
 
@@ -223,12 +241,14 @@ var app = {
         url: app.server+'/index/login',
         data:{token:token},
         success: function(r){
+          console.log('logged in');
           this.player = r.player;
         }.bind(this),
         error:function(r,status,error) {
           console.log('error in login', status, error);
-          alert('Could not login to server, try again');
-          this.login();
+          if(prompt('Could not login to server, try again')){
+            this.login();
+          }
 
         }.bind(this),
         timeout:20000
@@ -243,6 +263,7 @@ var app = {
       var f = $('#front');
       var that = this;
       if(!f.length){
+        console.log('creating front');
         f = $('<div id="front"></div>').appendTo("body");
         f.on('click','.stop',function(e){
           e.preventDefault();
@@ -289,6 +310,7 @@ var app = {
             'Create Game':function(){
 
             name = $('#modal input[name=game_name]').val();
+
             app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
 
             $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken(),name:name},function(data){
@@ -297,6 +319,7 @@ var app = {
             }.bind(that)).fail(function(e){
               app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
             }.bind(this));
+            return true; //keep the modeal
           }.bind(this),
             'cancel':function(){return false;}});
 
@@ -370,10 +393,12 @@ var app = {
         return;
       }
 
-
+      console.log('Loading game ('+instance_id+') '+this._currentGame.name);
       this.openModal('Starting game','loading game',{'waiting...':function(){return true;}});
 
       var g = require(this._currentGame.src,true);
+
+      console.log('joining game');
 
       this.openModal('Starting game','joining game:'+instance_id,{'waiting...':function(){return true;}});
       //join the game instance
@@ -401,26 +426,32 @@ var app = {
 
     },
     exitGame:function(){
-
       if(this._client){
         this._client.exit();
 
         //fetch the log:
         var log = window.getConsoleLog();
         window.clearConsoleLog();
-        $.post(this.server+'/index/saveinstancelog?token='+encodeURIComponent(this.getPlayerToken())+'&instance_id='+encodeURIComponent(this._client.instance_id),JSON.stringify(log),
-        function(r,textStatus){
-            if(r.status == 'ok'){
-              console.log('log saved');
-            } else {
-              debugger;
-            }
-          }.bind(this)
-        ).fail(function(){
-          debugger;
-        });
+        try{
+          $.post(this.server+'/index/saveinstancelog?token='+encodeURIComponent(this.getPlayerToken())+'&instance_id='+encodeURIComponent(this._client.instance_id),JSON.stringify(log),
+          function(r,textStatus){
+              if(r.status == 'ok'){
+                console.log('log saved');
+              } else {
+                debugger;
+              }
+            }.bind(this)
+          ).fail(function(){
+            debugger;
+          });
+        } catch(e){
+          console.log('could not send log:'+e);
+        }
 
-        this._client = null;
+        delete(this._client);
+        delete(window._client);
+
+
       }
       $("body").children().each(function(){
         $(this).remove();

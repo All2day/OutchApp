@@ -69,7 +69,7 @@ exports.game = {
       prototype: "string",
       els:["#bf080f",//"[191,8,15]", //red
           "#1c3d59",//"[28,61,89]", //blue
-          "#2c5e2f"//"[44,94,47]"
+          "#2c5e2f"//"[44,94,47]" //green
         ]//,"[255,172,40]"] //yellow
     },
     cardtypes: { //card types in each color
@@ -81,7 +81,7 @@ exports.game = {
     cardHeight:15,
     cardWidth:10,
     newCardDelay:15,
-    maxtime:300,
+    maxtime:1,
     playtime:0
   },
   ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
@@ -97,6 +97,7 @@ exports.game = {
       views:{
         '_1':{
           type:'page',
+          title:"'Setup'",
           elements:{
             'title':{
               type:"gamebar"
@@ -196,13 +197,13 @@ exports.game = {
               elements:{
                 'speed':{
                   type:"label",
-                  text:"'Play time'+game.maxtime+'s'"
+                  text:"'Play time:'+game.maxtime+'s'"
                 },
                 'speedinput':{
                   show:"player = players.gameowner",
                   type:"slider",
                   default:"game.maxtime",
-                  min:10,
+                  min:1,
                   max:600,
                   hooks:{
                     change:{

@@ -39,21 +39,23 @@
 
 	var new_log = function(){
 
+		var a = [];
+		for(var i =0;i<arguments.length;i++){
+			a.push(arguments[i]);
+		}
+
 		if(native_log && $.isFunction(native_log)){
-			var a = [];
-			for(var i =0;i<arguments.length;i++){
-				a.push(arguments[i]);
-			}
+
 			native_log.apply(native_console,a);
 		} else {
 			//alert('native is not fun');
 		}
 		var t = new Date();
 
-		logs.push([t,arguments]);
+		logs.push([t,a]);
 
 		if(log_div){
-			add_to_div(t,arguments);
+			add_to_div(t,a);
 		}
 	};
 
@@ -62,7 +64,30 @@
 	console.log("Logging initialized");
 
 	window.getConsoleLog = function() {
-		return logs;
+
+		//return the log as _stringSplit
+		var ret_logs = [];
+		for(var i = 0;i < logs.length;i++){
+			var cache = [];
+			try{
+			ret_logs.push([logs[i][0],JSON.stringify(logs[i][1],function(key, value) {
+			    if (typeof value === 'object' && value !== null) {
+			        if (cache.indexOf(value) !== -1) {
+			            // Circular reference found, discard key
+			            return;
+			        }
+			        // Store value in our collection
+			        cache.push(value);
+			    }
+			    return value;
+			})]);
+
+			}catch(e){
+				debugger;
+			}
+			cache = null;
+		}
+		return ret_logs;
 	};
 
 	window.clearConsoleLog = function() {

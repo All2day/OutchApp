@@ -18,6 +18,7 @@ if((window || global).alert){
 }
 
 Class.extend('GameServer',{
+  server_ping_delay:5000,
   control_url:null, //communication with webserver is done through this url
   players:null,
   gs:null,
@@ -156,7 +157,7 @@ Class.extend('GameServer',{
     return response_data;
   },
   handleRequest:function(request,response){
-    console.log('request:'+request.url);
+    //console.log('request:'+request.url);
 
     var t = new Date().getTime();
     try {
@@ -199,58 +200,61 @@ Class.extend('GameServer',{
       if(e.stack !== undefined)
         console.log(e.stack);
 
-      response.writeHead(500)
-      response.end()     // end the response so browsers don't hang
+      response.writeHead(500);
+      response.end();     // end the response so browsers don't hang
     }
-    console.log('request handled');
+    //console.log('request handled');
   },
   serverPing:function(){
-    if(!this.control_url){
-      console.log('[serverping]no control url, dont use');
-      return;
-    }
-    console.log('sending server ping to:'+this.control_url+'/update'+ ' with process_id:'+this.process_id);
-
-
-    var players = [];
-    var n = this.gs.getTime();
-    $.each(this.gs.players._value,function(i,p){
-      var t = p.last_ping - n;
-      var status = null;
-      if(t < 300){
-        status = 'good';
-      } else
-      if(t < 1000){
-        status = 'bad';
-      } else
-      if(t < 5000){
-        status = 'lost';
-      } else
-      if(t < 60000){
-        status = 'removed';
-        this.gs.removePlayer(p);
+    try{
+      if(!this.control_url){
+        console.log('[serverping]no control url, dont use');
+        return;
       }
-
-      players.push({
-        token:i,
-        status:status ,
-        last_ping:p.last_ping
-      });
-    }.bind(this));
+      console.log('sending server ping to:'+this.control_url+'/update'+ ' with process_id:'+this.process_id);
 
 
-    $.getJSON(this.control_url+'/update',{
-        process_id:this.process_id,
-        players: players
-      },function(r){
-      console.log('server ping',players);
+      var players = [];
+      var n = this.gs.getTime();
+      $.each(this.gs.players._value,function(i,p){
+        var t = p.last_ping - n;
+        var status = null;
+        if(t < 300){
+          status = 'good';
+        } else
+        if(t < 1000){
+          status = 'bad';
+        } else
+        if(t < 5000){
+          status = 'lost';
+        } else
+        if(t < 60000){
+          status = 'removed';
+          this.gs.removePlayer(p);
+        }
 
-    }.bind(this)).fail(function(r){
-      console.log('server ping error',this.control_url,r);
-    }.bind(this)).always(function(){
-      setTimeout(this.serverPing.bind(this),5000);
-    }.bind(this));
+        players.push({
+          token:i,
+          status:status ,
+          last_ping:p.last_ping
+        });
+      }.bind(this));
 
+
+      $.getJSON(this.control_url+'/update',{
+          process_id:this.process_id,
+          players: players
+        },function(r){
+        console.log('server ping',players);
+
+      }.bind(this)).fail(function(r){
+        console.log('server ping error',this.control_url,r);
+      }.bind(this)).always(function(){
+        setTimeout(this.serverPing.bind(this),this.server_ping_delay);
+      }.bind(this));
+    } catch(e){
+      console.log('exception in server ping:'+e);
+    }
   },
   start:function(){
     //fetch initial state
@@ -260,12 +264,15 @@ Class.extend('GameServer',{
       console.log('got info, setting name to:'+data.instance.name);
       this.gs.vars.set('name',data.instance.name);
 
-      this.serverPing();
+
       this.http = http.createServer(this.handleRequest.bind(this));
-      this.http.listen(this.port)
+      this.http.listen(this.port);
 
       console.log("listening on port "+this.port);
 
+      //delay the first ping
+      setTimeout(this.serverPing.bind(this),this.server_ping_delay);
+      //this.serverPing();
 
     }.bind(this));
     //exit;

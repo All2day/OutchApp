@@ -975,7 +975,7 @@ ViewElement.extend('SliderElement',{
     var total_width = this._dom.width() - this._knobDiv.width();
 
     var ratio = (this._val - this._min)/(this._max - this._min);
-    console.log(ratio,total_width);
+    //console.log(ratio,total_width);
     this._knobDiv.css({
       left:ratio*total_width//100*(this._val - this._min)/(this._max - this._min)+'%'
     });
