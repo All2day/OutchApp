@@ -354,12 +354,24 @@ var app = {
 
       if(this._currentGame){
 
-        $("#front").html(this.gameTmpl(this._currentGame));
+        var new_html = this.gameTmpl(this._currentGame);
+        if(new_html != this._old_html){
+          var current_scroll = $("#front .inner").scrollTop();
+          $("#front").html(new_html);
+          $("#front .inner").scrollTop(current_scroll);
+          this._old_html = new_html;
+        }
+
         //update data
         this._fetching = $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
           this._currentGame = data.game;
-
-          $("#front").html(this.gameTmpl(this._currentGame));
+          var new_html = this.gameTmpl(this._currentGame);
+          if(new_html != this._old_html){
+            var current_scroll = $("#front .inner").scrollTop();
+            $("#front").html(new_html);
+            $("#front .inner").scrollTop(current_scroll);
+            this._old_html = new_html;
+          }
           this._gameUpdater = setTimeout(this.showGames.bind(this),1000);
         }.bind(this));
       } else {
@@ -375,6 +387,7 @@ var app = {
     },
 
     startGame:function(instance_id){
+      delete(this._old_html);
       if(!this.player){
         console.log('no player when starting game');
         return;
@@ -405,7 +418,7 @@ var app = {
       $.getJSON(this.server+'/index/joininstance',{token:this.getPlayerToken(),instance_id:instance_id},function(r){
         if(r.status == 'ok'){
           this.closeModal();
-
+          delete(this._old_html);
           $('#front').hide();
           this.startLocationService();
 

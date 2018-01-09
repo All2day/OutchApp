@@ -277,6 +277,13 @@ Class.extend('GameClient',{
         if(r.game_id != this.game_id){
           window.location.reload();
         }
+        if(r.res=='error'){
+          app.exitGame();
+
+          app.openModal('Error',r.error,{'close':function(){}});
+          return;
+        }
+
         r.game_id
         this.fullUpdate(r.u);
         //in case the full update results in an exit, dont restart the pinging

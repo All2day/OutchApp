@@ -269,12 +269,12 @@ ClientElement.extend('ViewElement',{
     this._super(obj);
 
     this.type = obj.type;
-    var els = [];
+    var els = {};
     var that = this;
     $.each(obj.elements||{},function(k,el){
       var element = ViewElement.fromObject(el);
       element.owner = that;
-      els.push(element);
+      els[k] = (element);
     });
     this.elements = {_value:els};//new GameStateList(obj.elements || {},ViewElement);
 
@@ -473,6 +473,28 @@ ViewElement.extend('GamebarElement',{
       }
 
       dom.find('.title').text(name);
+
+      this._dom = dom;
+    }
+
+    c.append(this._dom);
+  }
+});
+
+
+ViewElement.extend('ImageElement',{
+  init:function(obj){
+    this._super(obj);
+
+    this.registerProp('src',obj.src);
+  },
+  draw:function(c){
+    if(!this._dom){
+      this.attachHooks();
+      var dom = $('<img />');
+      //debugger;
+      var src = this.getProp('src',true);
+      dom.attr('src',src);
 
       this._dom = dom;
     }
@@ -855,6 +877,11 @@ ViewElement.extend('RoundtimerElement',{
 
       this._timer = this.getProp('timer');
       this._dom = dom;
+
+      var inner = dom.find('.roundtimer-content');
+      $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
+        el.draw(inner);
+      });
     }
     this.updateBar();
     c.append(this._dom);
@@ -1180,8 +1207,12 @@ ViewElement.extend('MapElement',{
           }
           that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.5]);
           break;
-        case 'heading':
+        case 'heading': //the rotation
+          //debugger;
+          //console.log('settng hading to ',val);
+          //that._realPos[2]= val;
           that._map.getView().setRotation(val);
+          //that._map.getView().setRotation(val*180/Math.PI);
           break;
         case 'zoom':
           if(val == 'fit'){
@@ -1375,6 +1406,8 @@ ViewElement.extend('MapElement',{
       });
       $.each(this.elements ? this.elements._value ||{}: {},function(n,el){
         el.draw(d);
+
+        el._dom.addClass(n);
       });
       var c = new ol.control.Control({element: d[0]});
       that._map.addControl(c);
@@ -1543,11 +1576,9 @@ ViewElement.extend('PlayerqualityElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">'+
-      //'<polygon class="connection" points="0 180 180 180 180 0 0 180"/>'+
-      '<path class="location" d="M18.2,13.17h0V4L4,18.21h8.81A5.41,5.41,0,0,1,18.2,13.17Z"/>'+
-      '<path  class="connection" d="M16.23,14.33a2,2,0,0,0-2,2c0,1.48,2,3.68,2,3.68s2-2.19,2-3.68A2,2,0,0,0,16.23,14.33Zm0,2.69a.71.71,0,1,1,.71-.71A.71.71,0,0,1,16.23,17Z"/>'+
-      //'<path class="location" d="M106.56,18.14h0a61.94,61.94,0,0,0-87.59,0h0C-2.83,39.93-5.28,81,13.21,105.63l49.55,71.56,49.55-71.56C130.81,81,128.35,39.93,106.56,18.14ZM63.36,81.78A20.45,20.45,0,1,1,83.81,61.33,20.44,20.44,0,0,1,63.36,81.78Z"/>'+
+      var dom = $('<div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">'+
+      '<path class="connection" d="M16,10.34h0V0L0,16H9.93A6.1,6.1,0,0,1,16,10.34Z"/>'+
+      '<path class="location" d="M13.74,11.6a2.25,2.25,0,0,0-2.25,2.25c0,1.66,2.25,4.13,2.25,4.13S16,15.52,16,13.85A2.24,2.24,0,0,0,13.74,11.6Zm0,3a.8.8,0,1,1,.8-.8h0a.8.8,0,0,1-.8.77Z"/>'+
       '</svg></div>').css({
 
       });
@@ -1699,7 +1730,9 @@ ViewElement.extend('GeoElement',{
     if(r !== undefined && r !== null){
       this._pos[2] = r;
     }
-
+    if(this.owner.owner._name == '_newcard'){
+      //debugger;
+    }
     var p_pos = this.owner.owner._realPos;
     //if(this._name=='inner') debugger;
     //1: transform the relative position by the rotaiton of the parent
@@ -1791,9 +1824,10 @@ ViewElement.extend('GeoElement',{
 
       this._style.setText(new ol.style.Text({
         text:''+text,
-        font: 'Courier New, monospace',
+        font: 'norwester, Courier New, monospace',
         scale:'2.0',
         rotation:0,
+        rotateWithView:true,
         fill:new ol.style.Fill({
           color:textColor
         })/*,
@@ -1805,7 +1839,7 @@ ViewElement.extend('GeoElement',{
     } else {
       this._style.setText(new ol.style.Text({
 
-        font: 'Courier New, monospace',
+        font: 'norwester, Courier New, monospace',
         scale:'1'
       }));
     }
@@ -2162,6 +2196,7 @@ GeoElement.extend('SvgElement',{
         opacity: 1,
         src: 'data:image/svg+xml;utf8,' + this.svg,
         rotation:-rotation,
+        rotateWithView:true,
         scale: scale,
         snapToPixel: false //removes jittering
       }));
@@ -2279,7 +2314,7 @@ GeoElement.extend('SvgElement',{
       var h = this.getProp('height',true);
 
       this.svg = this._calculateSvg(w,h);
-
+      this._map = vl.map;
 
       this._super(vl);
 
@@ -2325,10 +2360,14 @@ GeoElement.extend('SvgElement',{
           var scale = this.getProp('scale');
           var rotation = this._realPos ? this._realPos[2]: 0;
 
+
+
+
           this._style.setImage(new ol.style.Icon({
             opacity: 1,
             src: 'data:image/svg+xml;utf8,' + this.svg,
             rotation:-rotation,
+            rotateWithView:false,
             scale: scale,
             snapToPixel: false //removes jittering
           }));

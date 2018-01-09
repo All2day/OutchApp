@@ -81,7 +81,7 @@ exports.game = {
     cardHeight:15,
     cardWidth:10,
     newCardDelay:15,
-    maxtime:1,
+    maxtime:60,
     playtime:0
   },
   ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
@@ -114,6 +114,19 @@ exports.game = {
                   center:"players.gameowner.pos",
                   heading:"players.gameowner.heading",
                   geoElements:{
+                    /*'testbox':{
+                      //type:"svgbox",
+                      type:"svgbox",
+                      pos:"players.gameowner.pos + [0,game.size+0.5*game.cardHeight]",
+                      width:"game.cardWidth",
+                      //rotation:"1",
+                      //height:"15",
+                      height:"game.cardHeight",
+                      text:"'hej'",
+                      fill:[0,0,0,.5],
+                      color:"'black'",
+                      textColor:"'white'"
+                    },*/
                     'outer':{
                       type:"circle",
                       radius:"game.size+game.cardHeight",
@@ -383,11 +396,22 @@ exports.game = {
           type:"MapPage",
           zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2.5",//"'fit'",
           center:"game.center",
-          rotation:"game.center.heading + player.dir",
+          heading:"game.center.heading +(player.dir)*2*3.1415/(players.count)",
           elements:{//overlayed elements in top
-            'test':{
+            'left':{
               type:"roundtimer",
-              timer:"player.nextCard"
+              timer:"player.nextCard",
+              elements:{
+                'img':{
+                  type:"image",
+                  src:"'img/NextCard2.svg'"
+                }
+              }
+            },
+            'center':{
+              type:"label",
+              //text:"formattime(phase.stopTimer.timeleft)"
+              text:"'GeoPlay'"
             },
             'ends':{
               type:"timer",
@@ -576,6 +600,7 @@ exports.game = {
                   pos:[0,0],
                   //stroke:"5px rgba(100,100,100,0.5)",
                   radius:"10",
+
                   //fill:[0,0,0,0],
                   color:"element.isinside?'black':[244,240,241]",
                   fill:"phase.stack.last.color",
@@ -988,7 +1013,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.name+':'+(listel.hand.count=0 ? ' winner!!!':' loser:'+listel.hand.count) + ' total distance:'+listel.total_distance+'m'",
+                  text:"listel.name+': total distance:'+listel.total_distance+'m'",
                 }
               }
             },

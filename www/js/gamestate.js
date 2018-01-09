@@ -277,6 +277,17 @@ PrimitiveVariable.extend('PosVariable',{
     c._value = Object.assign({},this._value);
 
     return c;
+  },
+  get:function(ref){
+    switch(ref){
+      case 'x':
+        return this._value ? this._value.x : null;
+      case 'y':
+        return this._value ? this._value.y : null;
+      case 'heading':
+        return this._value ? this._value.heading : null;
+    }
+    this._super(ref);
   }
 });
 
@@ -479,28 +490,34 @@ Variable.extend('TimerVariable',{
         return;
       }
       //console.log('timer ended');
+      clearTimeout(this._secondtimeout);
       that._value.status = 'ended';
       that.triggerHook('end');
       //this happens outside normal tick time, thus trigger manually
       Hookable._handleTriggerQueue();
     },this.duration);
 
+
+
     this.triggerHook('change');
   },
   stop: function(){
     ScopeRef._getGameState().currentPhase.deregisterTimer(this);
     clearTimeout(this._timeout);
+    clearTimeout(this._secondtimeout);
     this._value.status = 'stopped';
     this.triggerHook('stop');
     this.triggerHook('change');
   },
   reset: function(){
     clearTimeout(this._timeout);
+    clearTimeout(this._secondtimeout);
     this.start();
     //this.triggerHook('change');
   },
   _stop: function(){ //Internal stop
     clearTimeout(this._timeout);
+    clearTimeout(this._secondtimeout);
     this._value = null;
   },
   set:function(val){
@@ -511,6 +528,24 @@ Variable.extend('TimerVariable',{
       if(old_val.duration != val.duration || old_val.status != val.status || old_val.start_time != val.start_time){
         //console.log('timer change');
         this.triggerHook('change');
+        this.duration = val.duration;
+        this.start_time = val.start_time;
+
+        clearTimeout(this._secondtimeout);
+        if(val.status && val.status == 'started'){
+          //fire a change every 1s
+          this._secondtimeout = setInterval(function(){
+
+            if(!this._value){
+              console.error('timer ended when timer not existing, phase ended?');
+              clearTimeout(this._secondtimeout);
+              return;
+            }
+            this.triggerHook('change');
+            //this happens outside normal tick time, thus trigger manually
+            Hookable._handleTriggerQueue();
+          }.bind(this),1000);
+        }
       }
 
       //Removed 2017-09-26 - set of timer only used on client, why the need to register/deregister timer?
@@ -530,6 +565,10 @@ Variable.extend('TimerVariable',{
     } else if(val !== old_val){
       this.triggerHook('change');
     }
+
+
+
+
     //this._super(val);
     //console.log('setting timer to:'+val + 'r:'+this.get('ratioDone')+' d:'+this._value.duration);
   },
@@ -566,9 +605,9 @@ Variable.extend('TimerVariable',{
         //console.log('time is:'+t+' start time is:'+this.start_time);
         return r;
       case 'timeleft':
-
+        //debugger;
         var t = ScopeRef._gs.getTime();
-        var r = Math.max(this.duration,this.duration - (t - this.start_time)) ;
+        var r = Math.min(this.duration,this.duration - (t - this.start_time)) ;
 
         return r;
       case 'duration':

@@ -209,6 +209,13 @@ h1 {
     //padding:1em;
     box-sizing:border-box;
 
+    .gameimage{
+      width:100vw;
+      height:60vw;
+      object-fit: cover;
+
+      @include box-shadow(0px 0px 10px rgba(0,0,0,0.6));
+    }
     //description
     p{
       padding: $top-padding $side-padding;
@@ -220,7 +227,7 @@ h1 {
 
     h2 {
       padding: 0 $side-padding;
-      color:$grey;
+      color:darken($grey,20%);
       @extend .subtitle-font;
       line-height:3em;
       text-align:left;
@@ -373,10 +380,28 @@ h1 {
   width:100vw;
 
   @extend .title-font;
+  color:$white;
+
+  .label{
+    @extend .title-font;
+    color:$white;
+    margin:0;
+  }
+
+  .left{
+    position:absolute;
+    left:1em;
+    top:50%;
+    transform:translateY(-50%);
+  }
+
+  .center{
+    text-align:center;
+  }
 
   min-height: 2.6em;//5.2rem; //padding is 1.6rem
   line-height: 2.6em;//5.2rem;
-  color:$white;
+
   vertical-align:middle;
   position:relative;
 
@@ -702,9 +727,9 @@ input {
   width:80vw;
   @extend .title-font;
 
-  background:$grey;//#3092bc;
+  background:$dark-grey;//#3092bc;
   height:2.6em;
-  border:$border-width solid $grey;
+  //border:$border-width solid $grey;
   //border-radius:1em 1em 0 0;
   color:$white;
   display:flex;
@@ -721,7 +746,7 @@ input {
   background:$white;
   min-height: 30vh;
   padding:1em;
-  border:$border-width solid $grey;
+  //border:$border-width solid $grey;
 
   h2{
     @extend .subheader-font;
@@ -743,9 +768,9 @@ input {
   @extend .title-font;
 
   color:$white;
-  background:$grey;
+  background:$blue;//$grey;
   height:2.6em;
-  border:$border-width solid $grey;
+  //border:$border-width solid $grey;
   //border-radius:0 0 .8em .8em;
   display:flex;
   align-items: center;
@@ -765,6 +790,7 @@ input {
   margin: auto;
   height: 1em;
   width: 1em;
+  line-height: 1em;
   text-align: center;
   display: inline-block;
   vertical-align: middle;
@@ -773,6 +799,8 @@ input {
     color: $white;
     display: inline-block;
     line-height: 1em;
+    width:1em;
+    height:1em;
   }
 
   svg {
@@ -781,13 +809,18 @@ input {
     right: 0;
     width: 100%;
     height: 100%;
+    width: 140%;
+    margin-top: -20%;
+    margin-right: -20%;
+    height: 140%;
+
     transform: rotateY(-180deg) rotateZ(-90deg);
     circle {
       stroke-dasharray: 113;
       stroke-dashoffset: 0px;
       stroke-linecap: round;
-      stroke-width: 2px;
-      stroke: white;
+      stroke-width: 1px;
+      stroke: rgba(255,255,255,0.7);
       fill: none;
       animation: countdown 10s linear infinite forwards;
     }
@@ -814,6 +847,7 @@ input {
     position:absolute;
     left:0;
     top:0;
-    background:url(../img/game_square.png);
+    background:url(../img/UnoGameIcon.jpg);
+    background-size:cover;
   }
 }
