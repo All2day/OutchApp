@@ -32,6 +32,36 @@
     <platform name="android">
     </platform>
     <platform name="ios">
+      <!-- iPhone 6 / 6+ -->
+      <icon src="res/icon/ios/Icon-App-60x60@3x.png" gap:platform="ios" width="180" height="180" />
+
+      <!-- iPhone / iPod Touch  -->
+      <icon src="res/icon/ios/Icon-App-60x60@1x.png" gap:platform="ios" width="60" height="60" />
+      <icon src="res/icon/ios/Icon-App-60x60@2x.png" gap:platform="ios" width="120" height="120" />
+
+      <!-- iPad -->
+      <icon src="res/icon/ios/Icon-App-76x76@1x.png" gap:platform="ios" width="76" height="76" />
+      <icon src="res/icon/ios/Icon-App-76x76@2x.png" gap:platform="ios" width="152" height="152" />
+
+      <!-- Settings Icon -->
+      <icon src="res/icon/ios/Icon-App-29x29@1x.png" gap:platform="ios" width="29" height="29" />
+      <icon src="res/icon/ios/Icon-App-29x29@2x.png" gap:platform="ios" width="58" height="58" />
+
+      <!-- Spotlight Icon -->
+      <icon src="res/icon/ios/Icon-App-40x40@1x.png" gap:platform="ios" width="40" height="40" />
+      <icon src="res/icon/ios/Icon-App-40x40@2x.png" gap:platform="ios" width="80" height="80" />
+
+      <!-- iPhone / iPod Touch -->
+      <icon src="res/icon/ios/Icon-App-57x57@1x.png" gap:platform="ios" width="57" height="57" />
+      <icon src="res/icon/ios/Icon-App-57x57@2x.png" gap:platform="ios" width="114" height="114" />
+
+      <!-- iPad -->
+      <icon src="res/icon/ios/Icon-App-72x72@1x.png" gap:platform="ios" width="72" height="72" />
+      <icon src="res/icon/ios/Icon-App-72x72@2x.png" gap:platform="ios" width="144" height="144" />
+
+      <!-- iPad Spotlight and Settings Icon -->
+      <icon src="res/icon/ios/Icon-App-50x50@1x.png" gap:platform="ios" width="50" height="50" />
+      <icon src="res/icon/ios/Icon-App-50x50@2x.png" gap:platform="ios" width="100" height="100" />
     </platform>
     <engine name="android" spec="^6.2.3" />
     <plugin name="com.manueldeveloper.volume-buttons" spec="https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git" />
