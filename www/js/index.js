@@ -471,11 +471,11 @@ var app = {
       });
 
 
-
-
+      delete(this._old_html);
+      this.stopLocationService();
 
       this.showGames();
-      this.stopLocationService();
+
     },
     setupTemplates:function(){
       var templates = $('script[type="text/x-handlebars-template"]');

@@ -38,7 +38,6 @@
 	}
 
 	var new_log = function(){
-
 		var a = [];
 		for(var i =0;i<arguments.length;i++){
 			a.push(arguments[i]);
@@ -68,24 +67,31 @@
 		//return the log as _stringSplit
 		var ret_logs = [];
 		for(var i = 0;i < logs.length;i++){
-			var cache = [];
+
 			try{
-			ret_logs.push([logs[i][0],JSON.stringify(logs[i][1],function(key, value) {
-			    if (typeof value === 'object' && value !== null) {
-			        if (cache.indexOf(value) !== -1) {
-			            // Circular reference found, discard key
-			            return;
-			        }
-			        // Store value in our collection
-			        cache.push(value);
-			    }
-			    return value;
-			})]);
+				var l_a = logs[i][1];
+				var s = '';
+				var cache = [];
+				for(var j = 0;j< l_a.length;j++){
+					s+=(s=='' ? '' : ',')+JSON.stringify(l_a[j],function(key, value) {
+					    if (typeof value === 'object' && value !== null) {
+					        if (cache.indexOf(value) !== -1) {
+					            // Circular reference found, discard key
+					            return;
+					        }
+					        // Store value in our collection
+					        cache.push(value);
+					    }
+					    return value;
+					});
+				}
+				cache = null;
+				ret_logs.push([logs[i][0],s]);
 
 			}catch(e){
 				debugger;
 			}
-			cache = null;
+
 		}
 		return ret_logs;
 	};
@@ -121,6 +127,7 @@
 		} else {
 			//var dev = app.store.getValueFromKey('dev',false);
 			if(true || dev === 'true'){
+
 				console.log('opening log');
 				$(document.body).prepend('<div id="_log" style="-webkit-overflow-scrolling: touch;text-align:left;position:absolute;width:100%;height:100%;padding:1em;background-color:rgba(255,255,255,0.8);box-sizing:border-box;overflow-y:scroll;overflow-x:hidden;word-break:break-word;z-index:1000;color:black;">'
 				+'<a href="#" class="_log_close" style="position:absolute;top:1rem;right:1rem;font-size:1rem;background:white;color:black;">close</a>'
@@ -176,7 +183,7 @@
 
 					if(changed){
 						app.login();
-						app.showGames();
+						//app.showGames();
 						app.exitGame();
 						toggle_log();
 					}
@@ -188,12 +195,8 @@
 					e.preventDefault();return false;
 				});
 
-				var logs = window.getConsoleLog();
 
-
-
-
-				for(var i = 0;i < logs.length;i++){
+				for(var i = 0;i < logs.length && i < 500 ;i++){
 					add_to_div(logs[i][0],logs[i][1]);
 				}
 			}
