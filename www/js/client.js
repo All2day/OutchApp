@@ -229,6 +229,7 @@ Class.extend('GameClient',{
   updatePosition:function(pos){
     this.pos = pos;
     if(this.gs && this.gs.currentPlayer){
+
       this.gs.currentPlayer.updatePosition(pos);
       //Trigger hooks affected by the changed position
       Hookable._handleTriggerQueue();
@@ -255,6 +256,7 @@ Class.extend('GameClient',{
       d.p = this.gs.currentPlayer._getClientVars();
       //d.p = this.gs.currentPlayer.pos._value;
       //debugger;
+      //console.log(d.p);
     }
 
     /*$.each(this.remoteTriggerQueue,function(i,h){

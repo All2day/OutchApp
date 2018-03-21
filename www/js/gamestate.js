@@ -248,7 +248,8 @@ PrimitiveVariable.extend('PosVariable',{
     this._value = {//TODO: decide on a pos format and method
       x:null,
       y:null,
-      heading:null
+      heading:null,
+      t:null
     };
 
     this._super(value);
@@ -267,6 +268,7 @@ PrimitiveVariable.extend('PosVariable',{
       this._value.x = val.x;
       this._value.y = val.y;
       this._value.heading = val.heading;
+      this._value.t = val.t;
     }
     if(changed){
       this.triggerHook('change');
@@ -819,6 +821,9 @@ GameStateChangeableList.extend('PlayerList',{
         return this._value[this.firstKey()];
     }
     return this._super(ref);
+  },
+  add:function(name,variable){
+    this._super(name,variable);
   }
 });
 
@@ -1112,7 +1117,7 @@ ProtoTypeVariable.extend('Player',{
       }
 
       if(t instanceof PosVariable){
-        if(t._lastValue && t._value.x == t._lastValue.x && t._value.y == t._lastValue.y){
+        if(t._lastValue && t._value.x == t._lastValue.x && t._value.y == t._lastValue.y && t._value.heading == t._lastValue.heading){
           return;
         }
       } else
@@ -1171,6 +1176,7 @@ ProtoTypeVariable.extend('Player',{
   //updates the players position from coordinates in meters*meters
   updatePosition:function(pos){
     var c = pos.c;
+    var t = (pos.t ? pos.t : new Date().getTime());
 
     this.pos_accuracy.set(pos.a);
 
@@ -1185,15 +1191,23 @@ ProtoTypeVariable.extend('Player',{
       //TODO: only allow a max of 5m/s... Perhaps the points given to this should be marked as smoothing or something
       var d = Math.sqrt(Math.pow(this.pos._value.x - c[0],2) + Math.pow(this.pos._value.y - c[1],2));
 
+      var dt = Math.max(1,t - this.pos._value.t);
 
+      var speed = 1000*d/dt; //in m/s
 
-      this.total_distance._value+=d;
-      console.log('t:'+this.total_distance._value+' ['+this.pos._value.x+','+this.pos._value.y+'] => ['+c[0]+','+c[1]+'] : ['+(c[0]-this.pos._value.x)+','+(c[1]-this.pos._value.y)+']= '+d);
+      //limit the speed to a max of 5m/s
+      var lim_d = Math.min(5,speed)*dt*0.001;
+
+      this.total_distance._value+=lim_d;
+
+      //console.log('total:'+this.total_distance._value+'dt:'+dt+' speed:'+speed+' lim_d/d: '+lim_d+'/'+d+' ['+this.pos._value.x+','+this.pos._value.y+'] => ['+c[0]+','+c[1]+'] : ['+(c[0]-this.pos._value.x)+','+(c[1]-this.pos._value.y)+']= '+d);
     }
+
     this.pos.set({
       x:c[0],
       y:c[1],
-      heading:c[2] !== undefined ? c[2] : 0
+      heading:c[2] !== undefined ? c[2] : 0,
+      t: t
     });
     this.triggerHook('change');
   },

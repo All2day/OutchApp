@@ -1,4 +1,4 @@
-//The Uno Game
+//The Uno Game 2
 exports.game = {
   prototypes:{
     player: {
@@ -396,7 +396,7 @@ exports.game = {
           type:"MapPage",
           zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2.5",//"'fit'",
           center:"game.center",
-          heading:"game.center.heading +(player.dir)*2*3.1415/(players.count)",
+          heading:"(game.center.heading) +(player.dir)*2*3.1415/(players.count)",
           elements:{//overlayed elements in top
             'left':{
               type:"roundtimer",
@@ -487,7 +487,7 @@ exports.game = {
               type:"circle",
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"game.size",
-              rotation:"player.dir*2*3.1415/players.count",
+              rotation:"game.center.heading+player.dir*2*3.1415/players.count",
               fill:"players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
               //if there is a player with only one card show red and big
               //color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
@@ -562,7 +562,7 @@ exports.game = {
                           width:"game.cardWidth",
                           //height:"15",
                           height:"game.cardHeight",
-                          show:"player.currentCard = listel ? 0 : 1",
+                          show:"player.currentCard = listel ? 0 : 1", //showcard opacity?
                           text:"listel.value",
                           fill:"listel.color",
                           textColor:"[255,255,255]",

@@ -570,15 +570,16 @@ ViewElement.extend('ListElement',{
   redraw:function(new_list){
     if(!this._dom) return;
 
-
-
+    //console.log('setting list to',new_list);
     if(this.list){
 
       //if the lists are the same, dont redraw
-      if(new_list && this.list._value.length == new_list._value.length){
+      if(new_list && this.list.length == new_list._value.length){
         var the_same = true;
-        $.each(this.list._value,function(i,k){
-          the_same = the_same && (new_list._value[i] == k);
+        var j = 0;
+        var list = this.list;
+        $.each(new_list._value,function(i,k){
+          the_same = the_same && (list[j] == k);
         });
         if(the_same){
           //console.log('the same returning');
@@ -596,14 +597,20 @@ ViewElement.extend('ListElement',{
       this._dom.empty();
     }
 
-    this.list = new_list;
+    //should be cloned instead of copied by reference
+    var list = [];
+    $.each(new_list._value,function(i,k){
+      list.push(k);
+    });
+    this.list = list;
+    //console.log('list set to:',this.list);
 
     if(this.list){
       var that = this;
-      if(!this.list._value){
+      if(!this.list){
         debugger;
       }
-      $.each(this.list._value,function(i,k){
+      $.each(this.list,function(i,k){
         //TODO: somehow the elements inside needs to have access to the list element.
         //TODO: how to describe multilevel list elements?
         var wrapper = new ListElElement(k,that,i);
@@ -1042,6 +1049,7 @@ ListElement.extend('PlayerlistElement',{
     this._super(obj);
   },
   update:function(props){
+    console.log('update of players',props);
 
     this._super(props);
   },
@@ -1208,7 +1216,7 @@ ViewElement.extend('MapElement',{
           that._map.getView().centerOn([val.x,val.y],s,[s[0]*.5,s[1]*0.5]);
           break;
         case 'heading': //the rotation
-          //debugger;
+
           //console.log('settng hading to ',val);
           //that._realPos[2]= val;
           that._map.getView().setRotation(val);

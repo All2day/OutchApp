@@ -134,6 +134,7 @@ Class.extend('GameServer',{
           console.log('cannot set ',k);
         }
       });
+      //console.log('game center:',this.gs.vars.center?this.gs.vars.center._value:'not set');
       //player.pos.set(data.p);
     }
 

@@ -336,7 +336,7 @@ TreeObject.extend('Hookable',{
          h[0].trigger(h[1]);
        }
      } catch(e){
-       console.log('Caught exception while handling trigger queue:'+e);
+       console.log('Caught exception while handling trigger queue:',e);
      }
    }
  };

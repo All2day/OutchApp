@@ -102,6 +102,8 @@ class IndexController extends Zend_Controller_Action{
 			$instanceTable->select()
 			->where('status=?','running')
 			->where('currentPhase=?','join')
+			->where('last_ping > NOW() - INTERVAL 5 MINUTE')
+			->order('created DESC')
 		);
 		$ins = array();
 
@@ -178,7 +180,9 @@ class IndexController extends Zend_Controller_Action{
 		$instances = $instanceTable->fetchAll($instanceTable->select()
 			->where('status=?','running')
 			->where('game_id=?',$game_id)
-			->where('currentPhase=?','join'));
+			->where('currentPhase=?','join')
+			->where('last_ping > NOW() - INTERVAL 5 MINUTE')
+		);
 
 
 		$ins = array();

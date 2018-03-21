@@ -90,7 +90,7 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 				exec('tasklist /nh /fo CSV /FI "WINDOWTITLE eq instance_'.($this->instance_id).'"',$op);
 				$res = implode($op," ");
 
-				if($res){
+				if($res && !preg_match("/.*No tasks.*/",$res)){
 					$data = str_getcsv($res);
 					//Zend_Debug::dump($data);
 					$pid = $data[1];
@@ -104,7 +104,7 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 				if(count($op) == 0){
 					return false; //best guess
 				}
-				exit;
+				//exit;
 				return true; //at least the port is taken
 			}
 

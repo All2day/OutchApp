@@ -217,7 +217,7 @@ var app = {
       };*/
       console.log('fetching game info');
       this._fetching = $.getJSON(this.server+'/index/game',{game_id:'uno',token:this.getPlayerToken()},function(data){
-        console.log('got game info');
+        console.log('got game info',data);
         this._currentGame = data.game;
         this.showGames();
       }.bind(this)).fail(function(e){
@@ -324,7 +324,7 @@ var app = {
             'cancel':function(){return false;}});
 
 
-          $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'´s game' : 'My game').focus();
+          $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'\'s game' : 'My game').focus();
           /*var name = window.prompt('Please choose a name for the game','');
           if(name===null){
             return;
@@ -773,6 +773,9 @@ var app = {
             window.pos = [p.x,p.y];*/
           }
           var pos = this._posHist[this._posHist.length-1].c;
+          if(this._lastHeading === undefined){
+            this._lastHeading = 0;
+          }
 
           switch(e.key){
             case 'ArrowUp':
@@ -787,6 +790,12 @@ var app = {
             case 'ArrowRight':
               pos[0]+=1;
               break;
+            case '.':
+              this._lastHeading-=0.1;
+              break;
+            case ',':
+              this._lastHeading+=0.1;
+              break;
             case ' ':
               if(this._client){
                 this._client.triggerVolumeUp();
@@ -797,6 +806,7 @@ var app = {
               //console.log('e'+e.key);
               return;
           }
+          //console.log(pos);
 
           var pos_obj = {
             c:pos,
