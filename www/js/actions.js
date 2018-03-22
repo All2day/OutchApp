@@ -45,7 +45,7 @@ Action.fromObject = function(obj,name){
    phase:null,
    init:function(obj){
      this.phase = ScopeRef._prepareScopeRef('phases.'+obj.phase,Phase);
-     this.phase.owner = this;
+     this.phase._owner = this;
    },
    do:function(){
      var phase_var = this.phase.eval();
@@ -77,9 +77,9 @@ Action.fromObject = function(obj,name){
    list:null,
    init:function(obj){
      this.list = ScopeRef._prepareScopeRef(obj.list);
-     this.list.owner = this;
+     this.list._owner = this;
      this.target = ScopeRef._prepareScopeRef(obj.target);
-     this.target.owner = this;
+     this.target._owner = this;
    },
    do:function(){
      var target_var = this.target.eval();
@@ -104,10 +104,10 @@ Action.fromObject = function(obj,name){
        console.log('warning add action without list or target');
      }
      this.list = ScopeRef._prepareScopeRef(obj.list,ListVariable);
-     this.list.owner = this;
+     this.list._owner = this;
      /*TODO: add list prototype as required type*/
      this.target = ScopeRef._prepareScopeRef(obj.target);
-     this.target.owner = this;
+     this.target._owner = this;
    },
    do:function(){
      var list_var = this.list.eval();
@@ -135,7 +135,7 @@ Action.fromObject = function(obj,name){
    list:null,
    init:function(obj){
      this.list = ScopeRef._prepareScopeRef(obj.list,ListVariable);
-     this.list.owner = this;
+     this.list._owner = this;
    },
    do:function(){
      var list_var = this.list.eval();
@@ -154,7 +154,7 @@ Action.fromObject = function(obj,name){
    timer:null,
    init:function(obj){
      this.timer = ScopeRef._prepareScopeRef(obj.timer,TimerVariable);
-     this.timer.owner = this;
+     this.timer._owner = this;
    },
    do:function(){
      var timer_var = this.timer.eval();
@@ -171,7 +171,7 @@ Action.fromObject = function(obj,name){
    timer:null,
    init:function(obj){
      this.timer = ScopeRef._prepareScopeRef(obj.timer,TimerVariable);
-     this.timer.owner = this;
+     this.timer._owner = this;
    },
    do:function(){
      var timer_var = this.timer.eval();
@@ -196,8 +196,8 @@ Action.fromObject = function(obj,name){
    init:function(target,src){
      this.src = ScopeRef._prepareScopeRef(src);
      this.target = ScopeRef._prepareScopeRef(target);
-     this.src.owner =this;
-     this.target.owner = this;
+     this.src._owner =this;
+     this.target._owner = this;
    },
    do:function(){
      var target_var = this.target.eval();
@@ -225,7 +225,7 @@ Action.fromObject = function(obj,name){
        console.log('timer must be defined');
      }
      this.timer = ScopeRef._prepareScopeRef(obj.timer,TimerVariable);
-     this.timer.owner =this;
+     this.timer._owner =this;
    },
    do:function(){
      //console.log('start action');
@@ -265,7 +265,7 @@ Action.fromObject = function(obj,name){
      var that = this;
      $.each(obj.actions,function(i,a){
        var new_a = Action.fromObject(a,i);
-       new_a.owner = that;
+       new_a._owner = that;
        that.actions.push(new_a);
      });
      ScopeRef._popScope();
@@ -302,7 +302,7 @@ Action.fromObject = function(obj,name){
    text:null,
    init:function(obj){
      this.text = ScopeRef._prepareScopeRef(obj.text);
-     this.text.owner = this;
+     this.text._owner = this;
    },
    do:function(){
      var text_var = this.text.eval();
@@ -323,7 +323,7 @@ Action.fromObject = function(obj,name){
    duration:null,
    init:function(duration){
      this.duration = ScopeRef._prepareScopeRef(duration);
-     this.duration.owner = this;
+     this.duration._owner = this;
    },
    do:function(scope){
      var d = this.duration ? (this.duration.eval() || 300) : 300;
@@ -350,13 +350,13 @@ Action.fromObject = function(obj,name){
      var that = this;
      $.each(actions,function(i,a){
        var new_a = Action.fromObject(a,i);
-       new_a.owner = that;
+       new_a._owner = that;
        that.actions.push(new_a);
 
      });
      $.each(elsevar||[],function(i,a){
        var new_a = Action.fromObject(a,i);
-       new_a.owner = that;
+       new_a._owner = that;
        that.else.push(new_a);
      });
    },
@@ -433,7 +433,7 @@ Action.extend('RepeatAction',{
     var that = this;
     $.each(obj.actions,function(i,a){
       var new_a = Action.fromObject(a,i);
-      new_a.owner = that;
+      new_a._owner = that;
       that.actions.push(new_a);
     });
   },
@@ -478,7 +478,7 @@ Action.extend('EachAction',{
      var that = this;
      $.each(obj.actions,function(i,a){
        var new_a = Action.fromObject(a,i);
-       new_a.owner = that;
+       new_a._owner = that;
        that.actions.push(new_a);
      });
      if(this._name){

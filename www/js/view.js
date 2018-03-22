@@ -239,7 +239,7 @@ Hookable.extend('ClientElement',{
     $.each(this.elements._value || {},function(k,el){
       c.elements._value[k] = el.clone();
     });
-    c.elements.owner = c;
+    c.elements._owner = c;
 
     //handle hooks
     //TODO: check if it is a problem that hooks are actually the same
@@ -273,7 +273,7 @@ ClientElement.extend('ViewElement',{
     var that = this;
     $.each(obj.elements||{},function(k,el){
       var element = ViewElement.fromObject(el);
-      element.owner = that;
+      element._owner = that;
       els[k] = (element);
     });
     this.elements = {_value:els};//new GameStateList(obj.elements || {},ViewElement);
@@ -285,7 +285,7 @@ ClientElement.extend('ViewElement',{
     this._super();
     $.each(this.elements._value,function(key,element){
       element.destroy();
-      element.owner = null;
+      element._owner = null;
     });
   },
   getClientHooks: function(hooks){
@@ -648,7 +648,7 @@ ViewElement.extend('ListElElement',{
       $.each(this.elements._value,function(j,el){
 
         var e = el.clone();
-        e.owner = that;
+        e._owner = that;
 
         e.draw(that._dom);
       });
@@ -1186,7 +1186,7 @@ ViewElement.extend('MapElement',{
     this._realPos = [0,0,0];
     this._super(obj);
     this.geoElements = new GameStateList(obj.geoElements || {},GeoElement);
-    this.geoElements.owner = this;
+    this.geoElements._owner = this;
     this.registerProp('center',obj.center);
     this.registerProp('heading',obj.heading,0);
     this.registerProp('width',obj.width,100);
@@ -1305,7 +1305,7 @@ ViewElement.extend('MapElement',{
         alignContent:'center',
         flexWrap:'wrap'
       });
-      if(this.owner instanceof ViewElement){
+      if(this._owner instanceof ViewElement){
         var w = this.getProp('width');
         var h = this.getProp('height');
         dom.css({
@@ -1548,7 +1548,7 @@ ViewElement.extend('MapElement',{
     this._super();
     $.each(this.geoElements._value,function(key,element){
       element.destroy();
-      element.owner = null;
+      element._owner = null;
     });
   }
 });
@@ -1656,7 +1656,7 @@ ViewElement.extend('GeoElement',{
   init: function(obj){
     this._super(obj);
     this.geoElements = new GameStateList(obj.geoElements || {},GeoElement);
-    this.geoElements.owner = this;
+    this.geoElements._owner = this;
     this._pos = [0,0,0];
     this.registerProp('pos',obj.pos);
     this.registerProp('rotation',obj.rotation,0);
@@ -1686,7 +1686,7 @@ ViewElement.extend('GeoElement',{
 
     $.each(this.geoElements._value,function(key,element){
       element.destroy();
-      element.owner = null;
+      element._owner = null;
     });
   },
   draw:function(vl /* vector layer*/){
@@ -1725,7 +1725,7 @@ ViewElement.extend('GeoElement',{
     //update the position of this geoelement
     var new_pos = [0,0,0];
     //In tree structure, the owner of this element is a gamestatelist, and thus the real owner is the owner of the gamestatelist
-    if(!this.owner || !this.owner.owner || ! this.owner.owner._realPos){
+    if(!this._owner || !this._owner._owner || ! this._owner._owner._realPos){
       //debugger;
       return;
     }
@@ -1744,10 +1744,10 @@ ViewElement.extend('GeoElement',{
     if(r !== undefined && r !== null){
       this._pos[2] = r;
     }
-    if(this.owner.owner._name == '_newcard'){
+    if(this._owner._owner._name == '_newcard'){
       //debugger;
     }
-    var p_pos = this.owner.owner._realPos;
+    var p_pos = this._owner._owner._realPos;
     //if(this._name=='inner') debugger;
     //1: transform the relative position by the rotaiton of the parent
     var cosAngle = Math.cos(p_pos[2]);
@@ -1893,10 +1893,10 @@ ViewElement.extend('GeoElement',{
   clone: function(){
     var c = this._super();
     c.geoElements = new GameStateList();
-    c.geoElements.owner = c;
+    c.geoElements._owner = c;
     $.each(this.geoElements._value || {},function(k,el){
       c.geoElements._value[k] = el.clone();
-      c.geoElements._value[k].owner = c.geoElements;
+      c.geoElements._value[k]._owner = c.geoElements;
     });
 
     return c;
@@ -1962,7 +1962,7 @@ GeoElement.extend('GeolistElement',{
       //a new list, clean it all
       $.each(this._wrapperels,function(i,k){
         k.destroy();
-        k.owner = null;
+        k._owner = null;
       });
       this._wrapperels = [];
       //clear the list
@@ -1986,7 +1986,7 @@ GeoElement.extend('GeolistElement',{
       //TODO: how to describe multilevel list elements?
 
       var wrapper = new GeolistElElement(k,that,i);
-      wrapper.owner = that;
+      wrapper._owner = that;
       wrapper.draw(that._geom /*the vector source*/);
       /*$.each(that.elements._value,function(j,el){
         var e = el.clone();
@@ -2074,7 +2074,7 @@ ViewElement.extend('GeolistElElement',{
       $.each(this.elements._value,function(j,el){
 
         var e = el.clone();
-        e.owner = that;
+        e._owner = that;
 
         e.draw(that._geom); //where _geom is a vector layer
         that.geoels.push(e);

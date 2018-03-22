@@ -191,7 +191,7 @@ Number.isNaN = Number.isNaN || function(value) {
 Class.extend('TreeObject',{
    owner:null,
    add:function(treeEl){
-     treeEl.owner = this;
+     treeEl._owner = this;
    }
  });
 
@@ -209,7 +209,7 @@ TreeObject.extend('Hookable',{
    },
    fromObject:function(obj){
      this._hooks = new GameStateList();
-     this._hooks.owner = this;
+     this._hooks._owner = this;
      if(!obj){return;}
      var that = this;
      $.each(obj.hooks || {},function(type,hooks){
@@ -238,7 +238,7 @@ TreeObject.extend('Hookable',{
        this._hooks[type] = [];
      }
      this._hooks[type].push(hook);
-     hook.owner = this;
+     hook._owner = this;
    },
    removeHook:function(type,hook){
      if(this._hooks[type]){
@@ -287,7 +287,7 @@ TreeObject.extend('Hookable',{
                }
              });
 
-             console.log(data);
+             //console.log(data);
              //debugger;
 
              (window||global)._client.registerRemoteTrigger(hook,data);
@@ -369,7 +369,7 @@ TreeObject.extend('Hookable',{
    addAction:function(a){
      if(!a){return;}
      this.actions.push(a);
-     a.owner = this;
+     a._owner = this;
    },
    trigger:function(scope){
      ScopeRef._setScope(scope);

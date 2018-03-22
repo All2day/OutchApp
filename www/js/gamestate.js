@@ -638,7 +638,7 @@ Variable.extend('GameStateObject',{
     /*if(!inp){return;}
     var that = this;
     that.hooks = new GameStateList();
-    that.hooks.owner = this;
+    that.hooks._owner = this;
     debugger;
     $.each(inp.hooks || {},function(k,h){
       that.hooks.add(k,new GameStateList(h,Hook))
@@ -702,9 +702,9 @@ GameStateObject.extend('GameStateList',{
     this._value[name] = variable;
 
     //only define ownership as this if this is the first owner
-    if(!variable.owner){
+    if(!variable._owner){
       variable._name = name;
-      variable.owner = this;
+      variable._owner = this;
     }
     var that = this;
 
@@ -884,10 +884,10 @@ GameStateChangeableList.extend('Phase',{
 
     //this.vars.fromObject(this._obj.vars || {},Variable);
 
-    //this.views.owner = this;
+    //this.views._owner = this;
 
     //var vars = new GameStateList(obj.vars || {},Variable);
-    //vars.owner = this;
+    //vars._owner = this;
     //this.add('vars',vars);
   },
   unload:function(){
@@ -969,7 +969,7 @@ Variable.extend('ProtoTypeVariable',{
         } else {
           value[name] = v.clone();
         }
-        value[name].owner = that;
+        value[name]._owner = that;
       });
       this._value = value;
     }
@@ -1391,7 +1391,7 @@ GameStateObject.extend('GameState',{
 
     $.each(game.prototypes,function(key,val){
       that.prototypes[key] = new ProtoType({},key);
-      that.prototypes[key].owner = that;
+      that.prototypes[key]._owner = that;
     });
     ProtoType.prototypes = this.prototypes;
 
@@ -1405,18 +1405,18 @@ GameStateObject.extend('GameState',{
 
     //load the game state from the game object
     this.vars = new GameStateList(game.vars || {},Variable);
-    this.vars.owner = this;
+    this.vars._owner = this;
 
 
     //load the phases
     /*this.phases = {};
     $.each(game.phases,function(key,val){
       that.phases[key] = new Phase(val);
-      that.phases[key].owner = that;
+      that.phases[key]._owner = that;
     });*/
     this.phases = new GameStateList(game.phases,Phase);
 
-    this.phases.owner = this;
+    this.phases._owner = this;
 
     this.currentPhase = new PointerVariable();
 

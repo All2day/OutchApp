@@ -753,7 +753,7 @@ ScopeRef.extend('ScopeRootLookup',{
         if(!scp){
           scp = ScopeRef._getScopeRoot();
           while(scp && !(scp instanceof Phase)){
-            scp = scp.owner;
+            scp = scp._owner;
           }
         }
         if(!scp){
@@ -772,7 +772,7 @@ ScopeRef.extend('ScopeRootLookup',{
           scp = ScopeRef._getScopeRoot();
           while(scp && !(scp instanceof ProtoTypeVariable && scp._type == this.ref)){
             //console.log('are at '+scp._type+' with name '+scp._name+' and id:'+scp._id);
-            scp = scp.owner;
+            scp = scp._owner;
           }
           if(!scp){
             //console.log('did not find anything');
@@ -795,11 +795,11 @@ ScopeRef.extend('ScopeRootLookup',{
         break;
       case 'timer':
         scp = ScopeRef._getScopeRoot();
-        while(scp && !(scp instanceof TimerVariable)){scp = scp.owner;}
+        while(scp && !(scp instanceof TimerVariable)){scp = scp._owner;}
         break;
       case 'list':
         scp = ScopeRef._getScopeRoot();
-        while(scp && !(scp instanceof ListVariable)){scp = scp.owner;}
+        while(scp && !(scp instanceof ListVariable)){scp = scp._owner;}
         break;
       case 'el':
         //scope stack lookups for a container with an 'el'
@@ -826,7 +826,7 @@ ScopeRef.extend('ScopeRootLookup',{
           scp = ScopeRef._getScopeRoot();
           while(scp && !(scp instanceof ProtoTypeVariable && scp._type == this.ref)){
             //console.log('are at '+scp._type+' with name '+scp._name);
-            scp = scp.owner;
+            scp = scp._owner;
           }
           if(!scp){
             //console.log('did not find anything');
@@ -879,14 +879,14 @@ ScopeRef.extend('ScopeRootLookup',{
         //debugger;
         scp = ScopeRef._getScopeRoot();
 
-        while(scp && !(scp instanceof ListElElement ||  scp instanceof GeolistElElement)){scp = scp.owner;}
+        while(scp && !(scp instanceof ListElElement ||  scp instanceof GeolistElElement)){scp = scp._owner;}
         if(scp){
           scp = scp.get('listel');
         }
         break;
       case 'element': //displayable element
         scp = ScopeRef._getScopeRoot();
-        while(scp && !(scp instanceof ViewElement || scp instanceof GeoElement)){scp = scp.owner;}
+        while(scp && !(scp instanceof ViewElement || scp instanceof GeoElement)){scp = scp._owner;}
 
         break;
     }
@@ -919,7 +919,7 @@ ScopeRef.extend('ScopeRootLookup',{
         return this.getNext(scp,inf);
       }
 
-      scp = scp.owner;
+      scp = scp._owner;
     }
 
     if(inf){

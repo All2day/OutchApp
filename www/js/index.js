@@ -264,6 +264,7 @@ var app = {
       var that = this;
       if(!f.length){
         console.log('creating front');
+        this._old_html = "";
         f = $('<div id="front"></div>').appendTo("body");
         f.on('click','.stop',function(e){
           e.preventDefault();
@@ -393,7 +394,10 @@ var app = {
           app.all_games = data;
 
           $("#front").html(this.frontTmpl(data));
-        }.bind(this));
+        }.bind(this)).fail(function(e){
+          console.log('failed fetching game:',e);
+          this._gameUpdater = setTimeout(this.showGames.bind(this),1000);
+        });
       }
     },
 

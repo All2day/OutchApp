@@ -51,7 +51,7 @@ Class.extend('GameClient',{
       var view = this.gs.currentPhase.views[view_name];
 
       //debugger;
-      console.log('setting client hooks');
+      //console.log('setting client hooks');
       this.gs.clientHooks = [];
       this.gs.currentPhase.getClientHooks(this.gs.clientHooks);
 
