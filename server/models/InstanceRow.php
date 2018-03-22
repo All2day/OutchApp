@@ -6,7 +6,8 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		} else {
 			$command = "ps -C command_name --no-headers | wc -l";
 			exec($command,$op);
-			$count = 1*$op;
+
+			$count = $op[0]*1;
 			return $count;
 		}
 	}
