@@ -74,7 +74,10 @@
 				var cache = [];
 				for(var j = 0;j< l_a.length;j++){
 					s+=(s=='' ? '' : ',')+JSON.stringify(l_a[j],function(key, value) {
-					    if (typeof value === 'object' && value !== null) {
+							if(key.startsWith('_')){
+								return;
+							}
+							if (typeof value === 'object' && value !== null) {
 					        if (cache.indexOf(value) !== -1) {
 					            // Circular reference found, discard key
 					            return;

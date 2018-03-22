@@ -32,6 +32,8 @@
     <platform name="android">
     </platform>
     <platform name="ios">
+        <icon gap:platform="ios" src="res/icon.png" width="1024" height="1024" />
+        <!-- Icon-App-512x512@2x.png-->
         <icon gap:platform="ios" height="180" src="res/icon/ios/Icon-App-60x60@3x.png" width="180" />
         <icon gap:platform="ios" height="60" src="res/icon/ios/Icon-App-60x60@1x.png" width="60" />
         <icon gap:platform="ios" height="120" src="res/icon/ios/Icon-App-60x60@2x.png" width="120" />
