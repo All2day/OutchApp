@@ -59,6 +59,18 @@ class IndexController extends Zend_Controller_Action{
 			exit;
 		}
 
+		//check if this player is joined at another instance
+
+		//check the number of current node processes to limit server haul
+		if(($c = InstanceRow::serverInstanceCount()) > 5){
+			$res = array(
+				'status' => 'error',
+				'error' => 'Too many running games ('.$c.'). Please try again later.'
+			);
+			die(json_encode($res));
+		}
+
+
 		$instance = InstanceTable::startInstance($game_id,$p, $name);
 
 		$res = array(

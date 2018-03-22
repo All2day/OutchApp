@@ -314,7 +314,13 @@ var app = {
             app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
 
             $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken(),name:name},function(data){
-              this.startGame(data.instance_id);
+              if(data && data.instance_id){
+                this.startGame(data.instance_id);
+              } else {
+                app.openModal('Could not start game',data.error,{
+                  'close':function(){return false;}
+                });
+              }
               //this.showGames();
             }.bind(that)).fail(function(e){
               app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
