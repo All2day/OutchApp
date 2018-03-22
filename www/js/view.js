@@ -1569,7 +1569,13 @@ MapElement.extend('MappageElement',{
     this._super(c);
 
     this._dom.find('.playerQuality').on('click',function(){
-      window.toggle_log();
+
+      app.openModal('Status',$('<h2>').text(app._currentGame.name).prop('outerHTML')+'<button onclick="app.exitGame();" style="width:auto;">Quit game</button>',{
+        'Continue':function(){
+          return false;
+        }
+      })
+      //window.toggle_log();
     });
   }
 });

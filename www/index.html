@@ -40,7 +40,9 @@
 
 <script id="game" type="text/x-handlebars-template">
   <div class="page">
-    <header class="header"><a style="display:none" class="left back"><i class="icon-Back-Arrow"></i></a> <div class="title">GeoPlay</div></header>
+    <header class="header"><a style="display:none" class="left back"><i class="icon-Back-Arrow"></i></a> <div class="title">GeoPlay</div>
+      <a style="" class="right about"><i class="icon-About"></i>?</a>
+    </header>
     <content class="inner">
       <div class="game">
         <img class="gameimage" src="img/UnoGameIcon.jpg"></img>
@@ -62,6 +64,9 @@
             <div class="join" data-instance_id="{{instance_id}}" data-url="{{url}}"><i class="icon-Front-Arrow"></i></div>
           </div>
         {{/each}}
+        {{#unless instances}}
+          <span>Currently no games...</span>
+        {{/unless}}
 
       </div>
     </content>

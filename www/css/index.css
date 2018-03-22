@@ -373,14 +373,21 @@ h1 {
   left: 0;
   font-weight: bold;
 }
-/* line 326, sass/_basic.scss */
+/* line 325, sass/_basic.scss */
+.page .header .right {
+  position: absolute;
+  padding: 0 1em;
+  right: 0;
+  font-weight: bold;
+}
+/* line 333, sass/_basic.scss */
 .page .header .playerQuality {
   position: absolute;
   right: 1em;
   top: 50%;
   transform: translateY(-50%);
 }
-/* line 334, sass/_basic.scss */
+/* line 341, sass/_basic.scss */
 .page .inner {
   flex: 1 1 auto;
   /*flex: 1 0 auto; // use this to implement sticky footer
@@ -398,26 +405,26 @@ h1 {
   flex-wrap: wrap;
   color: #2b465d;
 }
-/* line 355, sass/_basic.scss */
+/* line 362, sass/_basic.scss */
 .page .inner .setting, .page .inner .gamebar {
   width: 100%;
   background: #FFFFFF;
   margin-bottom: 0.4rem;
 }
 
-/* line 367, sass/_basic.scss */
+/* line 374, sass/_basic.scss */
 .iOS7 .page .header {
   padding-top: 20px;
 }
 
-/* line 372, sass/_basic.scss */
+/* line 379, sass/_basic.scss */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* line 378, sass/_basic.scss */
+/* line 385, sass/_basic.scss */
 .mapPage .map_controls {
   background: rgba(0, 0, 0, 0.5);
   width: 100vw;
@@ -427,23 +434,23 @@ h1 {
   vertical-align: middle;
   position: relative;
 }
-/* line 385, sass/_basic.scss */
+/* line 392, sass/_basic.scss */
 .mapPage .map_controls .label, .mapPage .map_controls .playerlist .list-header, .playerlist .mapPage .map_controls .list-header {
   color: #FFFFFF;
   margin: 0;
 }
-/* line 391, sass/_basic.scss */
+/* line 398, sass/_basic.scss */
 .mapPage .map_controls .left {
   position: absolute;
   left: 1em;
   top: 50%;
   transform: translateY(-50%);
 }
-/* line 398, sass/_basic.scss */
+/* line 405, sass/_basic.scss */
 .mapPage .map_controls .center {
   text-align: center;
 }
-/* line 410, sass/_basic.scss */
+/* line 417, sass/_basic.scss */
 .mapPage .map_controls .playerQuality {
   position: absolute;
   right: 1em;
@@ -451,7 +458,7 @@ h1 {
   transform: translateY(-50%);
 }
 
-/* line 419, sass/_basic.scss */
+/* line 426, sass/_basic.scss */
 .playerQuality svg {
   width: 1em;
   height: 1em;
@@ -462,23 +469,23 @@ h1 {
     fill:red;
   }*/
 }
-/* line 428, sass/_basic.scss */
+/* line 435, sass/_basic.scss */
 .playerQuality svg * {
   fill: #BF0404;
   transition: fill 3s;
 }
-/* line 433, sass/_basic.scss */
+/* line 440, sass/_basic.scss */
 .playerQuality svg .good {
   color: #2C5E2E;
   fill: #2C5E2E;
 }
-/* line 437, sass/_basic.scss */
+/* line 444, sass/_basic.scss */
 .playerQuality svg .medium {
   color: #FFCC00;
   fill: #FFCC00;
 }
 
-/* line 451, sass/_basic.scss */
+/* line 458, sass/_basic.scss */
 button {
   width: 80vw;
   margin: .8em 0;
@@ -489,7 +496,7 @@ button {
   padding: .5em;
 }
 
-/* line 469, sass/_basic.scss */
+/* line 476, sass/_basic.scss */
 button.bottom-button {
   width: 100vw;
   border-radius: 0;
@@ -501,7 +508,7 @@ button.bottom-button {
   /*font-size:2em;*/
 }
 
-/* line 480, sass/_basic.scss */
+/* line 487, sass/_basic.scss */
 input {
   width: 90vw;
   border: 1px solid #0095BF;
@@ -515,7 +522,7 @@ input {
   font-size: 1.5em;
 }
 
-/* line 493, sass/_basic.scss */
+/* line 500, sass/_basic.scss */
 .label, .playerlist .list-header {
   padding: 0 2.8rem;
   display: block;
@@ -525,7 +532,7 @@ input {
   color: #5B6163;
 }
 
-/* line 502, sass/_basic.scss */
+/* line 509, sass/_basic.scss */
 .list {
   width: 100%;
   display: flex;
@@ -534,7 +541,7 @@ input {
   flex-direction: column;
 }
 
-/* line 509, sass/_basic.scss */
+/* line 516, sass/_basic.scss */
 .listel {
   width: 100%;
   display: flex;
@@ -543,7 +550,7 @@ input {
 }
 
 /* classic bar timer*/
-/* line 517, sass/_basic.scss */
+/* line 524, sass/_basic.scss */
 .bartimer {
   width: 100%;
   box-sizing: border-box;
@@ -556,7 +563,7 @@ input {
   border-radius: .5em;
   overflow: hidden;
 }
-/* line 529, sass/_basic.scss */
+/* line 536, sass/_basic.scss */
 .bartimer .bar {
   border-radius: .5em 0 0 .5em;
   position: absolute;
@@ -566,14 +573,14 @@ input {
   top: 0;
   background: linear-gradient(to right, #7db9e8 0%, #1e5799 100%);
 }
-/* line 538, sass/_basic.scss */
+/* line 545, sass/_basic.scss */
 .bartimer .bar.disabled {
   width: 100%;
   background: #5B6163;
 }
 
 /* version of the timerbar for bottom of headers */
-/* line 547, sass/_basic.scss */
+/* line 554, sass/_basic.scss */
 .headerbartimer {
   position: absolute;
   bottom: 0;
@@ -584,7 +591,7 @@ input {
   overflow: hidden;
   background: rgba(0, 0, 0, 0.3);
 }
-/* line 557, sass/_basic.scss */
+/* line 564, sass/_basic.scss */
 .headerbartimer .bar {
   position: absolute;
   height: 100%;
@@ -592,7 +599,7 @@ input {
   top: 0;
   overflow: visible !important;
 }
-/* line 564, sass/_basic.scss */
+/* line 571, sass/_basic.scss */
 .headerbartimer .bar:before {
   content: '';
   position: absolute;
@@ -602,17 +609,17 @@ input {
   right: 100%;
 }
 
-/* line 575, sass/_basic.scss */
+/* line 582, sass/_basic.scss */
 .playerlist {
   background-color: #FFFFFF;
   margin-bottom: 0.4rem;
   display: block;
 }
-/* line 580, sass/_basic.scss */
+/* line 587, sass/_basic.scss */
 .playerlist .list-header {
   width: 100%;
 }
-/* line 585, sass/_basic.scss */
+/* line 592, sass/_basic.scss */
 .playerlist .listel {
   width: auto;
   position: relative;
@@ -623,11 +630,11 @@ input {
     margin:0 $side-padding;
   }*/
 }
-/* line 599, sass/_basic.scss */
+/* line 606, sass/_basic.scss */
 .playerlist .listel i {
   margin-right: 1em;
 }
-/* line 608, sass/_basic.scss */
+/* line 615, sass/_basic.scss */
 .playerlist .listel .playerQuality {
   position: absolute;
   right: 0;
@@ -635,54 +642,54 @@ input {
   transform: translateY(-50%);
 }
 
-/* line 619, sass/_basic.scss */
+/* line 626, sass/_basic.scss */
 .scoreboard .listel {
   width: 100%;
 }
-/* line 622, sass/_basic.scss */
+/* line 629, sass/_basic.scss */
 .scoreboard .scoreboard-element {
   background: #FFFFFF;
   width: 80vw;
   line-height: 1.5em;
   margin: .2em 0;
 }
-/* line 625, sass/_basic.scss */
+/* line 632, sass/_basic.scss */
 .scoreboard .scoreboard-element .position {
   position: absolute;
   line-height: 100%;
   margin-left: 1rem;
   color: #000000;
 }
-/* line 631, sass/_basic.scss */
+/* line 638, sass/_basic.scss */
 .scoreboard .scoreboard-element .position:after {
   content: 'TH';
   font-size: .75em;
   vertical-align: text-top;
 }
-/* line 651, sass/_basic.scss */
+/* line 658, sass/_basic.scss */
 .scoreboard .scoreboard-element.me {
   border: 0.4rem solid #FFCC00;
   background: #0095BF;
   width: 100%;
 }
-/* line 655, sass/_basic.scss */
+/* line 662, sass/_basic.scss */
 .scoreboard .scoreboard-element.me .position {
   font-size: 1.2em;
 }
-/* line 662, sass/_basic.scss */
+/* line 669, sass/_basic.scss */
 .scoreboard .listel .position.r1:after {
   content: 'ST';
 }
-/* line 665, sass/_basic.scss */
+/* line 672, sass/_basic.scss */
 .scoreboard .listel .position.r2:after {
   content: 'ND';
 }
-/* line 668, sass/_basic.scss */
+/* line 675, sass/_basic.scss */
 .scoreboard .listel .position.r3:after {
   content: 'RD';
 }
 
-/* line 675, sass/_basic.scss */
+/* line 682, sass/_basic.scss */
 .slider {
   box-sizing: border-box;
   margin: 1.2rem 2.8rem;
@@ -702,7 +709,7 @@ input {
   /*border:1px solid black;*/
   border-radius: .5em;
 }
-/* line 691, sass/_basic.scss */
+/* line 698, sass/_basic.scss */
 .slider .knob {
   width: 2em;
   height: 2em;
@@ -720,7 +727,7 @@ input {
 /**
  * To show modal dialogs with background
  */
-/* line 709, sass/_basic.scss */
+/* line 716, sass/_basic.scss */
 .modal {
   position: fixed;
   top: 0;
@@ -736,7 +743,7 @@ input {
   align-items: center;
 }
 
-/* line 724, sass/_basic.scss */
+/* line 731, sass/_basic.scss */
 .modal .header {
   flex: 0 0 auto;
   width: 80vw;
@@ -748,7 +755,7 @@ input {
   justify-content: center;
 }
 
-/* line 740, sass/_basic.scss */
+/* line 747, sass/_basic.scss */
 .modal .body {
   flex: 0 1 auto;
   width: 80vw;
@@ -756,18 +763,18 @@ input {
   min-height: 30vh;
   padding: 1em;
 }
-/* line 751, sass/_basic.scss */
+/* line 758, sass/_basic.scss */
 .modal .body h2 {
   color: #0095BF;
 }
-/* line 756, sass/_basic.scss */
+/* line 763, sass/_basic.scss */
 .modal .body input {
   width: 100%;
   border: 1px solid #0095BF;
   border-radius: 0;
 }
 
-/* line 763, sass/_basic.scss */
+/* line 770, sass/_basic.scss */
 .modal .footer {
   flex: 0 0 auto;
   text-align: center;
@@ -780,13 +787,13 @@ input {
   justify-content: center;
 }
 
-/* line 780, sass/_basic.scss */
+/* line 787, sass/_basic.scss */
 .iOS7 .map_controls {
   margin-top: 20px;
 }
 
 /*Round timer*/
-/* line 788, sass/_basic.scss */
+/* line 795, sass/_basic.scss */
 .roundtimer {
   position: relative;
   margin: auto;
@@ -797,7 +804,7 @@ input {
   display: inline-block;
   vertical-align: middle;
 }
-/* line 798, sass/_basic.scss */
+/* line 805, sass/_basic.scss */
 .roundtimer .roundtimer-content {
   color: #FFFFFF;
   display: inline-block;
@@ -805,7 +812,7 @@ input {
   width: 1em;
   height: 1em;
 }
-/* line 806, sass/_basic.scss */
+/* line 813, sass/_basic.scss */
 .roundtimer svg {
   position: absolute;
   top: 0;
@@ -818,7 +825,7 @@ input {
   height: 140%;
   transform: rotateY(-180deg) rotateZ(-90deg);
 }
-/* line 818, sass/_basic.scss */
+/* line 825, sass/_basic.scss */
 .roundtimer svg circle {
   stroke-dasharray: 113;
   stroke-dashoffset: 0px;
@@ -829,16 +836,16 @@ input {
   animation: countdown 10s linear infinite forwards;
 }
 
-/* line 834, sass/_basic.scss */
+/* line 841, sass/_basic.scss */
 .gamebar {
   position: relative;
 }
-/* line 838, sass/_basic.scss */
+/* line 845, sass/_basic.scss */
 .gamebar .title {
   margin: 1.6rem 0;
   color: #000000;
 }
-/* line 844, sass/_basic.scss */
+/* line 851, sass/_basic.scss */
 .gamebar .gameimage {
   height: 5.2rem;
   width: 5.2rem;

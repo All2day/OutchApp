@@ -22,6 +22,9 @@ exports.game = {
           }
         }
       },
+      droppedCards: {
+        type:"number"
+      },
       currentCard: {
         type: "card"
       },
@@ -647,6 +650,11 @@ exports.game = {
                                 list:"phase.stack",
                                 target:"player.currentCard"
                               },
+                              '_25':{
+                                type:"set",
+                                target:"player.droppedCards",
+                                source:"player.droppedCards+1"
+                              },
                               '_3':{ //check if this player has removed all but this card
                                 type:"if",
                                 condition:"player.hand.count = 0",
@@ -965,6 +973,11 @@ exports.game = {
                   target:"_player_loop.el.dir",
                   source:"_player_loop.index"
                 },
+                'set_droppedcards':{
+                  type:"set",
+                  target:"_player_loop.el.droppedCards",
+                  source:"0"
+                },
                 //start without a card
                 /*'asdf':{
                   type:"set",
@@ -1013,7 +1026,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.name+': total distance:'+listel.total_distance+'m'",
+                  text:"listel.name+': total distance:'+listel.total_distance+'m dropped:'+listel.droppedCards+' left:'+listel.hand.length",
                 }
               }
             },

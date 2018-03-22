@@ -93,6 +93,17 @@ Class.extend('GameServer',{
         this.gs.addPlayer(data);
         res.players = this.gs.players.getObject();
         break;
+      case 'exit':
+        var p = this.gs.players[data.token];
+        if(p){
+          res.status = 'ok';
+          this.gs.removePlayer(p);
+        } else {
+          res.status = 'error';
+          res.error = 'no such player with toke:'+data.token;
+          console.log(res.error);
+        }
+        break;
       default:
         res.status = 'error';
         res.error = 'no such message:'+message;
@@ -218,7 +229,7 @@ Class.extend('GameServer',{
       var players = [];
       var n = this.gs.getTime();
       $.each(this.gs.players._value,function(i,p){
-        var t = p.last_ping - n;
+        var t = n - p.last_ping;
         var status = null;
         if(t < 300){
           status = 'good';

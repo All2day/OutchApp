@@ -62,7 +62,18 @@ Class.extend('GameClient',{
       }
       view.draw($(document.body));
 
-    }.bind(this))
+    }.bind(this));
+
+
+    //keep track of the players and warn the current player if another player exits while playing
+    this.gs.players.addHook('change',function(){
+      if(this.gs.currentPhase && this.gs.currentPhase._name == 'play'){
+        app.openModal('Player quit','<p>Another player quit the game.</p>',{
+          'Continue':function(){return false;}
+        });
+      }
+      console.log('players changed');
+    }.bind(this));
   },
   exit:function(){
 

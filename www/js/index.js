@@ -341,6 +341,11 @@ var app = {
           that._currentGame = null;
           that.showGames();
         });
+        f.on('click','.about',function(){
+          app.openModal('About GeoPlay','<h2>The game</h2><p>The game is developed by <a href="http://appvice.dk">Appvice.dk</a>.</p>',{
+            'close':function(){return false;}
+          });
+        });
 
         f.on('click','.instance',function(){
 
@@ -415,32 +420,48 @@ var app = {
 
       this.openModal('Starting game','joining game:'+instance_id,{'waiting...':function(){return true;}});
       //join the game instance
-      $.getJSON(this.server+'/index/joininstance',{token:this.getPlayerToken(),instance_id:instance_id},function(r){
-        if(r.status == 'ok'){
-          this.closeModal();
-          delete(this._old_html);
-          $('#front').hide();
-          this.startLocationService();
+      $.getJSON(this.server+'/index/joininstance',
+        {token:this.getPlayerToken(),instance_id:instance_id},
+        function(r){
+          if(r.status == 'ok'){
+            this.closeModal();
+            delete(this._old_html);
+            $('#front').hide();
+            this.startLocationService();
 
-          this._client = window._client = new GameClient(g.game,this.getPlayerToken(), instance_id);
+            this._client = window._client = new GameClient(g.game,this.getPlayerToken(), instance_id);
 
-          _client.server = r.instance.url;
-          _client.startPinging();
+            _client.server = r.instance.url;
+            _client.startPinging();
 
-        } else {
-          this.openModal('Starting game','could not join instance:'+r.error,{'ok':function(){return false;}});
-          //alert('could not join instance:'+r.error);
-        }
-      }.bind(this)
-    ).fail(function(e){
-      this.openModal('Starting game','An unknown error happened while joining the game',{'ok':function(){return false;}});
+          } else {
+            this.openModal('Starting game','could not join instance:'+r.error,{'ok':function(){return false;}});
+            //alert('could not join instance:'+r.error);
+          }
+        }.bind(this)
+      ).fail(function(e){
+        this.openModal('Starting game','An unknown error happened while joining the game',{'ok':function(){return false;}});
 
-    }.bind(this));
-
+      }.bind(this));
     },
     exitGame:function(){
       if(this._client){
         this._client.exit();
+
+        //contact web server about the exit
+        $.getJSON(this.server+'/index/exitinstance',
+          {token:this.getPlayerToken(),instance_id:this._client.instance_id},
+          function(r){
+            if(r.status == 'ok'){
+              console.log('clean exit');
+              //clean exit all is ok
+            } else {
+              console.log('not clean exit:',r);
+            }
+          }.bind(this)
+        ).fail(function(e){
+          console.log('failure when exiting instance',e);
+        }.bind(this));
 
         //fetch the log:
         var log = window.getConsoleLog();
