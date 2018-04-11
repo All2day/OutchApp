@@ -4,8 +4,8 @@
 });
 alert('device ready fired');
 */
-require('js/handlebars-setup.js');
 require('js/log.js');
+require('js/handlebars-setup.js');
 require('js/client.js');
 
 
