@@ -384,8 +384,14 @@ var app = {
             $("#front .inner").scrollTop(current_scroll);
             this._old_html = new_html;
           }
+        }.bind(this))
+        .fail(function(error) {
+          console.log('error when fetching game:',error);
+        })
+        .always(function() {
           this._gameUpdater = setTimeout(this.showGames.bind(this),1000);
         }.bind(this));
+
       } else {
         if(app.all_games){
           $("#front").html(this.frontTmpl(app.all_games));

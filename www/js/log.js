@@ -118,6 +118,11 @@
 		}
 	};
 
+	window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+    new_log("Error occured: ",errorMsg,url,lineNumber);//or any message
+    return false;
+	};
+
 	var toggle_log;
 
 	toggle_log = function(){

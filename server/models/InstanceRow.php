@@ -2,7 +2,7 @@
 class InstanceRow extends Zend_Db_Table_Row_Abstract{
 	public static function serverInstanceCount(){
 		if (substr(php_uname(), 0, 7) == "Windows"){
-			return 111;
+			return 0;
 		} else {
 			$command = "ps -C command_name --no-headers | wc -l";
 			exec($command,$op);

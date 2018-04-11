@@ -10,7 +10,7 @@ exports.game = {
             actions:{
               '_1':{
                 type:"if", // does not work!
-                condition:"(list.length+1)*game.cardWidth/game.size > (2*3.1415)",
+                condition:"(list.length+1)*game.cardWidth > (2*3.1415)",
                 actions:{
                   1:{
                     type:"startphase",
@@ -72,19 +72,21 @@ exports.game = {
       prototype: "string",
       els:["#bf080f",//"[191,8,15]", //red
           "#1c3d59",//"[28,61,89]", //blue
-          "#2c5e2f"//"[44,94,47]" //green
-        ]//,"[255,172,40]"] //yellow
+          //"#2c5e2f",//"[44,94,47]" //green
+          "#ffac28"//,"[255,172,40]"] //yellow
+        ]
     },
     cardtypes: { //card types in each color
       type: "list",
       prototype: "number",
       els: [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     },
-    size:25,
-    cardHeight:15,
-    cardWidth:10,
-    newCardDelay:15,
-    maxtime:60,
+    size:25, //radius
+    cardHeight:0.6, //card height relative to size, realCardHeight = cardHeight*size
+    cardWidth:0.4,// card width relative to size, rezlCardWidth = cardWidth*size
+    centerRadius:0.4, //radius of center
+    newCardDelay:80,
+    maxtime:600,
     playtime:0
   },
   ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
@@ -112,7 +114,7 @@ exports.game = {
                   type:'MapView',
                   //width:80,
                   height:20,
-                  zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2",//"'fit'",
+                  zoom:"[game.size+game.cardHeight*game.size,game.size+game.cardHeight*game.size]*2",//"'fit'",
                   //zoom:"'fit'",
                   center:"players.gameowner.pos",
                   heading:"players.gameowner.heading",
@@ -132,7 +134,7 @@ exports.game = {
                     },*/
                     'outer':{
                       type:"circle",
-                      radius:"game.size+game.cardHeight",
+                      radius:"game.size+game.cardHeight*game.size",
                       fill:[255,255,255,0.5],
                       color:[0,0,0,0],
                       pos:"players.gameowner.pos",
@@ -142,10 +144,10 @@ exports.game = {
                       radius:"10",
                       fill:[0,0,0,0],
                       pos:"players.gameowner.pos",
-                    }/*,
+                    },
                     'players':{
                       type:"geolist",
-                      list:"players",
+                      list:"players[el!=game.owner]",
                       elements:{
                         'p':{
                           type:"circle",
@@ -154,7 +156,7 @@ exports.game = {
                           pos:"listel.pos"
                         }
                       }
-                    }*/
+                    }
                   }
                 },//end of map
                 'radius':{
@@ -220,7 +222,7 @@ exports.game = {
                   type:"slider",
                   default:"game.maxtime",
                   min:1,
-                  max:600,
+                  max:1200,
                   hooks:{
                     change:{
                       actions:{
@@ -491,7 +493,7 @@ exports.game = {
               //stroke:"5px rgba(100,100,100,0.5)",
               radius:"game.size",
               rotation:"game.center.heading+player.dir*2*3.1415/players.count",
-              fill:"players[el.hand.length=1].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
+              fill:"players[el.hand.length=1 && el != player].length>0 ? '[255,0,0,.5]' : '[255,255,255,.5]'",
               //if there is a player with only one card show red and big
               //color:"players[el.hand.length=1].length>0 ? 'red' : 'black'",
               color:"'transparent'",
@@ -502,14 +504,14 @@ exports.game = {
                 '_newcard':{
                   type:"GeoElement",
                   pos:[0,0],
-                  rotation:"player.hand.length*game.cardWidth/game.size+list.count-list.count",
+                  rotation:"player.hand.length*game.cardWidth+list.count-list.count",
                   geoElements:{
                     'box':{
                       type:"svgbox",
-                      pos:"[0,game.size+0.5*game.cardHeight]",
-                      width:"game.cardWidth",
+                      pos:"[0,game.size+0.5*game.cardHeight*game.size]",
+                      width:"game.cardWidth*game.size",
                       //height:"15",
-                      height:"game.cardHeight",
+                      height:"game.cardHeight*game.size",
                       text:"'+'",
                       fill:[0,0,0,.5],
                       color:"element.isinside ? 'black' : [244,240,241]",
@@ -556,15 +558,15 @@ exports.game = {
                     'boxlist':{
                       type:"GeoElement",
                       pos:[0,0],
-                      rotation:"index*(game.cardWidth)/game.size+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
+                      rotation:"index*(game.cardWidth)+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
                       geoElements:{
                         'box':{
                           type:"svgbox",
                           //TODO:make it possible to have position referenced to the game
-                          pos:"[0,game.size+0.5*game.cardHeight]", //go half the card to the left, and the radius of the circle down
-                          width:"game.cardWidth",
+                          pos:"[0,game.size+0.5*game.cardHeight*game.size]", //go half the card to the left, and the radius of the circle down
+                          width:"game.cardWidth*game.size",
                           //height:"15",
-                          height:"game.cardHeight",
+                          height:"game.cardHeight*game.size",
                           show:"player.currentCard = listel ? 0 : 1", //showcard opacity?
                           text:"listel.value",
                           fill:"listel.color",
@@ -602,7 +604,7 @@ exports.game = {
                   type:"circle",
                   pos:[0,0],
                   //stroke:"5px rgba(100,100,100,0.5)",
-                  radius:"10",
+                  radius:"game.size*game.centerRadius",
 
                   //fill:[0,0,0,0],
                   color:"element.isinside?'black':[244,240,241]",
