@@ -330,8 +330,29 @@ Class.extend('GameClient',{
   },
   registerRemoteTrigger: function(hook,vars){
     var hook_id = null;
-    if(!this.gs.clientHooks){
-      debugger;
+
+    if(true || !this.gs.clientHooks || this.gs.clientHooks.length === undefined){
+      console.log('clientHooks missing',hook,vars);
+      if(hook){
+        var h = hook
+        var i = 0;
+        while(h._owner && i < 10){
+          console.log('hook['+i+']:',h._name, h.__proto__.constructor.name);
+          h = h._owner;
+          i++;
+        }
+        console.log('hook name:',hook._name, hook._owner ? hook._owner.__proto__.constructor.name : 'no hook._owner', hook._owner._owner ? hook._owner._owner.__proto__.constructor.name : 'no hook._owner._owner');
+      }
+      console.log('gamestate is:',this.gs);
+      console.log('currenphase is:',this.currentPhase,this.currentPhase ? this.currentPhase._name : 'not set');
+      console.log('instance_id is:',this.instance_id);
+      console.log('this.status is:',this.status);
+
+      alert('game crashed, exiting');
+
+      app.exitGame();
+      return;
+
     }
 
     for(var i=0;i< this.gs.clientHooks.length;i++){

@@ -138,6 +138,15 @@ var app = {
         } else {
           this.gameStartup();
         }
+    }, //end of onDeviceReady
+    onPause: function(){
+      console.log('pausing, stopping location service');
+      this.stopLocationService();
+    },
+
+    onResume: function(){
+      console.log('resume, restart location service');
+      this.startLocationService();
     },
 
     gameStartup:function(){
@@ -189,6 +198,8 @@ var app = {
   		//attachFastClick(document.body);
 
       this.setupTemplates();
+      this.startLocationService();
+
 
       if(this.qs['test_game']){
         var port = this.qs['port'];
@@ -197,7 +208,7 @@ var app = {
         };
         var url = 'http://localhost:'+port;
         $('#front').hide();
-        this.startLocationService();
+        //this.startLocationService();
 
         var g = require(this._currentGame.src,true);
 
@@ -270,6 +281,7 @@ var app = {
           e.preventDefault();
           app.openModal('Stopping game','Stopping game instance',{'waiting...':function(){return true;}});
           $.getJSON(that.server+'/index/stop',{instance_id:$(this).attr('data-instance_id')},function(data){
+            console.log('gamd stopped starting showGames');
             this.showGames();
           }.bind(that)).always(function(){
             app.closeModal();
@@ -385,8 +397,12 @@ var app = {
             this._old_html = new_html;
           }
         }.bind(this))
-        .fail(function(error) {
-          console.log('error when fetching game:',error);
+        .fail(function(error,error_text) {
+          if(error_text == "abort"){
+            //normal ignore
+          } else {
+            console.log('error when fetching game:',error_text);
+          }
         })
         .always(function() {
           this._gameUpdater = setTimeout(this.showGames.bind(this),1000);
@@ -414,6 +430,10 @@ var app = {
         return;
       }
       //allways clear the updater
+      if(this._fetching){
+        this._fetching.abort();
+        this._fetching = null;
+      }
       clearTimeout(this._gameUpdater);
 
 
@@ -443,7 +463,8 @@ var app = {
             this.closeModal();
             delete(this._old_html);
             $('#front').hide();
-            this.startLocationService();
+            //moved to be started generally
+            //this.startLocationService();
 
             this._client = window._client = new GameClient(g.game,this.getPlayerToken(), instance_id);
 
@@ -509,7 +530,8 @@ var app = {
 
 
       delete(this._old_html);
-      this.stopLocationService();
+      //enabled generally
+      //this.stopLocationService();
 
       this.showGames();
 
