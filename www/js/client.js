@@ -331,7 +331,7 @@ Class.extend('GameClient',{
   registerRemoteTrigger: function(hook,vars){
     var hook_id = null;
 
-    if(true || !this.gs.clientHooks || this.gs.clientHooks.length === undefined){
+    if(!this.gs.clientHooks || this.gs.clientHooks.length === undefined){
       console.log('clientHooks missing',hook,vars);
       if(hook){
         var h = hook
