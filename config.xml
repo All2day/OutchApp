@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-packageName="dk.appvice.outch" id="dk.appvice.outch" ios-CFBundleIdentifier="dk.appvice.outch" version="0.0.55" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-packageName="dk.appvice.outch" id="dk.appvice.outch" ios-CFBundleIdentifier="dk.appvice.outch" version="0.0.56" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>GeoGames</name>
     <description>
         Lets go outside
@@ -12,6 +12,10 @@
     <preference name="webviewbounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
     <preference name="StatusBarOverlaysWebView" value="true" />
+    <preference name="StatusBarBackgroundColor" value="#000000" /> <!-- is it necessary? -->
+    <preference name="StatusBarStyle" value="lightcontent" /><!-- is it necessary? -->
+    <preference name="StatusBarDefaultScrollToTop" value="false" /> <!-- is it necessary? -->
+
     <preference name="orientation"                value="portrait" />        <!-- all: default means both landscape and portrait are enabled -->
     <access origin="*" />
     <allow-intent href="http://*/*" />
@@ -27,10 +31,10 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
-        <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption" platform="ios">
-            <false />
-        </gap:config-file>
     </platform>
+    <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption" platform="ios">
+        <false />
+    </gap:config-file>
     <platform name="android">
     </platform>
     <platform name="ios">

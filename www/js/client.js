@@ -72,16 +72,19 @@ Class.extend('GameClient',{
           'Continue':function(){return false;}
         });
       }
-      console.log('players changed');
+      console.log('players changed, current phase:',this.gs.currentPhase ? this.gs.currentPhase._name : 'no current phase');
     }.bind(this));
+    this.go = gameobject;
   },
   exit:function(){
-
+    console.log('client exit')
     this.status = 'exited';
 
     if(typeof this.ping ==="object"){
+      console.log('aborting ping');
       this.ping.abort();
     } else {
+      console.log('clearing ping timeout');
       clearTimeout(this.ping)
     }
 
@@ -91,8 +94,9 @@ Class.extend('GameClient',{
     Variable._vars = {};
     Hookable._triggerQueue = [];
     Hookable._nextHookId = 1;
-
-
+    ProtoType.prototypes = {};
+    console.log('Cleanup done');
+    //this.init(this.go,'',2);
   },
 
   getServerTime: function(){
@@ -115,10 +119,15 @@ Class.extend('GameClient',{
     });
   },
   fullUpdate:function(update){
-
+    if(this.status == 'exited'){
+      console.log('got fullupdate while exited?');
+      return;
+    }
     //first go is simply to check the existance of all the variables
+    var new_vars = 0;
     $.each(update,function(id,u){
       if(Variable._vars[id] === undefined){
+        new_vars++;
         Variable._nextId = id;
         var val = u.value;
         delete u.value;
@@ -131,6 +140,10 @@ Class.extend('GameClient',{
         }
       }
     });
+
+    if(new_vars){
+      console.log('added '+new_vars+' new vars in fullUpdate, total is:'+Variable._vars.length);
+    }
 
     //TODO:Make sure that client variables dont fill up the variable index space
     var p = this.gs.currentPlayer;
@@ -260,6 +273,7 @@ Class.extend('GameClient',{
       console.log('adding remote triggers');
       d.rt = this.remoteTriggerQueue;
       this.remoteTriggerQueue = [];
+
     }
 
     if(this.gs.currentPlayer /*&& this.gs.currentPlayer.pos._value*/){
@@ -279,12 +293,12 @@ Class.extend('GameClient',{
       dataType: "json",
       url: this.server+'/ping?'+JSON.stringify(d),
       success: function(r){
-        if(this.status === "exited"){
+        if(this.status == "exited"){
           console.log('recieved update after exit ignoring');
-          debugger;
           return;
         }
         if(this.game_id === null){
+          console.log('setting game_id to:',r.game_id);
           this.game_id = r.game_id;
         }
         if(r.game_id != this.game_id){
@@ -297,7 +311,6 @@ Class.extend('GameClient',{
           return;
         }
 
-        r.game_id
         this.fullUpdate(r.u);
         //in case the full update results in an exit, dont restart the pinging
         if(this.status == 'exited'){
@@ -322,6 +335,12 @@ Class.extend('GameClient',{
         //debugger;
         console.log('status:'+status+' error:'+error);
         //alert(error);
+        if(this.status == 'exited'){
+          return;
+        }
+        if(this.gs && this.gs.currentPlayer){
+          this.gs.currentPlayer.ping.set(100000); //large number
+        }
 
         this.ping = setTimeout(this.startPinging.bind(this),1000);
       }.bind(this),
@@ -332,11 +351,12 @@ Class.extend('GameClient',{
     var hook_id = null;
 
     if(!this.gs.clientHooks || this.gs.clientHooks.length === undefined){
+      debugger;
       console.log('clientHooks missing',hook,vars);
       if(hook){
         var h = hook
         var i = 0;
-        while(h._owner && i < 10){
+        while(h && i < 10){
           console.log('hook['+i+']:',h._name, h.__proto__.constructor.name);
           h = h._owner;
           i++;
@@ -363,6 +383,22 @@ Class.extend('GameClient',{
     }
     if(hook_id === null){
       console.log('could not find client hook?');
+
+      if(hook){
+        var h = hook
+        var i = 0;
+        while(h && i < 10){
+          console.log('hook['+i+']:',h._name, h.__proto__.constructor.name);
+          h = h._owner;
+          i++;
+        }
+        console.log('hook name:',hook._name, hook._owner ? hook._owner.__proto__.constructor.name : 'no hook._owner', hook._owner._owner ? hook._owner._owner.__proto__.constructor.name : 'no hook._owner._owner');
+      }
+      console.log('gamestate is:',this.gs);
+      console.log('currenphase is:',this.currentPhase,this.currentPhase ? this.currentPhase._name : 'not set');
+      console.log('instance_id is:',this.instance_id);
+      console.log('this.status is:',this.status);
+
       return;
     }
 

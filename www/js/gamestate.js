@@ -391,6 +391,11 @@ Variable.extend('ListVariable',{
     return v;
   },
   set:function(i,v){
+    if(i === null && $.isArray(this._value) && this._value.length == 0){
+      //nothing to set, simply return
+      console.log('setting null in list var', this._id);
+      //return;
+    }
     if(i instanceof Variable || i === null){
       return this._super(i);
     }
