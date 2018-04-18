@@ -36,18 +36,20 @@ require('js/gamestate');
 
 var uno = require('http://geogames.localhost/index/gamesrc/game_id/uno',true);
 
-debugger;
+
 var gs = new GameState(uno.game);
 
+
 //add players
-gs.addPlayer('mads');
+debugger;
+gs.addPlayer({name:'mads',token:'asdf'});
 //this.gs.addPlayer('simon');
 
 //load the first game phase which will setup hooks
-
 gs.loadPhase(/*default to first*/);
 
-
+debugger;
+gs.loadPhase('play');
 
 </script>
 

@@ -2403,7 +2403,14 @@ GeoElement.extend('SvgElement',{
       if($.type(s_c._value) == 'string'){
         return s_c._value;
       }
-      return ol.color.asString(s_c._value);
+      try{
+        var res = ol.color.asString(s_c._value);
+        return res;
+      } catch(e){
+        console.log('bad color for this',this);
+        //debugger;
+      }
+      return 'black';
     },
     _calculateSvg:function(w,h){
       //w=w*10;

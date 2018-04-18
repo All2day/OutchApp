@@ -74,8 +74,9 @@ Hookable.extend('Variable',{
 Variable._nextId = 1;
 Variable._vars = {};
 Variable._registerVar = function(v,id){
+
   // Client elements should not be a part of what is transfered and thus not registered
-  if(v instanceof ClientElement || v instanceof TempListVariable){
+  if(v instanceof ClientElement || v instanceof TempListVariable || v instanceof TempGameStateObject){
     return;
   }
   //GamestatList that are not changeable should be the same on the client and thus not transfered
@@ -668,6 +669,8 @@ Variable.extend('GameStateObject',{
     return o;
   }
 });
+
+GameStateObject.extend('TempGameStateObject',{});
 
 GameStateObject.extend('GameStateList',{
   _type:'gslist',

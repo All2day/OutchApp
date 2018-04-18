@@ -1014,11 +1014,11 @@ ScopeLookup.extend('ScopeFilter',{
       return null;
     }
 
-    var gso = new GameStateObject({});
+    var gso = new TempGameStateObject({});
     ScopeRef._pushScope(gso);
 
     //create an empty list
-    //TODO: The Listvariable currently registers in Variable. it should not
+    //debugger;
     var new_list = new TempListVariable({prototype:scp.prototype});
     var that = this;
     $.each(scp._value,function(k,v){
@@ -1056,7 +1056,7 @@ ScopeLookup.extend('ScopeSort',{
       return null;
     }
 
-    var gso = new GameStateObject({});
+    var gso = new TempGameStateObject({});
     ScopeRef._pushScope(gso);
 
     //create an empty temporary list
@@ -1112,7 +1112,11 @@ ScopeRef.extend('ScopeColor',{
 
     }
     if($.type(inp) == 'string' && inp.match(/#[0-9A-F]{3}[0-9A-F]{3}?/i)){
-      inp = ol.color.asArray(inp);
+      try{
+        inp = ol.color.asArray(inp);
+      } catch(e){
+        debugger;
+      }
     }
     if($.type(inp) == 'array'){
       for(var i=0;i<inp.length;i++){

@@ -141,6 +141,7 @@ Action.fromObject = function(obj,name){
      var list_var = this.list.eval();
 
      if(list_var instanceof ListVariable){
+
        list_var.shuffle();
      }
    },

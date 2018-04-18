@@ -127,6 +127,8 @@ Class.extend('GameClient',{
     var new_vars = 0;
     $.each(update,function(id,u){
       if(Variable._vars[id] === undefined){
+
+        if(window._watch && window._watch.indexOf(id*1) >= 0){ debugger;}
         new_vars++;
         Variable._nextId = id;
         var val = u.value;
@@ -142,7 +144,7 @@ Class.extend('GameClient',{
     });
 
     if(new_vars){
-      console.log('added '+new_vars+' new vars in fullUpdate, total is:'+Variable._vars.length);
+      console.log('added '+new_vars+' new vars in fullUpdate, total is:'+(Variable._nextId +1));
     }
 
     //TODO:Make sure that client variables dont fill up the variable index space
