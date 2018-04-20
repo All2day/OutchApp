@@ -54,28 +54,13 @@ var app = {
           alert('error in init:'+e.message + ' in '+e.fileName + '['+e.lineNumber+']');
         }
       } else
-      if(navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) { //removed |IEMobile
+      if(navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/) && window.location.protocol == "file:") { //removed |IEMobile
 
         console.log('registering deviceready');
         document.addEventListener("deviceready", function(){
           console.log('Got deviceready');
 
-          if(window.device.platform == 'iOS'){
-    				$('body').addClass('iOS');
-    				if(parseFloat(window.device.version) >= 7.0) {
-    				  $('body').addClass('iOS7');
-    					console.log('iOS7+ detected, adding top padding for statusbar');
-    		    }
-    			}
 
-
-          try{
-            if(window.console_reinsert){
-              console_reinsert();
-            }
-          } catch(e){
-            alert('error in console reinsert:'+e.message + ' in '+e.fileName + '['+e.lineNumber+']');
-          }
           try{
             app.onDeviceReady();
           } catch(e){
@@ -95,6 +80,33 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
         console.log('device ready');
+
+        if(navigator.userAgent.match(/(iPhone|iPod|iPad)/)){
+          $('body').addClass('iOS7');
+        }
+        if(window.device && window.device.platform == 'iOS'){
+          $('body').addClass('iOS');
+          if(parseFloat(window.device.version) >= 7.0) {
+            $('body').addClass('iOS7');
+            console.log('iOS7+ detected, adding top padding for statusbar');
+          }
+        }
+
+
+        try{
+          if(window.console_reinsert){
+            console_reinsert();
+          }
+        } catch(e){
+          alert('error in console reinsert:'+e.message + ' in '+e.fileName + '['+e.lineNumber+']');
+        }
+
+        console.log('starting GA');
+        if(window.analytics){
+          analytics.startTrackerWithId('UA-117828910-1',function(){console.log('GA startt')},function(err){console.log('got err from GA',err)});
+        } else {
+          console.log('No GA');
+        }
 
         var qs = this.qs = (function(a) {
             if (a == "") return {};
@@ -228,6 +240,7 @@ var app = {
       };*/
       console.log('fetching game info');
       this._fetching = $.getJSON(this.server+'/index/game',{game_id:'uno',token:this.getPlayerToken()},function(data){
+        if(window.analytics){analytics.trackView('gamepage');}
         console.log('got game info',data);
         this._currentGame = data.game;
         this.showGames();
@@ -424,6 +437,7 @@ var app = {
     },
 
     startGame:function(instance_id){
+      if(analytics){analytics.trackView('startgame/'+instance_id);}
       delete(this._old_html);
       if(!this.player){
         console.log('no player when starting game');

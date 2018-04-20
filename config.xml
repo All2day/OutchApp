@@ -12,11 +12,10 @@
     <preference name="webviewbounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
     <preference name="StatusBarOverlaysWebView" value="true" />
-    <preference name="StatusBarBackgroundColor" value="#000000" /> <!-- is it necessary? -->
-    <preference name="StatusBarStyle" value="lightcontent" /><!-- is it necessary? -->
-    <preference name="StatusBarDefaultScrollToTop" value="false" /> <!-- is it necessary? -->
-
-    <preference name="orientation"                value="portrait" />        <!-- all: default means both landscape and portrait are enabled -->
+    <preference name="StatusBarBackgroundColor" value="#000000" />
+    <preference name="StatusBarStyle" value="lightcontent" />
+    <preference name="StatusBarDefaultScrollToTop" value="false" />
+    <preference name="orientation" value="portrait" />
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -31,10 +30,10 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
+        <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption">
+            <false />
+        </gap:config-file>
     </platform>
-    <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption" platform="ios">
-        <false />
-    </gap:config-file>
     <platform name="android">
     </platform>
     <platform name="ios">
@@ -57,6 +56,7 @@
     </platform>
     <engine name="android" spec="^6.2.3" />
     <plugin name="com.manueldeveloper.volume-buttons" spec="https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git" />
+    <plugin name="cordova-plugin-analytics" spec="^1.4.3" />
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
