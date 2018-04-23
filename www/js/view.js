@@ -370,7 +370,7 @@ ViewElement.extend('PageElement',{
       }
       dom.find('.header .title').text(title);
       dom.find('.header .exit').on('click',function(){
-        if(confirm('sure exit?')){
+        if(ScopeRef._gs.getCurrentPhaseType() === 'scoreboard' || confirm('sure exit?')){
           //todo: add nice exit
           app.exitGame();
         }
@@ -865,9 +865,11 @@ ViewElement.extend('TimerElement',{
  */
 ViewElement.extend('RoundtimerElement',{
   _timer:null,
+  _warning:null,
   init:function(obj){
     this._super(obj);
     this.registerProp('timer',obj.timer);
+    this.registerProp('warning',obj.warning,'5s');
   },
   draw:function(c){
 
@@ -883,6 +885,8 @@ ViewElement.extend('RoundtimerElement',{
       dom.append(this._barDiv);
 
       this._timer = this.getProp('timer');
+      this._warning = this.getProp('warning',true);
+
       this._dom = dom;
 
       var inner = dom.find('.roundtimer-content');
@@ -908,6 +912,25 @@ ViewElement.extend('RoundtimerElement',{
       }).animate({
         strokeDashoffset:'113'
       },(1-ratioDone)*this._timer.get('duration'),'linear');
+
+      if(this._warning){
+        var warning_state = false;
+
+        if($.type(this._warning) !== "string"){
+          this._warning = ""+this._warning;
+        }
+        var w_match = this._warning.match(/(\d+)(s|\%)?/)
+
+        if(w_match && w_match[2] == '%'){
+          this._dom.toggleClass('warning',this._timer.get('ratioLeft') <= w_match[1]*0.01);
+        } else
+        if(w_match){
+          this._dom.toggleClass('warning',this._timer.get('timeleft') <= w_match[1]*(w_match[2] ? 1000 : 1));
+        } else {
+          console.log('unknown warning string:',this._warning);
+          this._warning = null;
+        }
+      }
 
     }
   },
@@ -1615,25 +1638,11 @@ ViewElement.extend('PlayerqualityElement',{
     if(this._player){
 
       var ping = this._player.get('ping');
-      if(ping._value < 200){
-        this._dom.find('.connection').attr('class','connection good');
-      } else
-      if(ping._value < 500){
-        this._dom.find('.connection').attr('class','connection medium');
-      } else {
-        this._dom.find('.connection').attr('class','connection bad');
-      }
+      this._dom.find('.connection').attr('class','connection '+app.getConnectionAccuracyLevel(ping._value));
 
       var pos_accuracy = this._player.get('pos_accuracy')._value;
-      if(pos_accuracy < 10){
-        this._dom.find('.location').attr('class','location good');
-      } else
-      if(pos_accuracy < 20){
-        this._dom.find('.location').attr('class','location medium');
-      } else {
-        this._dom.find('.location').attr('class','location bad');
-      }
-
+      var level = app.getPosAccuracyLevel(pos_accuracy);
+      this._dom.find('.location').attr('class','location '+level);
       //console.log('quality'+ping._value);
     }
   }

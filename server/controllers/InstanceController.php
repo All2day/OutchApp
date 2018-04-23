@@ -109,23 +109,36 @@ class InstanceController extends Zend_Controller_Action
 					$p = PlayerTable::getFromToken($player['token']);
 					$player['player_id'] = $p->player_id;
 
+
+					if($ips[$p->player_id]['status'] !== $player['status']){
+						$this->instance->setPlayerStatus($p->player_id, $player['status']);
+					}
+
 					unset($ips[$p->player_id]);
-					$live_players++;
+
+					if($player['status'] === 'joined'){
+						$live_players++;
+					}
 					//$this->instance->setPlayerStatus($p->player_id, $player['status']);
 				}
 			}
-
+			
 			foreach($ips as $player_id => $ip){
+				if($ip['status'] == 'exited'){
+					continue;
+				}
+
 				//give newly joined users 30s to actually join
 				if($ip['status'] == 'created' && strtotime($ip['start']) > time()-30){
 					$live_players++;
 				} else {
-					$this->instance->setPlayerStatus($player_id, $this->instance->currentPhase == 'scoreboard' ? 'ended':'exited');
+					//otherwise count them as timeouts
+					$this->instance->setPlayerStatus($player_id, 'timeout');
 				}
 			}
 
 			//check the number of players. If there have been players but all have exited, stop the game
-			if(count($ips) && !$live_players){
+			if(!$live_players){
 				//end the geogames
 				$this->instance->stop();
 				//Zend_Debug::dump($ips);

@@ -400,7 +400,13 @@ var app = {
         }
 
         //update data
+        var t = new Date().getTime();
         this._fetching = $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
+          //use new time as a ping
+          var this_t = new Date().getTime();
+          //update connection quality
+          $('.playerQuality .connection').attr('class','connection '+app.getConnectionAccuracyLevel(this_t-t));
+
           this._currentGame = data.game;
           var new_html = this.gameTmpl(this._currentGame);
           if(new_html != this._old_html){
@@ -437,7 +443,7 @@ var app = {
     },
 
     startGame:function(instance_id){
-      if(analytics){analytics.trackView('startgame/'+instance_id);}
+      if(window.analytics){analytics.trackView('startgame/'+instance_id);}
       delete(this._old_html);
       if(!this.player){
         console.log('no player when starting game');
@@ -807,6 +813,9 @@ var app = {
             }
           }
 
+          if(!this._client){
+            $('.playerQuality .location').attr('class','location '+app.getPosAccuracyLevel(pos_obj.a));
+          }
 
 
           return;
@@ -957,7 +966,28 @@ var app = {
     },
     closeModal:function(){
       $("#modal").hide().off('click','.footer');
+    },
+    getPosAccuracyLevel: function(a){
+      if(a < 10){
+        return 'good';
+      } else
+      if(a < 20){
+        return 'medium';
+      } else {
+        return 'bad';
+      }
+    },
+    getConnectionAccuracyLevel: function(ping){
+      if(ping < 200){
+        return 'good';
+      } else
+      if(ping < 500){
+        return 'medium';
+      } else {
+        return 'bad';
+      }
     }
+
 };
 
 app.initialize();

@@ -1085,6 +1085,7 @@ ProtoTypeVariable.extend('Player',{
   total_distance:0,
   id:null,
   gsUpdates:null,
+  //status:null,
   _clientVars:{ //variables controlled by the client, send to the server and not directly updated
     pos:PosVariable,
     pos_accuracy:PrimitiveVariable,
@@ -1093,7 +1094,8 @@ ProtoTypeVariable.extend('Player',{
   },
   _defaultVars:{ //Default vars defining what a player as minimum should have defined by the server
     name:PrimitiveVariable,
-    rank:PrimitiveVariable
+    rank:PrimitiveVariable,
+    status:PrimitiveVariable
   },
   init:function(type,obj){
     //When called with empty player def {type:"player"} it comes from phase
@@ -1484,6 +1486,7 @@ GameStateObject.extend('GameState',{
   addPlayer:function(player_data){
     console.log('adding player:'+player_data.name);
     var p = this.prototypes.player.create();
+    p.status.set('joined');
     $.each(player_data,function(n,pd){
 
       if(p._value[n] === undefined){
@@ -1658,5 +1661,11 @@ GameStateObject.extend('GameState',{
     });
 
     return o;
+  },
+  getCurrentPhaseType: function(){
+    if(!this.currentPhase._value){
+      console.log('no current phase?');
+    }
+    return this.currentPhase._value._name;
   }
 });

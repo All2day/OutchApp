@@ -68,7 +68,8 @@ Action.fromObject = function(obj,name){
    },
    do:function(){
      var gs = ScopeRef._getGameState();
-     gs.removePlayer(gs.currentPlayer);
+     gs.currentPlayer.status.set(gs.getCurrentPhaseType() == 'scoreboard' ? 'ended' : 'exited');
+     //gs.removePlayer(gs.currentPlayer);
    }
  });
 

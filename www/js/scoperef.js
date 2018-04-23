@@ -512,21 +512,31 @@ LeftRightRef.extend('ScopeLessThan',{
 
 LeftRightRef.extend('ScopeEqual',{
   eval:function(scp,inf){
-    var left_var = this.left.eval(scp,inf);
-    var right_var = this.right.eval(scp,inf);
-    if(left_var == right_var){
+    var l = this.left.eval(scp,inf);
+    var r = this.right.eval(scp,inf);
+
+    if(l instanceof Variable){l = l._value;}
+    if(r instanceof Variable){r = r._value;}
+
+    if(l == r){
       return true;
     }
-    if(left_var && left_var._value && right_var && right_var._value){
+    /*if(left_var && left_var._value && right_var && right_var._value){
       return left_var._value == right_var._value;
-    }
+    }*/
     return false;
   }
 });
 
 LeftRightRef.extend('ScopeNotEqual',{
   eval:function(scp,inf){
-    return this.left.eval(scp,inf) != this.right.eval(scp,inf);
+    var l = this.left.eval(scp,inf);
+    var r = this.right.eval(scp,inf);
+
+    if(l instanceof Variable){l = l._value;}
+    if(r instanceof Variable){r = r._value;}
+
+    return l != r;
   }
 });
 

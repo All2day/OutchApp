@@ -41,9 +41,9 @@ Class.extend('GameServer',{
 
     //add hook to update the server on the current phase
     this.gs.currentPhase.addHook('change',function(){
-      var data = {phase:this.gs.currentPhase._value._name,process_id:process_id};
+      var data = {phase:this.gs.getCurrentPhaseType(),process_id:process_id};
 
-      if(this.gs.currentPhase._value._name == 'scoreboard'){
+      if(this.gs.getCurrentPhaseType() == 'scoreboard'){
         console.log('scoreboard phase, calculate rank');
         this.gs.calculateRanking();
 
@@ -97,7 +97,9 @@ Class.extend('GameServer',{
         var p = this.gs.players[data.token];
         if(p){
           res.status = 'ok';
-          this.gs.removePlayer(p);
+          p.status.set(this.gs.getCurrentPhaseType() == 'scoreboard' ? 'ended' : 'exited');
+
+          //this.gs.removePlayer(p);
         } else {
           res.status = 'error';
           res.error = 'no such player with toke:'+data.token;
@@ -230,26 +232,38 @@ Class.extend('GameServer',{
       var n = this.gs.getTime();
       $.each(this.gs.players._value,function(i,p){
         var t = n - p.last_ping;
-        var status = null;
+        var ping_status = null;
         if(t < 300){
-          status = 'good';
+          ping_status = 'good';
         } else
         if(t < 1000){
-          status = 'bad';
+          ping_status = 'bad';
         } else
         if(t < 5000){
-          status = 'lost';
+          ping_status = 'lost';
         } else
         if(t < 60000){
-          status = 'removed';
-          this.gs.removePlayer(p);
+          ping_status = 'removed';
+          if(p.status._value == 'joined'){
+            p.status.set('timeout');
+          }
+
+          //this.gs.removePlayer(p);
         }
+
+        var status = p.status._value;
 
         players.push({
           token:i,
-          status:status ,
+          ping_status:ping_status ,
+          status: status,
           last_ping:p.last_ping
         });
+
+        //remove it so that it will not be there the next time
+        if(status !== "joined" && this.gs.getCurrentPhaseType() == 'join'){
+          this.gs.removePlayer(p);
+        }
       }.bind(this));
 
 

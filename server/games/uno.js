@@ -406,6 +406,7 @@ exports.game = {
             'left':{
               type:"roundtimer",
               timer:"player.nextCard",
+              warning:"5s",
               elements:{
                 'img':{
                   type:"image",
@@ -1028,7 +1029,7 @@ exports.game = {
               elements:{
                 0:{
                   type:"label",
-                  text:"listel.name+': total distance:'+listel.total_distance+'m dropped:'+listel.droppedCards+' left:'+listel.hand.length",
+                  text:"listel.name+': total distance:'+listel.total_distance+'m dropped:'+listel.droppedCards+' left:'+listel.hand.length+(listel.status = 'joined'?'':' player left')",
                 }
               }
             },
