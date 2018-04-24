@@ -8,6 +8,8 @@
         Mads Kessel
     </author>
     <content src="index.html" />
+    <hook src="hooks/after_prepare_read_app_version.js" type="after_prepare" />
+
     <preference name="target-device" value="handset" />
     <preference name="webviewbounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />

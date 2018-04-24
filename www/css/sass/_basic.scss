@@ -894,3 +894,30 @@ input {
     background-size:cover;
   }
 }
+
+.questionnaire {
+  .rating{
+    text-align: center;
+
+
+    label{
+      display:inline-block;
+      font-size:2rem;
+      vertical-align: middle;
+    }
+
+    input{
+      display:none;
+
+      &:checked + label{
+        text-shadow: 0px 0px 5px rgba(0,0,0,0.4);
+        font-size:3rem;
+      }
+    }
+  }
+
+  textarea {
+    width: 100%;
+    margin: 2rem 0;
+  }
+}

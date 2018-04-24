@@ -21,7 +21,7 @@
   <div class="modal">
     <div class="header">{{title}}</div>
     <div class="body">{{{body}}}</div>
-    <div class="footer">{{btn}}</div>
+    <div class="footer">{{{btn}}}</div>
   </div>
 </script>
 
@@ -38,13 +38,33 @@
     </content>
 </script>
 
+<script id="questionnaire" type="text/x-handlebars-template">
+  <form class="questionnaire">
+
+    <div class="rating">
+      <input type="radio" id="star1" name="rating" value="1" />
+      <label class="star" for="star1" title="Awfull" aria-hidden="true">😠</label>
+      <input type="radio" id="star2" name="rating" value="2" />
+      <label class="star" for="star2" title="Good" aria-hidden="true">🙁</label>
+      <input type="radio" id="star3" name="rating" value="3" />
+      <label class="star" for="star3" title="Very good" aria-hidden="true">😐</label>
+      <input type="radio" id="star4" name="rating" value="4" />
+      <label class="star" for="star4" title="Great" aria-hidden="true">🙂</label>
+      <input type="radio" id="star5" name="rating" value="5" />
+      <label class="star" for="star5" title="Awesome" aria-hidden="true">😃</label>
+    </div>
+    <textarea name="comment" placeholder="Extra info, realy anything, anything that you would like to share with us:-)"></textarea>
+  </form>
+
+</script>
+
 <script id="game" type="text/x-handlebars-template">
   <div class="page">
     <header class="header"><a style="display:none" class="left back"><i class="icon-Back-Arrow"></i></a>
       <a style="" class="left about">?</a>
       <div class="title">GeoPlay</div>
 
-      <div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+      <div class="playerQuality openStatus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
         <path class="connection" d="M16,10.34h0V0L0,16H9.93A6.1,6.1,0,0,1,16,10.34Z"/>
         <path class="location" d="M13.74,11.6a2.25,2.25,0,0,0-2.25,2.25c0,1.66,2.25,4.13,2.25,4.13S16,15.52,16,13.85A2.24,2.24,0,0,0,13.74,11.6Zm0,3a.8.8,0,1,1,.8-.8h0a.8.8,0,0,1-.8.77Z"/>
       </svg></div>

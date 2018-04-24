@@ -80,6 +80,7 @@ var app = {
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
         console.log('device ready');
+        console.log('app version:',"%%VERSION%%");
 
         if(navigator.userAgent.match(/(iPhone|iPod|iPad)/)){
           $('body').addClass('iOS7');
@@ -208,6 +209,17 @@ var app = {
       //https://github.com/ftlabs/fastclick
       //var attachFastClick = Origami.fastclick;
   		//attachFastClick(document.body);
+
+      $(document.body).on('click','.openStatus',function(){
+        app.openModal('Status',$('<h2>').text(app._currentGame ? app._currentGame.name : 'GeoPlay').prop('outerHTML')+
+          (app._client ? '<button onclick="app.exitGame();" style="width:auto;">Quit game</button>' : '')+
+          (app._currentGame ? '<a href="" onclick="app.showRules();return false;">Show rules</a>':''),
+          {
+          'Continue':function(){
+            return false;
+          }
+        });
+      }.bind(this));
 
       this.setupTemplates();
       this.startLocationService();
@@ -502,6 +514,8 @@ var app = {
       }.bind(this));
     },
     exitGame:function(){
+
+
       if(this._client){
         this._client.exit();
 
@@ -539,10 +553,10 @@ var app = {
           console.log('could not send log:'+e);
         }
 
+
+
         delete(this._client);
         delete(window._client);
-
-
       }
       $("body").children().each(function(){
         $(this).remove();
@@ -550,6 +564,8 @@ var app = {
 
 
       delete(this._old_html);
+
+      this.showQuestionnaire();
       //enabled generally
       //this.stopLocationService();
 
@@ -955,6 +971,7 @@ var app = {
         btn:Object.keys(buttons)[0]
       }));
 
+      $("#modal").off('click','.footer');
       $("#modal").on('click','.footer',function(e){
         var k = Object.keys(buttons)[0];
         var r = buttons[k].apply();
@@ -966,6 +983,45 @@ var app = {
     },
     closeModal:function(){
       $("#modal").hide().off('click','.footer');
+    },
+    showRules: function(){
+      this.showQuestionnaire();
+      return;
+      this.openModal('How to play',app._currentGame.rules,{
+        '<i class="icon-Profile"></i>&nbsp;Close rules':function(){
+          return false;
+        }
+      })
+    },
+    showQuestionnaire: function(){
+      this.openModal('Rate the gameplay',this.questionnaireTmpl(this._currentGame),{
+        'Send':function(){
+          var data = {}
+          $('#modal form.questionnaire').serializeArray().map(function(v){
+            data[v.name] = v.value;
+          });
+
+
+          if(!data.rating){
+            alert('please select a rating');
+            return true;
+          }
+
+          //fill with extra data
+          data.platform       = window.device ? window.device.platform : 'none';
+          data.model          = window.device ? window.device.model : 'none';
+          data.manufacturer   = window.device ? window.device.manufacturer : 'none';
+          data.deviceversion   = window.device ? window.device.version : 'none';
+          data.appversion = "%%VERSION%%";
+
+          //net playerQuality
+          //gps playerQuality
+
+
+          //get the info
+          return false;
+        }
+      })
     },
     getPosAccuracyLevel: function(a){
       if(a < 10){

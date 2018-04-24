@@ -1210,6 +1210,9 @@ ProtoTypeVariable.extend('Player',{
 
       this.total_distance._value+=lim_d;
 
+      //statistical analysis of acuraccy
+
+
       //console.log('total:'+this.total_distance._value+'dt:'+dt+' speed:'+speed+' lim_d/d: '+lim_d+'/'+d+' ['+this.pos._value.x+','+this.pos._value.y+'] => ['+c[0]+','+c[1]+'] : ['+(c[0]-this.pos._value.x)+','+(c[1]-this.pos._value.y)+']= '+d);
     }
 
@@ -1228,7 +1231,7 @@ ProtoTypeVariable.extend('Player',{
       /*case 'name':
         return this.name ||'[no name]';*/
       case 'total_distance':
-        return ~~this.total_distance._value;
+        return (~~(0.01*this.total_distance._value))*100;
       case 'id':
         return this._name;
       case 'ping':
@@ -1248,6 +1251,10 @@ ProtoTypeVariable.extend('Player',{
   }
 });
 
+
+/***************************************
+ * Not used, a compressed verson of current updates
+ ***************************************/
 Class.extend('GameStateUpdate',{
   changes:{},
   init:function(){
