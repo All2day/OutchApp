@@ -9,7 +9,6 @@
     </author>
     <content src="index.html" />
     <hook src="hooks/after_prepare_read_app_version.js" type="after_prepare" />
-
     <preference name="target-device" value="handset" />
     <preference name="webviewbounce" value="false" />
     <preference name="DisallowOverscroll" value="true" />
@@ -49,12 +48,6 @@
         <icon gap:platform="ios" height="58" src="res/icon/ios/Icon-App-29x29@2x.png" width="58" />
         <icon gap:platform="ios" height="40" src="res/icon/ios/Icon-App-40x40@1x.png" width="40" />
         <icon gap:platform="ios" height="80" src="res/icon/ios/Icon-App-40x40@2x.png" width="80" />
-        <!--<icon gap:platform="ios" height="57" src="res/icon/ios/Icon-App-57x57@1x.png" width="57" />
-        <icon gap:platform="ios" height="114" src="res/icon/ios/Icon-App-57x57@2x.png" width="114" />
-        <icon gap:platform="ios" height="72" src="res/icon/ios/Icon-App-72x72@1x.png" width="72" />
-        <icon gap:platform="ios" height="144" src="res/icon/ios/Icon-App-72x72@2x.png" width="144" />-->
-        <!--<icon gap:platform="ios" height="50" src="res/icon/ios/Icon-App-50x50@1x.png" width="50" />
-        <icon gap:platform="ios" height="100" src="res/icon/ios/Icon-App-50x50@2x.png" width="100" />-->
     </platform>
     <engine name="android" spec="^6.2.3" />
     <plugin name="com.manueldeveloper.volume-buttons" spec="https://github.com/manueldeveloper/cordova-plugin-volume-buttons.git" />
@@ -62,7 +55,7 @@
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
-    <plugin name="cordova-plugin-geolocation" spec="https://github.com/Kezzel/cordova-plugin-geolocation.git" />
+    <plugin name="cordova-plugin-geolocation" spec="git+https://github.com/Kezzel/cordova-plugin-geolocation.git" />
     <plugin name="cordova-plugin-is-debug" spec="^1.0.0" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />

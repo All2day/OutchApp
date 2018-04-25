@@ -79,7 +79,7 @@ exports.game = {
     cardtypes: { //card types in each color
       type: "list",
       prototype: "text",//"number",
-      els: ['+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2',1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+      els: ['+2','+2','+2',1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     },
     cardHeight:0.6, //card height relative to size, realCardHeight = cardHeight*size
     cardWidth:0.4,// card width relative to size, rezlCardWidth = cardWidth*size
