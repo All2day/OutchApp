@@ -29,8 +29,9 @@ Class.extend('GameClient',{
     this.gs.currentPhase.addHook('change',function(){
       if(this.currentPhase){
 
-        console.log('unloading phase');
+        console.log('unloading phase:'+this.currentPhase._name);
         //if there is an existing phase handle it
+        this.currentPhase.unload();
         this.currentPhase.triggerHook('end');
         var view_name = this.currentPhase.views.firstKey();
         var view = this.currentPhase.views[view_name];
@@ -313,13 +314,19 @@ Class.extend('GameClient',{
           return;
         }
 
+        var this_t = new Date().getTime();
+        if(!app._pingHist){
+          app._pingHist = [];
+        }
+        app._pingHist.push(this_t-t);
+
         this.fullUpdate(r.u);
         //in case the full update results in an exit, dont restart the pinging
         if(this.status == 'exited'){
           return;
         }
         //console.log('got update');
-        var this_t = new Date().getTime();
+
         var time_offset = (this_t - t - r.rt)/2 + r.t + r.rt - this_t;
         this.time_offset = Math.round(0.9*this.time_offset + 0.1*time_offset);
 

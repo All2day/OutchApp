@@ -828,6 +828,7 @@ ViewElement.extend('TimerElement',{
     }
     this.updateBar();
     c.append(this._dom);
+    this._super();
   },
   updateBar:function(){
     if(!this._timer){
@@ -856,6 +857,7 @@ ViewElement.extend('TimerElement',{
       this.updateBar();
       delete(props['timer']);
     }
+
     this._super(props);
   }
 });
@@ -1357,7 +1359,7 @@ ViewElement.extend('MapElement',{
           zoom: 20
         }),
         controls: new ol.Collection([]),
-        interactions:new ol.Collection([new ol.interaction.PinchZoom()])/*ol.interaction.defaults({
+        interactions:new ol.Collection([/*new ol.interaction.PinchZoom()*/])/*ol.interaction.defaults({
           dragPan:false
         })*/
       });
@@ -1591,13 +1593,9 @@ MapElement.extend('MappageElement',{
   draw:function(c){
     this._super(c);
 
+    //specificaly on the map-page-element the openStatus will not work as events are not passed through
     this._dom.find('.playerQuality').on('click',function(){
-
-      app.openModal('Status',$('<h2>').text(app._currentGame.name).prop('outerHTML')+'<button onclick="app.exitGame();" style="width:auto;">Quit game</button>',{
-        'Continue':function(){
-          return false;
-        }
-      })
+      app.showStatus();
       //window.toggle_log();
     });
   }
@@ -1613,7 +1611,7 @@ ViewElement.extend('PlayerqualityElement',{
   draw:function(c){
     if(!this._dom){
       this.attachHooks();
-      var dom = $('<div class="playerQuality"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">'+
+      var dom = $('<div class="playerQuality openStatus"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">'+
       '<path class="connection" d="M16,10.34h0V0L0,16H9.93A6.1,6.1,0,0,1,16,10.34Z"/>'+
       '<path class="location" d="M13.74,11.6a2.25,2.25,0,0,0-2.25,2.25c0,1.66,2.25,4.13,2.25,4.13S16,15.52,16,13.85A2.24,2.24,0,0,0,13.74,11.6Zm0,3a.8.8,0,1,1,.8-.8h0a.8.8,0,0,1-.8.77Z"/>'+
       '</svg></div>').css({
@@ -1967,6 +1965,7 @@ GeoElement.extend('GeolistElement',{
     this._super(props);
   },
   setList: function(new_list){
+
     if(this.list && this.list != new_list){
       //a new list, clean it all
       $.each(this._wrapperels,function(i,k){
@@ -1976,7 +1975,6 @@ GeoElement.extend('GeolistElement',{
       this._wrapperels = [];
       //clear the list
     }
-
     this.list = new_list;
     var t = ScopeRef._gs.getTime();
     var that = this;

@@ -154,6 +154,21 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		return $ip;
 	}
 
+	public function storePlayerQuestionnaire($p,$data){
+		$db = $this->getTable()->getAdapter();
+		$ip = $this->getPlayer($p->player_id);
+
+		if(!$ip){
+			return false;
+		}
+
+		$sql = "UPDATE instance_player SET `questionnaire`=".$db->quote($data)." WHERE instance_id=".$db->quote($this->instance_id)." AND player_id=".$db->quote($p['player_id']);
+
+		//insert manually, zend fails in there mumbo jumbo when handling large strings
+		$db->getConnection()->query($sql);
+
+		return true;
+	}
 
 	public function storePlayerLog($p,$log){
 		$db = $this->getTable()->getAdapter();
@@ -257,6 +272,14 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		$sql = "UPDATE instance_player SET result_obj=".$db->quote(json_encode($result)).", rank=".$db->quote(1*$result['rank'])." WHERE instance_id =  ".$db->quote($this->instance_id)." AND player_id=".$db->quote($player_id);
 
 		$db->query($sql);
+	}
+
+	public function setPos($pos){
+		if($pos && is_array($pos)){
+			$this->lat = $pos[0];
+			$this->lng = $pos[1];
+			$this->save();
+		}
 	}
 
 	public function message($message,$params){

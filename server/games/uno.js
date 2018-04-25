@@ -56,7 +56,7 @@ exports.game = {
         type: "string" //red, green, blue, yellow or none. When using a color changing card and selecting a color, the color is set here
       },
       value: {
-        type: "number" //special numbers are used for special cards, thus 10 means "stop", 11 means "+2", -1 means "change color" and -2 means "change color +4"
+        type: "string" //special numbers are used for special cards, thus 10 means "stop", 11 means "+2", -1 means "change color" and -2 means "change color +4"
       }
     }
   },
@@ -78,15 +78,27 @@ exports.game = {
     },
     cardtypes: { //card types in each color
       type: "list",
-      prototype: "number",
-      els: [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+      prototype: "text",//"number",
+      els: ['+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2','+2',1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
     },
-    size:25, //radius
     cardHeight:0.6, //card height relative to size, realCardHeight = cardHeight*size
     cardWidth:0.4,// card width relative to size, rezlCardWidth = cardWidth*size
     centerRadius:0.4, //radius of center
-    newCardDelay:80,
-    maxtime:600,
+    size:{
+      type:"number",
+      value:25,
+      setting:true
+    }, //radius
+    newCardDelay:{
+      type:"number",
+      value:80,
+      setting:true
+    },
+    maxtime:{
+      type:"number",
+      value:600,
+      setting:true
+    },
     playtime:0
   },
   ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
@@ -112,33 +124,46 @@ exports.game = {
               elements:{
                 'map':{
                   type:'MapView',
-                  //width:80,
                   height:20,
                   zoom:"[game.size+game.cardHeight*game.size,game.size+game.cardHeight*game.size]*2",//"'fit'",
-                  //zoom:"'fit'",
                   center:"players.gameowner.pos",
                   heading:"players.gameowner.heading",
                   geoElements:{
-                    /*'testbox':{
-                      //type:"svgbox",
-                      type:"svgbox",
-                      pos:"players.gameowner.pos + [0,game.size+0.5*game.cardHeight]",
-                      width:"game.cardWidth",
-                      //rotation:"1",
-                      //height:"15",
-                      height:"game.cardHeight",
-                      text:"'hej'",
-                      fill:[0,0,0,.5],
-                      color:"'black'",
-                      textColor:"'white'"
-                    },*/
                     'outer':{
                       type:"circle",
                       radius:"game.size+game.cardHeight*game.size",
                       fill:[255,255,255,0.5],
                       color:[0,0,0,0],
+                      rotation:"game.gameowner.heading+player.dir*2*3.1415/players.count",
                       pos:"players.gameowner.pos",
-                    },
+                      //The player direction is not calculated before starting the game and should be updated every time the playrs change, thus dont add this now
+                      /*geoElements:{
+                        '_playercards':{ //The player cards
+                          type:"geolist",
+                          list:"1:7",
+                          elements:{
+                            'boxlist':{
+                              type:"GeoElement",
+                              pos:[0,0],
+                              rotation:"index*(game.cardWidth)+list.count-list.count",//"((1/2) + index - list.count/2)*2/5", //*20
+                              geoElements:{
+                                'box':{
+                                  type:"svgbox",
+                                  //TODO:make it possible to have position referenced to the game
+                                  pos:"[0,game.size+0.5*game.cardHeight*game.size]", //go half the card to the left, and the radius of the circle down
+                                  width:"game.cardWidth*game.size",
+                                  //height:"15",
+                                  height:"game.cardHeight*game.size",
+                                  fill:"[0,0,0,0]",
+                                  //textColor:"[255,255,255]",
+                                  color:"[0,0,0]"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }*/
+                    }, //end of outer
                     'inner':{
                       type:"circle",
                       radius:"10",
@@ -237,37 +262,9 @@ exports.game = {
                 }
               }
             },
-            /*'input':{
-              show:"player = players.gameowner",
-              type:"input",
-              default:"'fedt navn'",
-              hooks:{
-                change:{
-                  actions:{
-                    '_1':{
-                      type:"set",
-                      target:"game.name",
-                      source:"element.value"
-                    }
-                  }
-                }
-              }
-            },*/
-
-
             'players2':{
               type:'playerlist'
             },
-            /*'players':{
-              type:'list',
-              list:'players',
-              elements:{
-                0:{
-                  type:"label",
-                  text:"listel.name",
-                }
-              }
-            },*/
             '_1':{
               type:'bottombutton',
               text:"'Start game'",
@@ -336,36 +333,24 @@ exports.game = {
         },
         waitforrevengetimer:{
           type:"timer",
-          duration:"1000",
+          duration:"game.newCardDelay*1000*0.5",
           hooks:{
             start:{
               actions:{
                 1:{
-                  type:"if",
-                  condition:"phase.revenge_target!=player",
+                  type:"each",
+                  list:"game.players",
                   actions:{
-                    //TODO: this does not work as this is server code showing client view?
-                    /*1:{
-                      type:"show",
-                      view:"waitforrevenge"
-                    }*/
+                    1:{
+                      type:"stop",
+                      timer:"el.nextCard"
+                    }
                   }
                 }
               }
             },
             stop:{
               actions:[
-                {
-                  type:"if",
-                  condition:"phase.revenge_target!=player",
-                  actions:{
-                    //TODO: this does not work as this is server code showing client view?
-                    /*1:{
-                      type:"hide",
-                      view:"waitforrevenge"
-                    }*/
-                  }
-                }
               ]
             },
             end:{
@@ -380,6 +365,16 @@ exports.game = {
                       target:"phase.deck.pop"
                     }
                   }
+                },
+                '_2':{ //restart nextCard timers
+                  type:"each",
+                  list:"game.players",
+                  actions:{
+                    1:{
+                      type:"start",
+                      timer:"el.nextCard"
+                    }
+                  }
                 }
               }
             }
@@ -387,7 +382,11 @@ exports.game = {
         },
         revenge_target:{ //the one that must respond with the same card
           type:"player"
-        },
+        },/*
+        revenge_stack:{ //the cards to deal to the looser
+          type:"list",
+          prototype:"card"
+        },*/
         revenge_sender:{ //the one that played the last revenge card
           type:"player"
         },
@@ -399,7 +398,7 @@ exports.game = {
       views:{
         1:{
           type:"MapPage",
-          zoom:"[game.size+game.cardHeight,game.size+game.cardHeight]*2.5",//"'fit'",
+          zoom:"[game.size+game.cardHeight*game.size,game.size+game.cardHeight*game.size]*2.0",//"'fit'",
           center:"game.center",
           heading:"(game.center.heading) +(player.dir)*2*3.1415/(players.count)",
           elements:{//overlayed elements in top
@@ -424,10 +423,6 @@ exports.game = {
               timertype:"'headerbartimer'",
               timer:"phase.stopTimer"
             },
-            /*'left':{
-              type:"label",
-              text:"formattime(phase.stopTimer.timeleft)"
-            },*/
             'currentCard':{
               show:"player.currentCard",
               type:"label",
@@ -449,6 +444,20 @@ exports.game = {
                 alignItems:"'center'",
                 justifyContent:"'center'",
                 borderRadius:"'7px'"
+              }
+            },
+            'revenge':{
+              type:"timer",
+              show:"phase.waitforrevengetimer.isRunning",
+              timer:"phase.waitforrevengetimer",
+              timertype:"'bartimer'",
+              css:{ //place at bottom
+                width:"'auto'",
+                position:"'fixed'",
+                left:"'0'",
+                right:"'0'",
+                bottom:"'0'",
+                opacity:"player = phase.revenge_target ? 1 : 0.3"
               }
             }
           },
@@ -582,19 +591,23 @@ exports.game = {
                                 }
                               }
                             },
-                            volumeup:{
+                            volumeup:[{
                               actions:{
-                                1:{
-                                  type:"vibrate",
-                                  duration:100
-                                },
+
                                 2:{
                                   type:"set",
                                   target:"player.currentCard",
                                   source:"listel"
                                 }
                               }
-                            }
+                            },{
+                              actions:{
+                                1:{
+                                  type:"vibrate",
+                                  duration:100
+                                },
+                              }
+                            }]
                           }
                         },
                       }
@@ -609,7 +622,7 @@ exports.game = {
 
                   //fill:[0,0,0,0],
                   color:"element.isinside?'black':[244,240,241]",
-                  fill:"phase.stack.last.color",
+                  fill:"phase.waitforrevengetimer.isRunning && phase.revenge_target != player ? [255,255,255,0.8] : phase.stack.last.color",
                   textColor:"'white'",
                   text:"phase.stack.last.value",
                   hooks:{
@@ -636,12 +649,21 @@ exports.game = {
                       }
                     },
                     volumeup:{
+                      vibrate:{
+                        actions:{
+                          1:{
+                            type:"vibrate",
+                            duration:100
+                          }
+                        }
+                      },
                       putdown:{ //named hook
                         actions:{
                           1:{
                             type:"if",
                             //condition is based on the color must match, possibly with a color changing card underneath OR the value must match OR it is a color changing card
-                            condition:"player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0",
+                            //Furthermore it is required that if the revenge timer is running, one cannot add cards unless it is a + card
+                            condition:"(player.currentCard.value = '+2' || !phase.waitforrevengetimer.isRunning) && (player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0)",
                             actions:{
                               '_1':{//remove the card from the user
                                 type:"remove",
@@ -668,6 +690,10 @@ exports.game = {
                                   }
                                 }
                               },
+                              '_4':{//reset the timer for this player
+                                type:"reset",
+                                timer:"player.nextCard"
+                              },
                               /*'_4':{ //if the card is a color choosing card ask for the color
                                 type:"if",
                                 condition:"phase.stack.last.value < 0",
@@ -677,10 +703,10 @@ exports.game = {
                                     view:"choosecolor"
                                   }
                                 }
-                              },
+                              },*/
                               '_5':{ //if the card is a plus card,
                                 type:"if",
-                                condition:"phase.stack.last.value = -2 || phase.stack.last.value = 11",
+                                condition:"phase.stack.last.value = '+2' && players.count > 1",
                                 actions:{
                                   '_1':{
                                     type:"stop", //if already started, will trigger the stop hook
@@ -693,44 +719,32 @@ exports.game = {
                                   '_2.2':{
                                     type:"set",
                                     target:"phase.revenge_target",
-                                    source:"players[el!=player].any"
+                                    source:"players.others.any"//"players[el!=player].any" //does not work if single player
                                   },
                                   '_2.3':{
                                     type:"set",
                                     target:"phase.revenge_sender",
                                     source:"player"
                                   },
-                                  '_3':{
-                                    type:"start",
-                                    timer:"phase.waitforrevengetimer"
-                                  },
                                   '_4':{
                                     type:"if",
-                                    condition:"phase.stack.last.value=-2",
+                                    condition:"phase.stack.last.value='+2'",
                                     actions:{
                                       1:{
                                         type:"set",
                                         target:"phase.revenge_amount",
-                                        source:"phase.revenge_amount+4"
-                                      }
-                                    },
-                                    else:{
-                                      1:{
-                                        type:"set",
-                                        target:"phase.revenge_amount",
                                         source:"phase.revenge_amount+2"
-                                      }
+                                      }                                    },
+                                    else:{
+
                                     }
                                   }
+
                                 }
-                              },*/
+                              }, //end of +2 card
                               '_6':{//reset the current card in the players hand by not setting a source
                                 type:"set",
                                 target:"player.currentCard"
-                              },
-                              '_7':{//reset the timer for this player
-                                type:"reset",
-                                timer:"player.nextCard"
                               }
                             }, // end of if true actions
                             else:{
@@ -991,12 +1005,13 @@ exports.game = {
                 'start timer for next card':{
                   type:"start",
                   timer:"_player_loop.el.nextCard"
-                },
-                '_stoptimer':{
-                  type:'start',
-                  timer:'phase.stopTimer'
                 }
+
               }
+            },//end of player loop
+            '_stoptimer':{
+              type:'start',
+              timer:'phase.stopTimer'
             }
           }
         }, //end of start hook

@@ -62,13 +62,31 @@ Action.fromObject = function(obj,name){
    }
  });
 
- ServerAction.extend('ExitAction',{
+
+/**
+ * The exit action has been moved to be a part of the client.
+ * When exiting, the web server is being updated on the exit,
+ * which messages the game server.
+ */
+ /*ServerAction.extend('ExitAction',{
    init:function(obj){
 
    },
    do:function(){
      var gs = ScopeRef._getGameState();
      gs.currentPlayer.status.set(gs.getCurrentPhaseType() == 'scoreboard' ? 'ended' : 'exited');
+     //gs.removePlayer(gs.currentPlayer);
+   }
+ });*/
+
+ Action.extend('ExitAction',{
+   init:function(obj){
+
+   },
+   do:function(){
+     app.exitGame();
+     /*var gs = ScopeRef._getGameState();
+     gs.currentPlayer.status.set(gs.getCurrentPhaseType() == 'scoreboard' ? 'ended' : 'exited');*/
      //gs.removePlayer(gs.currentPlayer);
    }
  });
@@ -179,7 +197,7 @@ Action.fromObject = function(obj,name){
      var timer_var = this.timer.eval();
 
      if(timer_var instanceof TimerVariable){
-       console.log('resetting timer');
+       //console.log('resetting timer');
        timer_var.reset();
      } else {
        console.log('var not timer');

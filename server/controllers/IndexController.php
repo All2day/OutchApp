@@ -53,11 +53,7 @@ class IndexController extends Zend_Controller_Action{
 		$token = $this->_getParam('token');
 		$p = PlayerTable::getFromToken($token);
 		$name = $this->_getParam('name');
-
-		if(!$p){
-			throw new Exception('no such player');
-			exit;
-		}
+		$pos = $this->_getParam('pos');
 
 		//check if this player is joined at another instance
 
@@ -71,7 +67,7 @@ class IndexController extends Zend_Controller_Action{
 		}
 
 
-		$instance = InstanceTable::startInstance($game_id,$p, $name);
+		$instance = InstanceTable::startInstance($game_id,$p, $name,$pos);
 
 		$res = array(
 			'instance_id' => $instance->instance_id,
@@ -346,7 +342,39 @@ class IndexController extends Zend_Controller_Action{
 		die(json_encode($res));
 	}
 
+	public function savequestionnaireAction(){
+		$instance_id = $this->_getParam('instance_id');
+		$token = $this->_getParam('token');
+		$data = file_get_contents("php://input"); //post data
 
+
+		$p = PlayerTable::getFromToken($token);
+		$instance = InstanceTable::findById($instance_id);
+
+		$res = array(
+			'status' => 'ok'
+		);
+
+		if(!$p){
+			$res['status'] = 'error';
+			$res['error'] = 'Token mismatch';
+		} else
+		if(!$instance){
+			$res['status'] = 'error';
+			$res['error'] = 'No such instance:'.$instance_id;
+		} else {
+			if(!$instance->storePlayerQuestionnaire($p,$data)){
+				$res['status'] = 'error';
+				$res['error'] = 'No such player in instance'.$instance_id;
+			} else {
+				//ok
+			}
+		}
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
 
 	public function saveinstancelogAction(){
 		$instance_id = $this->_getParam('instance_id');

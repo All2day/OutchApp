@@ -88,6 +88,10 @@ class InstanceController extends Zend_Controller_Action
 		if($phase){
 			$this->instance->currentPhase = $phase;
 
+			if($settings){
+				$this->instance->settings_obj = json_encode($settings);
+			}
+
 			if($results){
 				$ips = $this->instance->getPlayers();
 
@@ -122,7 +126,7 @@ class InstanceController extends Zend_Controller_Action
 					//$this->instance->setPlayerStatus($p->player_id, $player['status']);
 				}
 			}
-			
+
 			foreach($ips as $player_id => $ip){
 				if($ip['status'] == 'exited'){
 					continue;

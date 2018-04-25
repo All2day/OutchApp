@@ -43,6 +43,11 @@ Class.extend('GameServer',{
     this.gs.currentPhase.addHook('change',function(){
       var data = {phase:this.gs.getCurrentPhaseType(),process_id:process_id};
 
+      //store the settings
+      if(this.gs.getCurrentPhaseType() == 'play'){
+        data.settings = this.gs.getSettings();
+      }
+
       if(this.gs.getCurrentPhaseType() == 'scoreboard'){
         console.log('scoreboard phase, calculate rank');
         this.gs.calculateRanking();
@@ -225,7 +230,7 @@ Class.extend('GameServer',{
         console.log('[serverping]no control url, dont use');
         return;
       }
-      console.log('sending server ping to:'+this.control_url+'/update'+ ' with process_id:'+this.process_id);
+      //console.log('sending server ping to:'+this.control_url+'/update'+ ' with process_id:'+this.process_id);
 
 
       var players = [];
@@ -271,7 +276,7 @@ Class.extend('GameServer',{
           process_id:this.process_id,
           players: players
         },function(r){
-        console.log('server ping',players);
+        //console.log('server ping',players);
 
       }.bind(this)).fail(function(r){
         console.log('server ping error',this.control_url,r);

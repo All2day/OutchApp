@@ -904,6 +904,7 @@ input {
       display:inline-block;
       font-size:2rem;
       vertical-align: middle;
+      @include opacity(0.2);
     }
 
     input{
@@ -912,6 +913,7 @@ input {
       &:checked + label{
         text-shadow: 0px 0px 5px rgba(0,0,0,0.4);
         font-size:3rem;
+        @include opacity(1);
       }
     }
   }
@@ -919,5 +921,6 @@ input {
   textarea {
     width: 100%;
     margin: 2rem 0;
+    height:7rem;
   }
 }

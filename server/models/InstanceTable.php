@@ -20,7 +20,7 @@ class InstanceTable extends Zend_Db_Table_Abstract
 	}
 
 
-	public static function startInstance($game_id,$owner, $name){
+	public static function startInstance($game_id,$owner, $name,$pos){
     $db = Zend_Db_Table_Abstract::getDefaultAdapter();
     //create a new instance
 		$instanceTable = new InstanceTable();
@@ -34,6 +34,8 @@ class InstanceTable extends Zend_Db_Table_Abstract
 		$instance->name = $name;
 
     $instance->save();
+
+		$instance->setPos($pos);
 
     //find free port
 

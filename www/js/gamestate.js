@@ -8,6 +8,7 @@ Hookable.extend('Variable',{
   _id:null, //The id of the variable
   _p:null, //The pointer if any
   _type:'var', //Type of the variable
+  _isSetting:false, //To be set for settings vars
   init:function(obj){
     this._super(obj);
     //this.set(val);
@@ -93,6 +94,7 @@ Variable._registerVar = function(v,id){
   Variable._vars[v._id] = v;
 };
 Variable.fromObject = function(obj){
+  var v;
   if($.type(obj) == 'number'){
     return new NumberVariable(obj);
   }
@@ -104,9 +106,17 @@ Variable.fromObject = function(obj){
       return new ListVariable(obj);
     case 'val':
     case 'string':
-      return new PrimitiveVariable(obj.value);
+      v = new PrimitiveVariable(obj.value);
+      if(obj.setting){
+        v._isSetting = true;
+      }
+      return v;
     case 'number':
-      return new NumberVariable(obj.value);
+      v = new NumberVariable(obj.value);
+      if(obj.setting){
+        v._isSetting = true;
+      }
+      return v;
     case 'phase':
       return new Phase();
     case 'pos':
@@ -475,55 +485,87 @@ Variable.extend('TimerVariable',{
     this._value = {
       duration:this.duration,
       status:null,
-      start_time:0
+      start_time:0,
+      stop_time:0,
+      wait_time:0
     };
   },
   start: function(){
+    clearTimeout(this._timeout);
+    clearTimeout(this._secondtimeout);
+
     //console.log('timer with id '+this._id+' started');
     this.triggerHook('start');
     var that = this;
-    this.start_time = ScopeRef._gs.getTime();
+    var missing_time;
+
+    //if stopped when starting, calculate the waiting time and missing_time
+    if(this._value.status == 'stopped'){
+      var t = ScopeRef._gs.getTime();
+      this._value.wait_time += t-this._value.stop_time;
+      missing_time = this.duration - (t-this._value.start_time - this._value.wait_time);
+
+      console.log('restarting timer:'+this._name+' missing duration is:'+missing_time);
+    } else {
+
+      //otherwise start it as normally
+      this.start_time = ScopeRef._gs.getTime();
+      this._value.start_time = this.start_time;
+      this.duration = ScopeRef._evalString(this.duration_src).value;
+      this._value.duration = this.duration;
+      this._value.wait_time = 0;
+
+      missing_time = this.duration;
+      console.log('starting timer:'+this._name+' missing duration is:'+this.duration);
+    }
 
     this._value.status = 'started';
-    this._value.start_time = this.start_time;
 
-    this.duration = ScopeRef._evalString(this.duration_src).value;
-    this._value.duration = this.duration;
+
+
     //register this timer on the current phase
     ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
       ScopeRef._getGameState().currentPhase.deregisterTimer(this);
       if(!that._value){
-        console.error('timer ended when timer not existing, phase ended?');
+        console.error('timer ended when timer not existing, phase ended?'+that._name);
         return;
       }
-      //console.log('timer ended');
+      console.log('timer timedout:'+that._name);
+
       clearTimeout(this._secondtimeout);
       that._value.status = 'ended';
       that.triggerHook('end');
       //this happens outside normal tick time, thus trigger manually
       Hookable._handleTriggerQueue();
-    },this.duration);
+    },missing_time);
 
 
 
     this.triggerHook('change');
   },
   stop: function(){
+    console.log('stopping timer:'+this._name);
     ScopeRef._getGameState().currentPhase.deregisterTimer(this);
     clearTimeout(this._timeout);
     clearTimeout(this._secondtimeout);
     this._value.status = 'stopped';
+    this._value.stop_time = ScopeRef._gs.getTime();
     this.triggerHook('stop');
     this.triggerHook('change');
   },
   reset: function(){
+    console.log('resetting timer:'+this._name);
     clearTimeout(this._timeout);
     clearTimeout(this._secondtimeout);
+
+    //when setting status to reset, the start acts as a full start
+    this._value.status = 'reset';
     this.start();
     //this.triggerHook('change');
   },
   _stop: function(){ //Internal stop
+    console.log('internal stop of timer:'+this._name);
     clearTimeout(this._timeout);
     clearTimeout(this._secondtimeout);
     this._value = null;
@@ -539,13 +581,14 @@ Variable.extend('TimerVariable',{
         this.duration = val.duration;
         this.start_time = val.start_time;
 
+
         clearTimeout(this._secondtimeout);
         if(val.status && val.status == 'started'){
           //fire a change every 1s
           this._secondtimeout = setInterval(function(){
 
             if(!this._value){
-              console.error('timer ended when timer not existing, phase ended?');
+              console.error('[second]timer ended when timer not existing, phase ended?'+this._name);
               clearTimeout(this._secondtimeout);
               return;
             }
@@ -601,25 +644,42 @@ Variable.extend('TimerVariable',{
 
     switch(ref){
       case 'ratioDone': //between 0 and 1
-        if(!this._value || this._value.status != 'started') return 0;
-        var t = ScopeRef._gs.getTime();
-        var r = Math.min(1,(t - this._value.start_time)/this._value.duration);
+        //if not started or stopped, return 0
+        if(!this._value || this._value.status != 'started' && this._value.statue != 'stopped') return 0;
+        var t = ScopeRef._gs.getTime()
+          , r = 0;
+
+        if(this._value.status == 'started'){
+          //calculate based on current time, when it was started and how long it has been waiting
+          r = Math.min(1,(t - this._value.start_time - this._value.wait_time)/this._value.duration);
+        } else {
+          //if stopped calculate based on start and stop time and wait_time
+          r = Math.min(1,(this._value.stop_time - this._value.start_time - this._value.wait_time)/this._value.duration);
+        }
+
         //console.log('ratioDone:',r);
         return r;
       case 'time':
 
-        var t = ScopeRef._gs.getTime();
-        var r = (t - this.start_time);
+        var t = ScopeRef._gs.getTime(),
+          r = 0;
+        if(this._value.status == 'started'){
+          r = (t - this.start_time - this._value.wait_time);
+        } else {
+          r = this._value.stop_time - this._value.wait_time;
+        }
         //console.log('time is:'+t+' start time is:'+this.start_time);
         return r;
       case 'timeleft':
         //debugger;
-        var t = ScopeRef._gs.getTime();
-        var r = Math.min(this.duration,this.duration - (t - this.start_time)) ;
+        var t = this._value.status == 'stopped' ? this._value.stop_time : ScopeRef._gs.getTime();
+        var r = Math.min(this.duration,this.duration - (t - this.start_time - this._value.wait_time)) ;
 
         return r;
       case 'duration':
         return this._value === null ? Infinity : this._value.duration;
+      case 'isRunning':
+        return this._value.status == 'started';
     }
   }
 });
@@ -743,6 +803,18 @@ GameStateObject.extend('GameStateList',{
         return this._count;
       case 'count':
         return this._count;
+      case 'any':
+        var a = Math.floor(Math.random()*this._count)
+          , ret_p;
+
+        $.each(this._value,function(n,p){
+          if(a <= 0){
+            ret_p = p;
+            return true;
+          }
+          a--;
+        });
+        return ret_p;
     }
     if(this._value !== null){
 
@@ -827,6 +899,18 @@ GameStateChangeableList.extend('PlayerList',{
       case 'gameowner':
         //the owner is the first one in the list
         return this._value[this.firstKey()];
+      case 'any':
+        var a = Math.floor(Math.random()*this.count())
+          , ret_p;
+
+        $.each(this._value,function(n,p){
+          if(a <= 0){
+            ret_p = p;
+            return true;
+          }
+          a--;
+        });
+        return ret_p;
     }
     return this._super(ref);
   },
@@ -1490,6 +1574,18 @@ GameStateObject.extend('GameState',{
       t.el.rank.set(rank)
     });
   },
+  //Get the current settings object, based on game vars with "settings:true"
+  getSettings: function(){
+    var settings = {};
+
+    $.each(this.vars._value,function(i,v){
+      if(v._isSetting){
+        settings[v._name] = v._value;
+      }
+    });
+
+    return settings;
+  },
   addPlayer:function(player_data){
     console.log('adding player:'+player_data.name);
     var p = this.prototypes.player.create();
@@ -1541,7 +1637,12 @@ GameStateObject.extend('GameState',{
 
 
     //if this currentphase trigger hooks for ending the phase
+
     if(this.currentPhase._value){
+      if(this.currentPhase._name == phase){
+        console.log('same phase ['+phase+'], ignoring');
+        return;
+      }
       console.log('unloading phase:'+this.currentPhase._name);
 
       this.currentPhase.triggerHook('end');

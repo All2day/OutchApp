@@ -33,9 +33,12 @@ var app = {
       server: 'http://alphagames.all2day.dk'
     },
     server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
+
     //server: 'http://alphagames.all2day.dk',
     player:null,
-
+    config: {
+      smooth_interval : 200
+    },
     // Application Constructor
     initialize: function() {
 
@@ -211,14 +214,7 @@ var app = {
   		//attachFastClick(document.body);
 
       $(document.body).on('click','.openStatus',function(){
-        app.openModal('Status',$('<h2>').text(app._currentGame ? app._currentGame.name : 'GeoPlay').prop('outerHTML')+
-          (app._client ? '<button onclick="app.exitGame();" style="width:auto;">Quit game</button>' : '')+
-          (app._currentGame ? '<a href="" onclick="app.showRules();return false;">Show rules</a>':''),
-          {
-          'Continue':function(){
-            return false;
-          }
-        });
+        app.showStatus();
       }.bind(this));
 
       this.setupTemplates();
@@ -329,7 +325,7 @@ var app = {
             }
           }
 
-          console.log(that._currentGame);
+          //console.log(that._currentGame);
 
           that.showGames();
 
@@ -351,7 +347,14 @@ var app = {
 
             app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
 
-            $.getJSON(that.server+'/index/start',{game_id:that._currentGame.game_id,token:that.getPlayerToken(),name:name},function(data){
+
+            $.getJSON(that.server+'/index/start',{
+              game_id:that._currentGame.game_id,
+              token:that.getPlayerToken(),
+              name:name,
+              //store pos in lat lng on server
+              pos:this._posHist && this._posHist.length? new ol.geom.Point(ol.proj.transform(this._posHist.slice(-1)[0].c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
+            },function(data){
               if(data && data.instance_id){
                 this.startGame(data.instance_id);
               } else {
@@ -386,9 +389,7 @@ var app = {
           that.showGames();
         });
         f.on('click','.about',function(){
-          app.openModal('About GeoPlay','<h2>The game</h2><p>The game is developed by <a href="http://appvice.dk">Appvice.dk</a>.</p>',{
-            'close':function(){return false;}
-          });
+          app.showAbout();
         });
 
         f.on('click','.instance',function(){
@@ -396,10 +397,20 @@ var app = {
           var instance_id = $(this).attr('data-instance_id');
           that.startGame(instance_id);
         });
+
+        try{
+          if(!localStorage.getItem("firstTime")){
+            localStorage.setItem("firstTime","true");
+
+            app.openModal('Welcome to GeoPlay',app.welcomePopupTmpl(),{'Close':function(){return false;}});
+          }
+        } catch(e){
+          console.log('could not use localStorage',e);
+        }
       }
       //$("#front").html(this.frontTmpl()).show();
       //get current games from server
-      console.log('showgames',this._currentGame);
+      //console.log('showgames',this._currentGame);
 
       if(this._currentGame){
 
@@ -416,8 +427,13 @@ var app = {
         this._fetching = $.getJSON(this.server+'/index/game',{game_id:this._currentGame.game_id,token:this.getPlayerToken()},function(data){
           //use new time as a ping
           var this_t = new Date().getTime();
+          var ping_time = this_t-t;
+          if(!this._pingHist) this._pingHist = [];
+          this._pingHist.push(ping_time);
+          if(this._pingHist.length > 1000) this._pingHist.shift();
+
           //update connection quality
-          $('.playerQuality .connection').attr('class','connection '+app.getConnectionAccuracyLevel(this_t-t));
+          $('.playerQuality .connection').attr('class','connection '+app.getConnectionAccuracyLevel(ping_time));
 
           this._currentGame = data.game;
           var new_html = this.gameTmpl(this._currentGame);
@@ -497,12 +513,24 @@ var app = {
             $('#front').hide();
             //moved to be started generally
             //this.startLocationService();
+            //reset history
+            this._posHist = this._posHist && this._posHist.length ? this._posHist.slice(-1) :[];
+            this._pingHist = [];
 
             this._client = window._client = new GameClient(g.game,this.getPlayerToken(), instance_id);
 
             _client.server = r.instance.url;
             _client.startPinging();
 
+            try{
+              if(!localStorage.getItem('rulesRead_'+this._currentGame.game_id)){
+                localStorage.setItem('rulesRead_'+this._currentGame.game_id,this._currentGame.version);
+
+                app.showRules();
+              }
+            } catch(e){
+              console.log('could not use localStorage',e);
+            }
           } else {
             this.openModal('Starting game','could not join instance:'+r.error,{'ok':function(){return false;}});
             //alert('could not join instance:'+r.error);
@@ -517,6 +545,7 @@ var app = {
 
 
       if(this._client){
+        this.showQuestionnaire();
         this._client.exit();
 
         //contact web server about the exit
@@ -558,14 +587,14 @@ var app = {
         delete(this._client);
         delete(window._client);
       }
-      $("body").children().each(function(){
+      $("body").children().not("#modal").each(function(){
         $(this).remove();
       });
 
 
       delete(this._old_html);
 
-      this.showQuestionnaire();
+
       //enabled generally
       //this.stopLocationService();
 
@@ -625,12 +654,17 @@ var app = {
 
         this._smoothPosUpdates = function(){
           this._smoothPosUpdates._run_count = (this._smoothPosUpdates._run_count || 0)+1;
-          //console.log('smooth update');
 
           //calculate best position based on time
           var delay = 200;
           var expected_frequency = 1200; //The expected ms between updates
           var t = new Date().getTime();
+
+          //if just reset
+          if(!this._posHist || !this._posHist.length){
+            this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,app.config.smooth_interval);
+            return;
+          }
 
           //when there is only one point in history, simply send that
           if(this._posHist.length == 1){
@@ -773,26 +807,17 @@ var app = {
           }
 
           if(this._smoothPosUpdates._run_count % 50 == 49){
-            console.log('GPS STAT:');
-            console.log('history count:'+this._posHist.length);
-            var total_time = this._posHist[this._posHist.length-1].t - this._posHist[0].t;
-            console.log('avg second between:'+(total_time/(this._posHist.length-1)));
-            var total_delay =0;
-            var total_accuracy = 0;
-            for(var i=0;i<this._posHist.length;i++){
-              total_delay+=this._posHist[i].rt - this._posHist[i].t;
-              total_accuracy+=this._posHist[i].a;
-            }
-            console.log('avg delay:'+(total_delay/(this._posHist.length)));
-            console.log('avg accuracy:'+(total_accuracy/(this._posHist.length)));
+            console.log('GPS STAT:',this.calcStatistics());
           }
 
           //restart the smooth timer
-          this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,200);
-        }.bind(this);
+          this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,app.config.smooth_interval);
+        }.bind(this); // End of smooth updates
+
 
 
         //The actual watch function
+        console.log('starting geolocation watch');
         this._navigator_watchId = navigator.geolocation.watchPosition(function(pos){
           var pp = new ol.geom.Point(ol.proj.transform([pos.coords.longitude, pos.coords.latitude], 'EPSG:4326', 'EPSG:3857'));
 
@@ -813,6 +838,9 @@ var app = {
             console.log('starting smoothing');
 
             this._smoothPosUpdates(); //fire first time
+          } else
+          if(!this._posHist.length){
+            this._posHist.push(pos_obj);
           } else {
             //if matching the one before, ignore it
             var last_pos = this._posHist[this._posHist.length-1];
@@ -824,7 +852,7 @@ var app = {
             }
 
             this._posHist.push(pos_obj);
-            if(this._posHist.length >= 15){
+            if(this._posHist.length >= 100){
               this._posHist.shift();
             }
           }
@@ -862,7 +890,7 @@ var app = {
       if(!window._keyeventhandler){
         console.log('adding window key event handler');
         window._keyeventhandler = $(window).on('keydown',function(e){
-          if(!this._posHist){
+          if(!this._posHist || !this._posHist.length){
             console.log('no pos hist');
             return;
             /*
@@ -985,15 +1013,39 @@ var app = {
       $("#modal").hide().off('click','.footer');
     },
     showRules: function(){
-      this.showQuestionnaire();
-      return;
+
       this.openModal('How to play',app._currentGame.rules,{
-        '<i class="icon-Profile"></i>&nbsp;Close rules':function(){
+        'Close':function(){
           return false;
         }
       })
     },
+    showAbout: function(){
+      app.openModal('About GeoPlay',app.aboutPopupTmpl(),{
+        'close':function(){return false;}
+      });
+    },
+    showStatus: function(){
+      app.openModal('Status',$('<h2>').text(app._currentGame ? app._currentGame.name : 'GeoPlay').prop('outerHTML')+
+        (app._client ? '<button onclick="app.exitGame();" style="width:auto;">Quit game</button><br />' : '')+
+        '<a href="" onclick="app.showAbout();return false">Show About</a><br />'+
+        (app._currentGame ? '<a href="" onclick="app.showRules();return false;">Show rules</a><br />':'')+
+        '<h2>App version:%%VERSION%</h2>',
+        {
+        'Continue':function(){
+          return false;
+        }
+      });
+    },
     showQuestionnaire: function(){
+      if(!this._client){
+        console.log('no client when showing qustionaire');
+        return;
+      }
+      var url = this.server+'/index/savequestionnaire?token='+encodeURIComponent(this.getPlayerToken())+'&instance_id='+encodeURIComponent(this._client.instance_id);
+
+
+
       this.openModal('Rate the gameplay',this.questionnaireTmpl(this._currentGame),{
         'Send':function(){
           var data = {}
@@ -1003,7 +1055,7 @@ var app = {
 
 
           if(!data.rating){
-            alert('please select a rating');
+            alert('Please select a rating');
             return true;
           }
 
@@ -1016,11 +1068,26 @@ var app = {
 
           //net playerQuality
           //gps playerQuality
+          var stat = this.calcStatistics();
+          data.stat = stat;
 
+          console.log('sending stat',data);
+
+          $.post(url,JSON.stringify(data),
+          function(r,textStatus){
+              if(r.status == 'ok'){
+                console.log('questionnaire saved');
+              } else {
+                debugger;
+              }
+            }.bind(this)
+          ).fail(function(){
+            debugger;
+          });
 
           //get the info
           return false;
-        }
+        }.bind(this)
       })
     },
     getPosAccuracyLevel: function(a){
@@ -1042,6 +1109,48 @@ var app = {
       } else {
         return 'bad';
       }
+    },
+    calcStatistics : function(){
+      var l = this._posHist.length;
+      var stat = {
+        points: l
+      }
+
+      if(l){
+        var total_time = this._posHist[l-1].t - this._posHist[0].t;
+
+        var total_delay =0;
+        var total_delay_sq = 0;
+        var total_accuracy = 0;
+        var total_accuracy_sq = 0;
+
+        for(var i=0;i < l;i++){
+          total_delay+=this._posHist[i].rt - this._posHist[i].t;
+          total_delay_sq += Math.pow(this._posHist[i].rt - this._posHist[i].t,2);
+          total_accuracy+=this._posHist[i].a;
+          total_accuracy_sq += Math.pow(this._posHist[i].a,2);
+        }
+
+        stat.time_total = total_time;
+        stat.time_avg = (total_time/(l-1));
+        stat.delay_avg = total_delay/l;
+        stat.delay_var = (total_delay_sq - total_delay*total_delay/(l))/(l-1);
+        stat.acc_avg = total_accuracy/l;
+        stat.acc_var = (total_accuracy_sq - total_accuracy*total_accuracy/l)/(l-1);
+      }
+
+      var n = this._pingHist.length, ping_total = 0, ping_total_sq = 0;
+      stat.pings = n;
+      if(n){
+        for(var i=0;i < n;i++){
+          ping_total+=this._pingHist[i];
+          ping_total_sq+=Math.pow(this._pingHist[i],2);
+        }
+
+        stat.ping_avg = ping_total/n;
+        stat.ping_var = (ping_total_sq - ping_total*ping_total/n)/(n-1);
+      }
+      return stat;
     }
 
 };
