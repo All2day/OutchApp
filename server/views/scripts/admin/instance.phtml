@@ -1,0 +1,40 @@
+<h1>Instance</h1>
+
+<?php
+	Zend_Debug::dump($this->instance->toArray());
+
+?>
+<a href="/admin/instancelog/instance_id/<?=$this->instance->instance_id?>">Show Log</a>
+
+<h2>Players</h2>
+<?php
+	$ips = $this->instance->getPlayers();
+	$playerTable = new PlayerTable();
+
+	foreach($ips as $ip){
+		$p = $playerTable->find($ip['player_id'])->current();
+
+		echo '<h3><a href="/admin/player/player_id/'.$p['player_id'].'">'.$p['name'].'</a></h3>';
+
+		$log = $ip['log'];
+		unset($ip['log']);
+		$q = $ip['questionnaire'];
+		unset($ip['questionnaire']);
+
+		Zend_Debug::dump($ip);
+
+		$log = json_decode($log);
+		?>
+		<a href="#" onclick="$('ip_log_<?=$ip['player_id']?>').show();return false;">Show Log</a>
+		<div id="ip_log_<?=$ip['player_id']?>" style="display:none">
+			<?php
+				foreach($log as $l){
+					echo ''.$l[0].':'.htmlspecialchars($l[1]).'<br />';
+				}
+			//Zend_Debug::dump($log);
+			?>
+		</div>
+		<?php
+	}
+
+?>

@@ -1,0 +1,13 @@
+<h1>Instances</h1>
+
+<?php
+	foreach($this->instances as $instance){
+		?>
+		<a href="/admin/instance/instance_id/<?=$instance->instance_id?>"><?=$instance->instance_id?></a>
+		<?php
+			Zend_Debug::dump($instance->toArray());
+		?>
+		<hr />
+		<?php
+	}
+?>

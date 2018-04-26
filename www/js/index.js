@@ -498,7 +498,7 @@ var app = {
       console.log('Loading game ('+instance_id+') '+this._currentGame.name);
       this.openModal('Starting game','loading game',{'waiting...':function(){return true;}});
 
-      var g = require(this._currentGame.src,true);
+      var g = require(this._currentGame.src+'?v=1.2',true);
 
       console.log('joining game');
 
@@ -1027,10 +1027,10 @@ var app = {
     },
     showStatus: function(){
       app.openModal('Status',$('<h2>').text(app._currentGame ? app._currentGame.name : 'GeoPlay').prop('outerHTML')+
-        (app._client ? '<button onclick="app.exitGame();" style="width:auto;">Quit game</button><br />' : '')+
-        '<a href="" onclick="app.showAbout();return false">Show About</a><br />'+
-        (app._currentGame ? '<a href="" onclick="app.showRules();return false;">Show rules</a><br />':'')+
-        '<h2>App version:%%VERSION%</h2>',
+        (app._client ? '<button onclick="app.exitGame();" style="width:auto;">Quit game</button><br /><br />' : '')+
+        '<a href="" onclick="app.showAbout();return false">Show About</a><br /><br />'+
+        (app._currentGame ? '<a href="" onclick="app.showRules();return false;">Show rules</a><br /><br />':'')+
+        '<h2>App version:%%VERSION%%</h2>',
         {
         'Continue':function(){
           return false;
