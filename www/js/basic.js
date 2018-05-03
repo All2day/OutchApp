@@ -357,7 +357,7 @@ TreeObject.extend('Hookable',{
 
      //When creating a hook all the client based variables should be registered
      //This hook should be set as root scope and while building for all sub actions named containers should be pushed to the scope and popped.
-     //From insie the _prepareScopeRef it should check references are based on client references and register them possibly multiple per scope reference
+     //From inside the _prepareScopeRef it should check references are based on client references and register them possibly multiple per scope reference
    },
    fromObject:function(obj){
      var actions = obj.actions || {};

@@ -23,18 +23,25 @@
 
 		Zend_Debug::dump($ip);
 
-		$log = json_decode($log);
-		?>
-		<a href="#" onclick="$('ip_log_<?=$ip['player_id']?>').show();return false;">Show Log</a>
-		<div id="ip_log_<?=$ip['player_id']?>" style="display:none">
-			<?php
-				foreach($log as $l){
-					echo ''.$l[0].':'.htmlspecialchars($l[1]).'<br />';
-				}
-			//Zend_Debug::dump($log);
+
+		if(!count($log)){
+			echo '<b>[log empty]</b><br />';
+		} else  {
+			$log = json_decode($log);
 			?>
-		</div>
-		<?php
+			<a href="#" onclick="$('ip_log_<?=$ip['player_id']?>').show();return false;">Show Log</a>
+			<div id="ip_log_<?=$ip['player_id']?>" style="display:none">
+				<?php
+					foreach($log as $l){
+						echo ''.$l[0].':'.htmlspecialchars($l[1]).'<br />';
+					}
+
+
+				//Zend_Debug::dump($log);
+				?>
+			</div>
+			<?php
+		}
 	}
 
 ?>

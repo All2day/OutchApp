@@ -136,7 +136,12 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 		}
 		exec($command);
     if ($this->isProcessRunning() == false){
-			$this->status = 'stopped';
+
+			if($this->currentPhase == 'scoreboard'){
+				$this->status = 'ended';
+			} else {
+				$this->status = 'stopped';
+			}
 			$this->save();
 			return true;
 		}

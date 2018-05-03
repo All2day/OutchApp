@@ -22,11 +22,16 @@ class InstanceTable extends Zend_Db_Table_Abstract
 
 	public static function startInstance($game_id,$owner, $name,$pos){
     $db = Zend_Db_Table_Abstract::getDefaultAdapter();
-    //create a new instance
+		$gameTable = new GameTable();
+		$game = $gameTable->find($game_id)->current();
+
+
+		//create a new instance
 		$instanceTable = new InstanceTable();
 		$instance = $instanceTable->createRow();
     $instance->status = 'created';
 		$instance->game_id = $game_id;
+		$instance->version = $game->version;
 		$instance->owner = $owner->player_id;
 		//TODO: check that the token does not already exist in a running game
 		$instance->token = md5(uniqid(rand(), true));

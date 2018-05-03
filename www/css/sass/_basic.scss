@@ -761,11 +761,18 @@ input {
   background:$white;
   min-height: 30vh;
   padding:1em;
+  max-height: 70vh;
+  overflow-y: scroll;
+
   //border:$border-width solid $grey;
 
   h2{
     @extend .subheader-font;
     color: $blue;
+    margin-bottom:.4em;
+  }
+  p{
+    margin-bottom:1em;
   }
 
   input{

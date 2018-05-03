@@ -145,6 +145,7 @@ class InstanceController extends Zend_Controller_Action
 			if(!$live_players){
 				//end the geogames
 				$this->instance->stop();
+
 				//Zend_Debug::dump($ips);
 				//Zend_Debug::dump($live_players);
 				//die('is stopped');

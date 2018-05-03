@@ -267,7 +267,7 @@ exports.game = {
             },
             '_1':{
               type:'bottombutton',
-              text:"'Start game'",
+              text:"players.length > 1 ? 'Start game' : 'Wait for all players to join'",
               show:"player = players.gameowner",
               hooks:{
                 click:{

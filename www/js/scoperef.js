@@ -25,7 +25,7 @@ TreeObject.extend('ScopeRef',{
 
 ScopeRef._stringSplit = function(s /*string*/){
   //use regex to split the string into object types and names
-var els = s.split(/(\?|\^|!=|=|\&\&|\|\||[\{\[\]\}\)\(\'\"\+\-\*\/\>\<\.\:\,])/g);
+var els = s.split(/(\?|\^|!=|=|\!|\&\&|\|\||[\{\[\]\}\)\(\'\"\+\-\*\/\>\<\.\:\,])/g);
 
   var struct = {
     c:[],
@@ -201,6 +201,10 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
 
       if(s.c[0] == '^'){
         return new ScopeDebug(ScopeRef._prepareScopeRef(s.c.slice(1)));
+      }
+
+      if(s.c[0] == '!'){
+        return new ScopeNot(ScopeRef._prepareScopeRef(s.c.slice(1)));
       }
 
       //look for -1. level splitters
@@ -460,6 +464,22 @@ ScopeRef.extend('ScopeDebug',{
     this.inner.traverse(f);
   }
 });
+
+ScopeRef.extend('ScopeNot',{
+  inner:null,
+  init:function(inner){
+    this.inner = inner;
+  },
+  eval:function(scp,inf){
+    var v = this.inner.eval(scp,inf);
+    return !v;
+  },
+  traverse:function(f){
+    this._super(f);
+    this.inner.traverse(f);
+  }
+});
+
 
 ScopeRef.extend('ScopeNull',{
   eval:function(scp,inf){

@@ -411,7 +411,6 @@ Class.extend('GameClient',{
       return;
     }
 
-
     //add to remote trigger queue
     this.remoteTriggerQueue.push({
       t:this.getServerTime(),

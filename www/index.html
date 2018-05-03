@@ -59,12 +59,62 @@
 </script>
 
 <script id="welcomePopup"  type="text/x-handlebars-template">
-  Peters welcome
-  <i class="icon-Signal"></i>
+
+  <h2>See rules & get help</h2>
+  <p>Click <i style="font-size:1.5em" class="icon-Signal"></i> in the top right corner.</p>
+
+  <h2>This is a beta edition</h2>
+  <p>Please be indulgent<br />
+  Report problems to us.</p>
+
+  <h2>Green = best play</h2>
+  <p><div class="playerQuality" style="display:inline-block;vertical-align:middle;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="10 12 6 6" style="width:1.5em;height:1.5em;">
+      <path class="location good" d="M13.74,11.6a2.25,2.25,0,0,0-2.25,2.25c0,1.66,2.25,4.13,2.25,4.13S16,15.52,16,13.85A2.24,2.24,0,0,0,13.74,11.6Zm0,3a.8.8,0,1,1,.8-.8h0a.8.8,0,0,1-.8.77Z"/>
+    </svg>
+  </div> Gps signal</p>
+  <p><div class="playerQuality" style="display:inline-block;vertical-align:middle;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" style="width:1.5em;height:1.5em;">
+    <path class="connection good" d="M16,10.34h0V0L0,16H9.93A6.1,6.1,0,0,1,16,10.34Z"/>
+  </svg></div> Internet connection</p>
 </script>
 
 <script id="aboutPopup"  type="text/x-handlebars-template">
-  <h2>The game</h2><p>The game is developed by <a href="http://appvice.dk">Appvice.dk</a>.</p>
+  <p>Geoplay is basically “fun on the run”.<br />
+  We combine the fun features of the cell phone with the benefits of physical movement and social interaction.</p>
+
+  <p>Geoplay is a platform for movement games designed for physical exercisers, children's families, schools, companies and events.</p>
+
+  <p>Geoplay is developed by <a href="http://appvice.dk">Appvice ApS</a>.<br />
+  Please contact us in order to have your movement game developed.</p>
+</script>
+
+
+<script id="contactPopup"  type="text/x-handlebars-template">
+  <p>We are very interested in all kinds of feedback.<br />
+  Please provide us with your contact info.</p>
+
+  <p>E-mail: mads@appvice.dk<br />
+  Call: 50 50 25 57 (mon-fri 9-15)<br />
+  Sms: 50 50 25 57 (anytime)</p>
+</script>
+
+<script id="statusPopup"  type="text/x-handlebars-template">
+  {{#if currentGame}}
+    <h2>GeoPlay</h2>
+    <h2><a href="" onclick="app.showRules();return false;">Show rules</a></h2>
+  {{else}}
+    <h2>GeoPlay</h2>
+  {{/if}}
+  {{#if client}}
+    <button onclick="app.exitGame();" style="width:auto;">Quit game</button>
+  {{else}}
+    <h2><a href="" onclick="app.showAbout();return false">Show About</a></h2>
+    <h2><a href="" onclick="app.showContact();return false">Show Contact</a></h2>
+  {{/if}}
+  <br />
+  <br />
+  <p>App version:{{appVersion}}</p>
 </script>
 
 
@@ -83,7 +133,7 @@
     <content class="inner">
       <div class="game">
         <img class="gameimage" src="img/UnoGameIcon.jpg"></img>
-        <p>{{description}}</p>
+        <p>{{{description}}}</p>
 
         <h2>Games to join nearby</h2>
         {{#each instances}}

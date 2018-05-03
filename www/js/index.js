@@ -402,7 +402,7 @@ var app = {
           if(!localStorage.getItem("firstTime")){
             localStorage.setItem("firstTime","true");
 
-            app.openModal('Welcome to GeoPlay',app.welcomePopupTmpl(),{'Close':function(){return false;}});
+            app.openModal('Good start to GeoPlay',app.welcomePopupTmpl(),{'Close':function(){return false;}});
           }
         } catch(e){
           console.log('could not use localStorage',e);
@@ -1025,18 +1025,24 @@ var app = {
         'close':function(){return false;}
       });
     },
+    showContact: function(){
+      app.openModal('Contact',app.contactPopupTmpl(),{
+        'close':function(){return false;}
+      });
+    },
     showStatus: function(){
-      app.openModal('Status',$('<h2>').text(app._currentGame ? app._currentGame.name : 'GeoPlay').prop('outerHTML')+
-        (app._client ? '<button onclick="app.exitGame();" style="width:auto;">Quit game</button><br /><br />' : '')+
-        '<a href="" onclick="app.showAbout();return false">Show About</a><br /><br />'+
-        (app._currentGame ? '<a href="" onclick="app.showRules();return false;">Show rules</a><br /><br />':'')+
-        '<h2>App version:%%VERSION%%</h2>',
+      app.openModal('Status',app.statusPopupTmpl({
+        currentGame:app._currentGame,
+        client: app._client,
+        appVersion:  '%%VERSION%%'
+      }),
         {
         'Continue':function(){
           return false;
         }
       });
     },
+
     showQuestionnaire: function(){
       if(!this._client){
         console.log('no client when showing qustionaire');
