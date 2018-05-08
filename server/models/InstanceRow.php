@@ -303,39 +303,50 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 
 		$data_string = rawurlencode(json_encode($params));
 
-		$ch = curl_init();
-		$url = $this->url.'/message/'.urlencode($message).'?'.$data_string;
+		$max_tries = 5;
 
-		//if using local server on windows, replace the geogames.localhost with 127.0.0.1 to make it through
-		/*$url = preg_replace('/geogames.localhost/','127.0.0.1',$url);
-		Zend_Debug::dump($url);
-		echo ($data_string);
-		$url = 'http://geogames.localhost:9023/message/join?{"hej":"fisk","fds":"sfd"}';
-		$url = 'http://geogames.localhost:9023/message/join?'.rawurlencode('{"player_id":"3","type":"guest","name":"mads","token":"mads","created":"20171 005094316"}');
-			Zend_Debug::dump($url);*/
-		curl_setopt($ch, CURLOPT_URL, $url);
-		//curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		//curl_setopt($ch, CURLOPT_PORT , 9023); //not doing anything
-		//curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-			'Content-Type: application/json',
-			'Expect:'
-			//'Content-Length: ' . strlen($data_string))
-		));
-		$result = curl_exec($ch);
+		while($max_tries > 0){
+			$max_tries--;
 
+			$ch = curl_init();
+			$url = $this->url.'/message/'.urlencode($message).'?'.$data_string;
 
-		if(!$result){
-			Zend_Debug::dump(curl_getinfo($ch));
-			Zend_Debug::dump(curl_error($ch));
+			//if using local server on windows, replace the geogames.localhost with 127.0.0.1 to make it through
+			/*$url = preg_replace('/geogames.localhost/','127.0.0.1',$url);
+			Zend_Debug::dump($url);
+			echo ($data_string);
+			$url = 'http://geogames.localhost:9023/message/join?{"hej":"fisk","fds":"sfd"}';
+			$url = 'http://geogames.localhost:9023/message/join?'.rawurlencode('{"player_id":"3","type":"guest","name":"mads","token":"mads","created":"20171 005094316"}');
+				Zend_Debug::dump($url);*/
+			curl_setopt($ch, CURLOPT_URL, $url);
+			//curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			//curl_setopt($ch, CURLOPT_PORT , 9023); //not doing anything
+			//curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
+			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+				'Content-Type: application/json',
+				'Expect:'
+				//'Content-Length: ' . strlen($data_string))
+			));
+			$result = curl_exec($ch);
+
+			curl_close($ch);
+
+			if(!$result){
+				$res = array(
+					'status' => 'error'
+				);
+				$res['curl_info'] = curl_getinfo($ch);
+				$res['curl_error'] = curl_error($ch)
+			} else {
+				$res = json_decode($result,true);
+
+				return $res;
+			}
+
+			//try again
+			usleep(200000); //0.2s
 		}
-		curl_close($ch);
-		//die($this->url.'/message/'.urlencode($message).'?'.$data_string);
-		//Zend_Debug::dump($this->url.'/message/'.urlencode($message).'?'.$data_string);
-		$res = json_decode($result,true);
-		//Zend_Debug::dump($res);
-		//exit;
 
 		return $res;
 	}
