@@ -337,7 +337,7 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 					'status' => 'error'
 				);
 				$res['curl_info'] = curl_getinfo($ch);
-				$res['curl_error'] = curl_error($ch)
+				$res['curl_error'] = curl_error($ch);
 			} else {
 				$res = json_decode($result,true);
 

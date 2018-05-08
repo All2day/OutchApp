@@ -98,6 +98,7 @@ var app = {
         }
 
 
+
         try{
           if(window.console_reinsert){
             console_reinsert();
@@ -113,6 +114,10 @@ var app = {
           console.log('No GA');
         }
 
+        document.addEventListener("pause", this.onPause.bind(this), false);
+        document.addEventListener("resume", this.onResume.bind(this), false);
+
+        //special handling of query strings for browser tests
         var qs = this.qs = (function(a) {
             if (a == "") return {};
             var b = {};
