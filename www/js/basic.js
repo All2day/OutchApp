@@ -190,6 +190,7 @@ Number.isNaN = Number.isNaN || function(value) {
   */
 Class.extend('TreeObject',{
    owner:null,
+   _type:'TreeObject',
    add:function(treeEl){
      treeEl._owner = this;
    }
@@ -201,6 +202,7 @@ Class.extend('TreeObject',{
  */
 TreeObject.extend('Hookable',{
    _hooks:null,
+   _type:'Hookable',
    init:function(obj){
      this._hooks = {};
      if(obj){
@@ -345,6 +347,7 @@ TreeObject.extend('Hookable',{
  Hookable.extend('Hook',{
    actions:null, //Action
    vars:null,
+   _type:'Hook',
    init:function(obj){
      this.actions = [];
      this._super();

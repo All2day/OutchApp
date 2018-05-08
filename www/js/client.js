@@ -240,7 +240,7 @@ Class.extend('GameClient',{
     if(!this.gs.currentPlayer){
       this.gs.currentPlayer = this.gs.players.get(this.token);
       if(!this.gs.currentPlayer){
-        alert('no such player');
+        app.modal('Error','No such player');
         app.exitGame();
         return;
       }
@@ -343,7 +343,7 @@ Class.extend('GameClient',{
         }
         //debugger;
         console.log('status:'+status+' error:'+error);
-        //alert(error);
+
         if(this.status == 'exited'){
           return;
         }
@@ -377,7 +377,7 @@ Class.extend('GameClient',{
       console.log('instance_id is:',this.instance_id);
       console.log('this.status is:',this.status);
 
-      alert('game crashed, exiting');
+      app.openModal('Error','Game crashed, exiting');
 
       app.exitGame();
       return;

@@ -370,10 +370,23 @@ ViewElement.extend('PageElement',{
       }
       dom.find('.header .title').text(title);
       dom.find('.header .exit').on('click',function(){
-        if(ScopeRef._gs.getCurrentPhaseType() === 'scoreboard' || confirm('sure exit?')){
+        if(ScopeRef._gs.getCurrentPhaseType() === 'scoreboard'){
           //todo: add nice exit
           app.exitGame();
+        } else {
+          app.openModal('Exit game?','Are you sure, you may leave other players alone...',
+          {
+            'Leave':function(){
+              app.exitGame();
+              return false;
+            },
+            'Stay':function(){
+              return false;
+            }
+          });
         }
+
+
       });
 
 
@@ -424,7 +437,7 @@ ViewElement.extend('LabelElement',{
 
       switch(prop){
         case 'text':
-          if(that._dom.text() != val){
+          if(that._dom.text() !== val){
             that._dom.text(val);
           }
       }

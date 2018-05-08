@@ -538,7 +538,7 @@ LeftRightRef.extend('ScopeEqual',{
     if(l instanceof Variable){l = l._value;}
     if(r instanceof Variable){r = r._value;}
 
-    if(l == r){
+    if(l === r){
       return true;
     }
     /*if(left_var && left_var._value && right_var && right_var._value){
@@ -556,7 +556,7 @@ LeftRightRef.extend('ScopeNotEqual',{
     if(l instanceof Variable){l = l._value;}
     if(r instanceof Variable){r = r._value;}
 
-    return l != r;
+    return l !== r;
   }
 });
 
@@ -798,14 +798,15 @@ ScopeRef.extend('ScopeRootLookup',{
         scp = ScopeRef._gs.currentPlayer;
         //it may be that the hook originates from a timer, search for prototype vars
         if(!scp){
-          //console.log('searching for '+this.ref);
+          console.log('searching for '+this.ref);
           scp = ScopeRef._getScopeRoot();
           while(scp && !(scp instanceof ProtoTypeVariable && scp._type == this.ref)){
-            //console.log('are at '+scp._type+' with name '+scp._name+' and id:'+scp._id);
+            console.log('are at '+scp._type+' with name '+scp._name+' and id:'+scp._id);
+            console.log(scp);
             scp = scp._owner;
           }
           if(!scp){
-            //console.log('did not find anything');
+            console.log('did not find anything');
           }
           break;
         }

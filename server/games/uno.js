@@ -12,7 +12,12 @@ exports.game = {
                 type:"if", // does not work!
                 condition:"(list.length+1)*game.cardWidth > (2*3.1415)",
                 actions:{
-                  1:{
+                  '_1setStopReason':{
+                    type:'set',
+                    target:'game.stopReason',
+                    source:"player.name+' has too many cards, player with least cards wins.'"
+                  },
+                  '_2':{
                     type:"startphase",
                     phase:"scoreboard"
                   }
@@ -86,12 +91,12 @@ exports.game = {
     centerRadius:0.4, //radius of center
     size:{
       type:"number",
-      value:25,
+      value:35,
       setting:true
     }, //radius
     newCardDelay:{
       type:"number",
-      value:80,
+      value:30,
       setting:true
     },
     maxtime:{
@@ -99,7 +104,8 @@ exports.game = {
       value:600,
       setting:true
     },
-    playtime:0
+    playtime:0,
+    stopReason:'"none"'
   },
   ranking:'-el.hand.length', //rank function, heigher is better, defined on a player in scope
   //possibly multiple rankings could be used in array form [el.points, -el.finish_time], where a tie in the fist would then take the second into account
@@ -267,7 +273,7 @@ exports.game = {
             },
             '_1':{
               type:'bottombutton',
-              text:"players.length > 1 ? 'Start game' : 'Wait for all players to join'",
+              text:"players.length > 1 ? 'Start game' : 'Wait for other players'",
               show:"player = players.gameowner",
               hooks:{
                 click:{
@@ -323,7 +329,12 @@ exports.game = {
           hooks:{
             end:{
               actions:{
-                '_1':{
+                '_1setStopReason':{
+                  type:'set',
+                  target:'game.stopReason',
+                  source:'"Time ran out, player with least cards wins."'
+                },
+                '_2':{
                   type:'startphase',
                   phase:'scoreboard'
                 }
@@ -365,6 +376,11 @@ exports.game = {
                       target:"phase.deck.pop"
                     }
                   }
+                },
+                '_12':{
+                  type:"set",
+                  target:"phase.revenge_amount",
+                  source:"0"
                 },
                 '_2':{ //restart nextCard timers
                   type:"each",
@@ -623,8 +639,8 @@ exports.game = {
                   //fill:[0,0,0,0],
                   color:"element.isinside?'black':[244,240,241]",
                   fill:"phase.waitforrevengetimer.isRunning && phase.revenge_target != player ? [255,255,255,0.8] : phase.stack.last.color",
-                  textColor:"'white'",
-                  text:"phase.stack.last.value",
+                  textColor:"phase.waitforrevengetimer.isRunning && phase.revenge_target != player ? 'black' : 'white'",
+                  text:"phase.waitforrevengetimer.isRunning ? '+'+phase.revenge_amount : phase.stack.last.value",
                   hooks:{
                     enter:{
                       actions:{
@@ -687,6 +703,11 @@ exports.game = {
                                   1:{
                                     type:"startphase",
                                     phase:"scoreboard"
+                                  },
+                                  '_setStopReason':{
+                                    type:'set',
+                                    target:'game.stopReason',
+                                    source:"player.name+' dropped all his cards and wins'"
                                   }
                                 }
                               },
@@ -1020,7 +1041,7 @@ exports.game = {
             '_settime':{
               type:'set',
               target:'game.playtime',
-              source:'^phase.stopTimer.time'
+              source:'phase.stopTimer.time'
             }
           }
         } //end of end hook
@@ -1037,6 +1058,10 @@ exports.game = {
             },*/
             'sb':{
               type:'scoreboard'
+            },
+            '_stopReason':{
+              type:'label',
+              text:"game.stopReason"
             },
             'players':{
               type:'list',

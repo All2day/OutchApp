@@ -665,6 +665,8 @@ Variable.extend('TimerVariable',{
           r = 0;
         if(this._value.status == 'started'){
           r = (t - this.start_time - this._value.wait_time);
+        } else if(this._value.status == 'ended'){
+          r = this._value.duration;
         } else {
           r = this._value.stop_time - this._value.wait_time;
         }
@@ -1646,8 +1648,8 @@ GameStateObject.extend('GameState',{
       console.log('unloading phase:'+this.currentPhase._name);
 
       this.currentPhase.triggerHook('end');
-      this.currentPhase.unload();
       Hookable._handleTriggerQueue();
+      this.currentPhase.unload();
     }
 
     console.log('loading phase:'+phase);

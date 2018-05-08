@@ -13,15 +13,18 @@
 
         <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
         <script src="https://openlayers.org/en/v4.3.2/build/ol.js"></script>
-
     </head>
-    <body>
+    <body ontouchstart="">
 
 <script id="modal" type="text/x-handlebars-template">
   <div class="modal">
     <div class="header">{{title}}</div>
     <div class="body">{{{body}}}</div>
-    <div class="footer">{{{btn}}}</div>
+    <div class="footer">
+      {{#each btns}}
+        <button>{{{@key}}}</button>
+      {{/each}}
+    </div>
   </div>
 </script>
 
@@ -39,9 +42,10 @@
 </script>
 
 <script id="questionnaire" type="text/x-handlebars-template">
+
   <form class="questionnaire">
 
-    <div class="rating">
+    <p class="rating">
       <input type="radio" id="star1" name="rating" value="1" />
       <label class="star" for="star1" title="Awfull" aria-hidden="true">&#x1F620;<!--😠--></label>
       <input type="radio" id="star2" name="rating" value="2" />
@@ -52,8 +56,11 @@
       <label class="star" for="star4" title="Great" aria-hidden="true">&#x1F642;<!--🙂--></label>
       <input type="radio" id="star5" name="rating" value="5" />
       <label class="star" for="star5" title="Awesome" aria-hidden="true">&#x1F603;<!--😃--></label>
-    </div>
-    <textarea name="comment" placeholder="Extra info, realy anything, anything that you would like to share with us:-)"></textarea>
+    </p>
+
+    <p style="text-align:center">We collect info of each game played</p>
+
+    <textarea name="comment" placeholder="Extra info, really anything, anything that you would like to share with us:-)"></textarea>
   </form>
 
 </script>
@@ -95,8 +102,8 @@
   Please provide us with your contact info.</p>
 
   <p>E-mail: mads@appvice.dk<br />
-  Call: 50 50 25 57 (mon-fri 9-15)<br />
-  Sms: 50 50 25 57 (anytime)</p>
+  Call: +45 50 50 25 57 (mon-fri 9-15)<br />
+  Sms: +45 50 50 25 57 (anytime)</p>
 </script>
 
 <script id="statusPopup"  type="text/x-handlebars-template">
@@ -107,7 +114,7 @@
     <h2>GeoPlay</h2>
   {{/if}}
   {{#if client}}
-    <button onclick="app.exitGame();" style="width:auto;">Quit game</button>
+
   {{else}}
     <h2><a href="" onclick="app.showAbout();return false">Show About</a></h2>
     <h2><a href="" onclick="app.showContact();return false">Show Contact</a></h2>

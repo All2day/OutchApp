@@ -5,6 +5,7 @@
 alert('device ready fired');
 */
 require('js/log.js');
+/*require('js/fastclick.js');*/
 require('js/handlebars-setup.js');
 require('js/client.js');
 
@@ -213,9 +214,21 @@ var app = {
       //var attachFastClick = Origami.fastclick;
   		//attachFastClick(document.body);
 
+
       $(document.body).on('click','.openStatus',function(){
+        console.log('opening status');
         app.showStatus();
       }.bind(this));
+
+
+      $(document.body).on('touchstart','button',function(){
+        $(this).addClass('fake-active');
+      }).on('touchend','button',function(){
+        $(this).removeClass('fake-active');
+      }).on('touchcancel','button',function(){
+        $(this).removeClass('fake-active');
+      });
+
 
       this.setupTemplates();
       this.startLocationService();
@@ -256,6 +269,11 @@ var app = {
         console.log('could not find game info:'+e);
         debugger;
       });
+
+      if(navigator && navigator.splashscreen){
+        console.log('hiding splash');
+        navigator.splashscreen.hide();
+      }
 
       //this.showGames();
     },
@@ -341,42 +359,38 @@ var app = {
         f.on('click','.start',function(){
           var name = null;
           app.openModal('Game name','<h2>Game title</h2><input name="game_name" value=""/>',{
-            'Create Game':function(){
+            'cancel':function(){return false;},
+            'Create':function(){
 
-            name = $('#modal input[name=game_name]').val();
+              name = $('#modal input[name=game_name]').val();
 
-            app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
-
-
-            $.getJSON(that.server+'/index/start',{
-              game_id:that._currentGame.game_id,
-              token:that.getPlayerToken(),
-              name:name,
-              //store pos in lat lng on server
-              pos:this._posHist && this._posHist.length? new ol.geom.Point(ol.proj.transform(this._posHist.slice(-1)[0].c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
-            },function(data){
-              if(data && data.instance_id){
-                this.startGame(data.instance_id);
-              } else {
-                app.openModal('Could not start game',data.error,{
-                  'close':function(){return false;}
-                });
-              }
-              //this.showGames();
-            }.bind(that)).fail(function(e){
-              app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
-            }.bind(this));
-            return true; //keep the modeal
-          }.bind(this),
-            'cancel':function(){return false;}});
+              app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
 
 
-          $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'\'s game' : 'My game').focus();
-          /*var name = window.prompt('Please choose a name for the game','');
-          if(name===null){
-            return;
-          }*/
+              $.getJSON(that.server+'/index/start',{
+                game_id:that._currentGame.game_id,
+                token:that.getPlayerToken(),
+                name:name,
+                //store pos in lat lng on server
+                pos:this._posHist && this._posHist.length? new ol.geom.Point(ol.proj.transform(this._posHist.slice(-1)[0].c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
+              },function(data){
+                if(data && data.instance_id){
+                  this.startGame(data.instance_id);
+                } else {
+                  app.openModal('Could not start game',data.error,{
+                    'close':function(){return false;}
+                  });
+                }
+                //this.showGames();
+              }.bind(that)).fail(function(e){
+                app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
+              }.bind(this));
+              return true; //keep the modeal
+            }.bind(this)
+          });
 
+          $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'\'s game' : 'My game');
+          //.focus();
         }.bind(this));
 
         f.on('click','.back',function(){
@@ -533,7 +547,7 @@ var app = {
             }
           } else {
             this.openModal('Starting game','could not join instance:'+r.error,{'ok':function(){return false;}});
-            //alert('could not join instance:'+r.error);
+
           }
         }.bind(this)
       ).fail(function(e){
@@ -989,19 +1003,30 @@ var app = {
   		return this.fake_uuid;
   	},
 
-    openModal: function(title,body,buttons){
+    openModal: function(title,body,buttons,type){
+      if(!buttons){
+        buttons = {
+          'ok': function(){return true;}
+        };
+      }
+
       if(!$("#modal").length){
         $('<div id="modal"></div>').appendTo("body");
       }
       $("#modal").html(this.modalTmpl({
         title:title,
         body:body,
-        btn:Object.keys(buttons)[0]
+        btns:buttons
       }));
+      if(type=='fullscreen'){
+          $("#modal .modal").addClass('fullscreen');
+      }
 
-      $("#modal").off('click','.footer');
-      $("#modal").on('click','.footer',function(e){
-        var k = Object.keys(buttons)[0];
+      $("#modal").off('click','.footer button');
+      $("#modal").on('click','.footer button',function(e){
+        var i = $(this).parent().children().index(this);
+
+        var k = Object.keys(buttons)[i];
         var r = buttons[k].apply();
         if(!r){
           app.closeModal();
@@ -1010,7 +1035,7 @@ var app = {
       $("#modal").show();
     },
     closeModal:function(){
-      $("#modal").hide().off('click','.footer');
+      $("#modal").hide().off('click','.footer button');
     },
     showRules: function(){
 
@@ -1018,29 +1043,41 @@ var app = {
         'Close':function(){
           return false;
         }
-      })
+      },'fullscreen')
     },
     showAbout: function(){
       app.openModal('About GeoPlay',app.aboutPopupTmpl(),{
         'close':function(){return false;}
-      });
+      },'fullscreen');
     },
     showContact: function(){
       app.openModal('Contact',app.contactPopupTmpl(),{
         'close':function(){return false;}
-      });
+      },'fullscreen');
     },
     showStatus: function(){
+      var btns = {
+
+      }
+
+      if(app._client){
+        btns['Quit'] = function(){
+          app.exitGame();
+          return false;
+        };
+      }
+
+      btns['Continue'] = function(){
+        return false;
+      };
+
       app.openModal('Status',app.statusPopupTmpl({
         currentGame:app._currentGame,
         client: app._client,
         appVersion:  '%%VERSION%%'
       }),
-        {
-        'Continue':function(){
-          return false;
-        }
-      });
+        btns
+      );
     },
 
     showQuestionnaire: function(){
@@ -1052,7 +1089,7 @@ var app = {
 
 
 
-      this.openModal('Rate the gameplay',this.questionnaireTmpl(this._currentGame),{
+      this.openModal('Rate experience',this.questionnaireTmpl(this._currentGame),{
         'Send':function(){
           var data = {}
           $('#modal form.questionnaire').serializeArray().map(function(v){
@@ -1061,7 +1098,11 @@ var app = {
 
 
           if(!data.rating){
-            alert('Please select a rating');
+            var r = $('#modal form.questionnaire .rating');
+            r.removeClass('smiley_highlight');
+            void r[0].offsetWidth;
+            r.addClass('smiley_highlight');
+
             return true;
           }
 
