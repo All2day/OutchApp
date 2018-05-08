@@ -265,15 +265,19 @@ var app = {
         console.log('got game info',data);
         this._currentGame = data.game;
         this.showGames();
+        if(navigator && navigator.splashscreen){
+          console.log('hiding splash');
+          navigator.splashscreen.hide();
+        }
       }.bind(this)).fail(function(e){
+        if(navigator && navigator.splashscreen){
+          console.log('hiding splash');
+          navigator.splashscreen.hide();
+        }
         console.log('could not find game info:'+e);
         debugger;
       });
 
-      if(navigator && navigator.splashscreen){
-        console.log('hiding splash');
-        navigator.splashscreen.hide();
-      }
 
       //this.showGames();
     },
@@ -296,9 +300,12 @@ var app = {
         }.bind(this),
         error:function(r,status,error) {
           console.log('error in login', status, error);
-          if(prompt('Could not login to server, try again')){
-            this.login();
-          }
+          app.showModal('Error','Could not login to server, try again',{
+            'ok':function(){
+              this.login();
+              return false;
+            }
+          })
 
         }.bind(this),
         timeout:20000

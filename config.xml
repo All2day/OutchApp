@@ -19,7 +19,6 @@
     <preference name="orientation" value="portrait" />
     <preference name="AutoHideSplashScreen" value="false" />
     <preference name="SplashScreenDelay" value="6000" />
-
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
@@ -44,6 +43,7 @@
         <splash density="port-hdpi" src="res/screen/android/1536x2732.png" />
         <splash density="port-xhdpi" src="res/screen/android/1536x2732.png" />
         <splash density="port-xxhdpi" src="res/screen/android/1536x2732.png" />
+        <splash density="port-xxxhdpi" src="res/screen/android/1536x2732.png" />
     </platform>
     <platform name="ios">
         <icon gap:platform="ios" height="1024" src="res/icon.png" width="1024" />
@@ -64,10 +64,10 @@
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
-    <plugin name="cordova-plugin-geolocation" spec="https://github.com/Kezzel/cordova-plugin-geolocation.git" />
+    <plugin name="cordova-plugin-geolocation" spec="git+https://github.com/Kezzel/cordova-plugin-geolocation.git" />
     <plugin name="cordova-plugin-is-debug" spec="^1.0.0" />
+    <plugin name="cordova-plugin-splashscreen" spec="^5.0.2" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
-    <plugin name="cordova-plugin-splashscreen" spec="^5.0.2" />
 </widget>
