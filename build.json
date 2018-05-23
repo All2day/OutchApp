@@ -11,9 +11,11 @@
             ]
         },
         "release": {
-            "codeSignIdentity": "iPhone Developer",
-            "developmentTeam": "FG35JLLMXX4A",
-            "packageType": "app-store",
+            "codeSignIdentity": "iPhone Distribution",
+            "developmentTeam": "SY6C5RB3DA",
+            "automaticProvisioning":false,
+	    "provisioningProfile":"90567c7b-e431-468e-95c7-039e37cb0352",
+	    "packageType": "app-store",
             "buildFlag": [
                 "EMBEDDED_CONTENT_CONTAINS_SWIFT = YES",
                 "ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO",
