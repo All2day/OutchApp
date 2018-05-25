@@ -305,7 +305,7 @@ var app = {
         }.bind(this),
         error:function(r,status,error) {
           console.log('error in login', status, error);
-          app.showModal('Error','Could not login to server, try again',{
+          app.openModal('Error','Could not login to server, try again',{
             'ok':function(){
               this.login();
               return false;
@@ -332,7 +332,7 @@ var app = {
           e.preventDefault();
           app.openModal('Stopping game','Stopping game instance',{'waiting...':function(){return true;}});
           $.getJSON(that.server+'/index/stop',{instance_id:$(this).attr('data-instance_id')},function(data){
-            console.log('gamd stopped starting showGames');
+            console.log('game stopped starting showGames');
             this.showGames();
           }.bind(that)).always(function(){
             app.closeModal();
@@ -1075,7 +1075,7 @@ var app = {
       if(app._client){
         btns['Quit'] = function(){
           app.exitGame();
-          return false;
+          return true;
         };
       }
 
@@ -1147,7 +1147,7 @@ var app = {
           //get the info
           return false;
         }.bind(this)
-      })
+      });
     },
     getPosAccuracyLevel: function(a){
       if(a < 10){

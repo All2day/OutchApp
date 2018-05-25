@@ -378,7 +378,7 @@ ViewElement.extend('PageElement',{
           {
             'Leave':function(){
               app.exitGame();
-              return false;
+              return true; //will popup questionnaire
             },
             'Stay':function(){
               return false;
