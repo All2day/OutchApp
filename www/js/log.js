@@ -180,11 +180,12 @@
 				});
 				log_div.on('click','._log_server',function(e){
 					var changed = false;
-					if(app.server.match(/alpha/) && confirm('Use beta server?')){
+					var b = 'et';
+					if(app.server.match(/alpha/) && confirm('Use b'+b+'a server?')){
 						app.server = 'http://geogames.all2day.dk';
 						changed = true;
 					} else
-					if(confirm('Use alpha server?')){
+					if(confirm('Use al'+'pha server?')){
 						app.server = 'http://alphagames.all2day.dk';
 						changed = true;
 					}

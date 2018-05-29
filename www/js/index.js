@@ -428,7 +428,7 @@ var app = {
           if(!localStorage.getItem("firstTime")){
             localStorage.setItem("firstTime","true");
 
-            app.openModal('Good start to GeoPlay',app.welcomePopupTmpl(),{'Close':function(){return false;}});
+            app.openModal('Get started',app.welcomePopupTmpl(),{'Close':function(){return false;}});
           }
         } catch(e){
           console.log('could not use localStorage',e);

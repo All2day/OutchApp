@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget android-packageName="dk.appvice.outch" id="dk.appvice.outch" ios-CFBundleIdentifier="dk.appvice.outch" version="0.0.60" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget android-packageName="dk.appvice.outch" id="dk.appvice.outch" ios-CFBundleIdentifier="dk.appvice.outch" version="0.0.61" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>GeoPlay</name>
     <description>
         Lets go outside
@@ -33,9 +33,13 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
-        <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption">
+        <gap:config-file platform="ios" target="*-Info.plist" mode="add" parent="ITSAppUsesNonExemptEncryption">
             <false />
         </gap:config-file>
+
+        <edit-config target="NSLocationWhenInUseUsageDescription" file="*-Info.plist" mode="merge">
+            <string>Your location will be shown on the map and shared with other players of your game.</string>
+        </edit-config>
     </platform>
     <platform name="android">
         <splash density="port-ldpi" src="res/screen/android/1536x2732.png" />
@@ -46,7 +50,8 @@
         <splash density="port-xxxhdpi" src="res/screen/android/1536x2732.png" />
     </platform>
     <platform name="ios">
-        <icon gap:platform="ios" height="1024" src="res/icon.png" width="1024" />
+        <!-- app store icon - must be without alpha channel -->
+        <icon gap:platform="ios" height="1024" src="res/ios_appstore_icon_1024x1024.png" width="1024" />
         <icon gap:platform="ios" height="180" src="res/icon/ios/Icon-App-60x60@3x.png" width="180" />
         <icon gap:platform="ios" height="60" src="res/icon/ios/Icon-App-60x60@1x.png" width="60" />
         <icon gap:platform="ios" height="120" src="res/icon/ios/Icon-App-60x60@2x.png" width="120" />
@@ -63,7 +68,7 @@
     <plugin name="cordova-plugin-device" spec="~1.1.6" />
     <plugin name="cordova-plugin-device-motion" spec="~1.2.5" />
     <plugin name="cordova-plugin-device-orientation" spec="~1.0.7" />
-    <plugin name="cordova-plugin-geolocation" spec="git+https://github.com/Kezzel/cordova-plugin-geolocation.git" />
+    <plugin name="cordova-plugin-geolocation" spec="https://github.com/Kezzel/cordova-plugin-geolocation.git" />
     <plugin name="cordova-plugin-is-debug" spec="^1.0.0" />
     <plugin name="cordova-plugin-splashscreen" spec="^5.0.2" />
     <plugin name="cordova-plugin-statusbar" spec="^2.4.1" />
