@@ -33,11 +33,10 @@
     <platform name="ios">
         <allow-intent href="itms:*" />
         <allow-intent href="itms-apps:*" />
-        <gap:config-file platform="ios" target="*-Info.plist" mode="add" parent="ITSAppUsesNonExemptEncryption">
+        <gap:config-file mode="add" parent="ITSAppUsesNonExemptEncryption" platform="ios" target="*-Info.plist">
             <false />
         </gap:config-file>
-
-        <edit-config target="NSLocationWhenInUseUsageDescription" file="*-Info.plist" mode="merge">
+        <edit-config file="*-Info.plist" mode="merge" target="NSLocationWhenInUseUsageDescription">
             <string>Your location will be shown on the map and shared with other players of your game.</string>
         </edit-config>
     </platform>
@@ -50,7 +49,6 @@
         <splash density="port-xxxhdpi" src="res/screen/android/1536x2732.png" />
     </platform>
     <platform name="ios">
-        <!-- app store icon - must be without alpha channel -->
         <icon gap:platform="ios" height="1024" src="res/ios_appstore_icon_1024x1024.png" width="1024" />
         <icon gap:platform="ios" height="180" src="res/icon/ios/Icon-App-60x60@3x.png" width="180" />
         <icon gap:platform="ios" height="60" src="res/icon/ios/Icon-App-60x60@1x.png" width="60" />
@@ -75,4 +73,5 @@
     <plugin name="cordova-plugin-vibration" spec="~2.1.5" />
     <plugin name="cordova-plugin-whitelist" spec="1" />
     <engine name="android" spec="^6.2.3" />
+    <engine name="ios" spec="^4.5.4" />
 </widget>
