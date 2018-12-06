@@ -369,39 +369,9 @@ var app = {
         });
 
         f.on('click','.start',function(){
-          var name = null;
-          app.openModal('Game name','<h2>Game title</h2><input name="game_name" value=""/>',{
-            'cancel':function(){return false;},
-            'Create':function(){
 
-              name = $('#modal input[name=game_name]').val();
+          this.startGame(that._currentGame);
 
-              app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
-
-
-              $.getJSON(that.server+'/index/start',{
-                game_id:that._currentGame.game_id,
-                token:that.getPlayerToken(),
-                name:name,
-                //store pos in lat lng on server
-                pos:this._posHist && this._posHist.length? new ol.geom.Point(ol.proj.transform(this._posHist.slice(-1)[0].c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
-              },function(data){
-                if(data && data.instance_id){
-                  this.startGame(data.instance_id);
-                } else {
-                  app.openModal('Could not start game',data.error,{
-                    'close':function(){return false;}
-                  });
-                }
-                //this.showGames();
-              }.bind(that)).fail(function(e){
-                app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
-              }.bind(this));
-              return true; //keep the modeal
-            }.bind(this)
-          });
-
-          $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'\'s game' : 'My game');
           //.focus();
         }.bind(this));
 
@@ -421,7 +391,7 @@ var app = {
         f.on('click','.instance',function(){
 
           var instance_id = $(this).attr('data-instance_id');
-          that.startGame(instance_id);
+          that.startGame(that._currentGame,instance_id);
         });
 
         try{
@@ -496,13 +466,83 @@ var app = {
       }
     },
 
-    startGame:function(instance_id){
+    startGame:function(game, instance_id){
+
+      //If no player name, start by requesting it
+      if(!this.player.name){
+        var player_name = null;
+
+        console.log('no name, prompt for name');
+
+        app.openModal('Player name','<h2>Choose player name</h2><input name="player_name" value=""/>',{
+          'Cancel':function(){return false;},
+          'Ok':function(){
+
+            name = $('#modal input[name=player_name]').val();
+
+            $.getJSON(this.server+'/index/updateplayer',{token:this.getPlayerToken(),name:name},function(r){
+              this.player = r.player;
+              this.startGame(game, instance_id);
+            }.bind(this));
+
+            return false; //keep the modeal
+          }.bind(this)
+        });
+
+        //dont continue
+        return;
+      }
+
+      //if no instance is created, create it first and call startGame on it
+      if(!instance_id){
+        var name = null;
+        app.openModal('Game name','<h2>Game title</h2><input name="game_name" value=""/>',{
+          'Cancel':function(){return false;},
+          'Create':function(){
+
+            name = $('#modal input[name=game_name]').val();
+
+
+
+            app.openModal('Starting game','Creating new game instance on server',{'waiting...':function(){return true;}});
+
+
+            $.getJSON(that.server+'/index/start',{
+              game_id:that._currentGame.game_id,
+              token:that.getPlayerToken(),
+              name:name,
+              //store pos in lat lng on server
+              pos:this._posHist && this._posHist.length? new ol.geom.Point(ol.proj.transform(this._posHist.slice(-1)[0].c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
+            },function(data){
+              if(data && data.instance_id){
+                this.startGame(game,data.instance_id);
+              } else {
+                app.openModal('Could not start game',data.error,{
+                  'close':function(){return false;}
+                });
+              }
+              //this.showGames();
+            }.bind(that)).fail(function(e){
+              app.openModal('Starting game','An unknown error happened while creating the game',{'ok':function(){return false;}});
+            }.bind(this));
+            return true; //keep the modeal
+          }.bind(this)
+        });
+
+        //set default name
+        $('#modal input[name=game_name]').val(this.player.name ? this.player.name+'\'s game' : 'My game');
+
+        return;
+      }
+
       if(window.analytics){analytics.trackView('startgame/'+instance_id);}
+
       delete(this._old_html);
       if(!this.player){
         console.log('no player when starting game');
         return;
       }
+
       //allways clear the updater
       if(this._fetching){
         this._fetching.abort();
@@ -511,20 +551,10 @@ var app = {
       clearTimeout(this._gameUpdater);
 
 
-      if(!this.player.name){
-        console.log('no name, prompt for name');
-        var name = window.prompt('Player name');
-        $.getJSON(this.server+'/index/updateplayer',{token:this.getPlayerToken(),name:name},function(r){
-          this.player = r.player;
-          this.startGame(instance_id);
-        }.bind(this));
-        return;
-      }
-
-      console.log('Loading game ('+instance_id+') '+this._currentGame.name);
+      console.log('Loading game ('+instance_id+') '+game.name);
       this.openModal('Starting game','loading game',{'waiting...':function(){return true;}});
 
-      var g = require(this._currentGame.src+'?v=1.2',true);
+      var g = require(game.src+'?v=1.2',true);
 
       console.log('joining game');
 
@@ -549,8 +579,8 @@ var app = {
             _client.startPinging();
 
             try{
-              if(!localStorage.getItem('rulesRead_'+this._currentGame.game_id)){
-                localStorage.setItem('rulesRead_'+this._currentGame.game_id,this._currentGame.version);
+              if(!localStorage.getItem('rulesRead_'+game.game_id)){
+                localStorage.setItem('rulesRead_'+game.game_id,game.version);
 
                 app.showRules();
               }
@@ -567,6 +597,8 @@ var app = {
 
       }.bind(this));
     },
+
+
     exitGame:function(){
 
 
