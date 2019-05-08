@@ -39,7 +39,7 @@ try{
 		$db = Zend_Db::factory('Pdo_Mysql', array(
 			'host'     => 'dbrestore.co2zizjzpyw3.eu-west-1.rds.amazonaws.com',
 			'username' => 'geogames',
-			'password' => '3qYhQhqUupJtdK2J',
+			'password' => 'Rp_>~cvJ\X!9',
 			'dbname'   => 'alphagames'
 		));
 	} else
@@ -47,7 +47,7 @@ try{
 		$db = Zend_Db::factory('Pdo_Mysql', array(
 			'host'     => 'dbrestore.co2zizjzpyw3.eu-west-1.rds.amazonaws.com',
 			'username' => 'geogames',
-			'password' => '3qYhQhqUupJtdK2J',
+			'password' => 'Rp_>~cvJ\X!9',
 			'dbname'   => 'geogames'
 		));
 	} else
