@@ -424,4 +424,34 @@ class IndexController extends Zend_Controller_Action{
 		die('done');
 	}
 
+
+	public function sendlogAction(){
+		$log = file_get_contents("php://input"); //post data
+
+
+		$res = array(
+			'status' => 'ok'
+		);
+
+		if(!$p){
+			$res['status'] = 'error';
+			$res['error'] = 'Token mismatch';
+		} else
+		if(!$instance){
+			$res['status'] = 'error';
+			$res['error'] = 'No such instance:'.$instance_id;
+		} else {
+			if(!$instance->storePlayerLog($p,$log)){
+				$res['status'] = 'error';
+				$res['error'] = 'No such player in instance'.$instance_id;
+			} else {
+				//ok
+			}
+		}
+
+		header('Access-Control-Allow-Origin: *');
+		header('Content-Type: application/json');
+		die(json_encode($res));
+	}
+
 }

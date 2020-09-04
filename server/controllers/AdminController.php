@@ -52,9 +52,31 @@ class AdminController extends Zend_Controller_Action{
 		}
 
 		$this->view->instance = $instance;
-
-
 	}
+
+	public function iplogAction(){
+		$instance_id = $this->_getParam('instance_id');
+		$player_id = $this->_getParam('player_id');
+
+		$instanceTable = new InstanceTable();
+
+		$instance = $instanceTable->find($instance_id)->current();
+
+		if(!$instance){
+			throw new Exception('No such instance');
+		}
+
+		$p = $instance->getPlayer($player_id);
+
+		if(!$p){
+			throw new Exception('No such player on instance');
+		}
+
+		$log = $p['log'];
+
+		die($log);
+	}
+
 
 	public function instancesAction(){
 
