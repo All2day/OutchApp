@@ -31,8 +31,8 @@ Class.extend('GameServer',{
 
     //setup certificates for TLS
     this.server_options = {
-      key: fs.readFileSync('key.pem'),
-      cert: fs.readFileSync('cert.pem')
+      key: fs.readFileSync('../key.pem'),
+      cert: fs.readFileSync('../cert.pem')
     };
 
     //read the gameobject and create a game state
@@ -319,7 +319,7 @@ Class.extend('GameServer',{
     if(!this.control_url){
       console.log('[init] no control url, start directly without info');
       this.serverPing();
-      this.https = http.createServer(this.server_options,this.handleRequest.bind(this));
+      this.https = https.createServer(this.server_options,this.handleRequest.bind(this));
       this.https.listen(this.port)
     }
 

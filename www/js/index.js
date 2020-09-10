@@ -137,11 +137,15 @@ var app = {
           window[k] = v;
         });
 
-        this._posUpdater = smoothPosUpdater;
+
 
         if(qs['test_game']){
+          console.log('test game, load raw pos updater')
           require('js/rawPosUpdater');
           this._posUpdater = rawPosUpdater;
+        } else {
+          console.log('loading smoothPosUpdater (v2)')
+          this._posUpdater = smoothPosUpdater;
         }
 
 
@@ -266,7 +270,7 @@ var app = {
         return;
       }
 
-      this._posUpdater = smoothPosUpdater;
+      //this._posUpdater = smoothPosUpdater;
 
 
       this.login();
@@ -581,7 +585,7 @@ var app = {
             //this.startLocationService();
             //reset history
             this._posUpdater.stop();
-            this._posUpdater.start();
+            this._posUpdater.start(this);
             //this._posHist = this._posHist && this._posHist.length ? this._posHist.slice(-1) :[];
             this._pingHist = [];
 

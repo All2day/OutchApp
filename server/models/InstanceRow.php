@@ -321,6 +321,9 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 			curl_setopt($ch, CURLOPT_URL, $url);
 			//curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+
 			//curl_setopt($ch, CURLOPT_PORT , 9023); //not doing anything
 			//curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
 			curl_setopt($ch, CURLOPT_HTTPHEADER, array(
