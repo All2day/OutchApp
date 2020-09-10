@@ -62,7 +62,7 @@ class InstanceTable extends Zend_Db_Table_Abstract
 
 
     //$instance->url = 'http://geogames.all2day.dk:'.$instance->port;
-		$instance->url = 'http://'.$_SERVER['HTTP_HOST'].':'.$instance->port;
+		$instance->url = 'https://'.$_SERVER['HTTP_HOST'].':'.$instance->port;
 		$instance->start();
 
     return $instance;

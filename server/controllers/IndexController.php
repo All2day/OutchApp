@@ -181,7 +181,7 @@ class IndexController extends Zend_Controller_Action{
 		$game = $game->toArray();
 
 		//$game['src'] = 'http://'.$_SERVER['HTTP_HOST'].'/games/'.($game['name']).'.js?v='.urlencode($game['version']);
-		$game['src'] = 'http://'.$_SERVER['HTTP_HOST'].'/index/gamesrc/game_id/'.($game['game_id']).'?v='.urlencode($game['version']);
+		$game['src'] = 'https://'.$_SERVER['HTTP_HOST'].'/index/gamesrc/game_id/'.($game['game_id']).'?v='.urlencode($game['version']);
 
 
 		$instanceTable = new InstanceTable();

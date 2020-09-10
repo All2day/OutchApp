@@ -872,8 +872,9 @@ var app = {
         navigator.geolocation.clearWatch(this._navigator_watchId);
         this._navigator_watchId = null;
       }
-
-      this._postUpdater.stop();
+      if(this._posUpdater){
+        this._posUpdater.stop();
+      }
 
       if(this._compass_watch_id){
         navigator.compass.clearWatch(this._compass_watch_id);

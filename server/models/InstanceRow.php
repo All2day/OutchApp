@@ -15,7 +15,7 @@ class InstanceRow extends Zend_Db_Table_Row_Abstract{
 	public function start(){
 		$game = $this->getGame();
 
-		$control_url = 'http://'.$_SERVER['HTTP_HOST'].'/instance';
+		$control_url = 'https://'.$_SERVER['HTTP_HOST'].'/instance';
 
 		$command = 'node ../gameServer '.($this->instance_id).' '.($this->port*1).' '.($game->name).' '.($control_url).' '.($this->token);
 
