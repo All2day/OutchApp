@@ -1212,20 +1212,20 @@ abstract class Zend_Db_Table_Abstract
     {
         // setup metadata
         $this->_setupMetadata();
-        
+
         // get this class name
         $thisClass = get_class($this);
         if ($thisClass === 'Zend_Db_Table') {
             $thisClass = $this->_definitionConfigName;
         }
-        
+
         $rowsAffected = 0;
-        
+
         foreach ($this->_getReferenceMapNormalized() as $map) {
             if ($map[self::REF_TABLE_CLASS] == $parentTableClassname && isset($map[self::ON_DELETE])) {
-                
+
                 $where = array();
-                
+
                 // CASCADE or CASCADE_RECURSE
                 if (in_array($map[self::ON_DELETE], array(self::CASCADE, self::CASCADE_RECURSE))) {
                     for ($i = 0; $i < count($map[self::COLUMNS]); ++$i) {
@@ -1237,10 +1237,10 @@ abstract class Zend_Db_Table_Abstract
                             $primaryKey[$refCol], $type);
                     }
                 }
-                
+
                 // CASCADE_RECURSE
                 if ($map[self::ON_DELETE] == self::CASCADE_RECURSE) {
-                    
+
                     /**
                      * Execute cascading deletes against dependent tables
                      */
@@ -1259,7 +1259,7 @@ abstract class Zend_Db_Table_Abstract
                 if (in_array($map[self::ON_DELETE], array(self::CASCADE, self::CASCADE_RECURSE))) {
                     $rowsAffected += $this->delete($where);
                 }
-                
+
             }
         }
         return $rowsAffected;
@@ -1302,13 +1302,15 @@ abstract class Zend_Db_Table_Abstract
         $whereList = array();
         $numberTerms = 0;
         foreach ($args as $keyPosition => $keyValues) {
-            $keyValuesCount = count($keyValues);
+
             // Coerce the values to an array.
             // Don't simply typecast to array, because the values
             // might be Zend_Db_Expr objects.
             if (!is_array($keyValues)) {
                 $keyValues = array($keyValues);
             }
+
+            $keyValuesCount = count($keyValues);
             if ($numberTerms == 0) {
                 $numberTerms = $keyValuesCount;
             } else if ($keyValuesCount != $numberTerms) {
@@ -1610,5 +1612,5 @@ abstract class Zend_Db_Table_Abstract
 
         return new $tableName($options);
     }
-    
+
 }

@@ -61,7 +61,7 @@ exports.game = {
         type: "string" //red, green, blue, yellow or none. When using a color changing card and selecting a color, the color is set here
       },
       value: {
-        type: "string" //special numbers are used for special cards, thus 10 means "stop", 11 means "+2", -1 means "change color" and -2 means "change color +4"
+        type: "string" //special numbers are used for special cards, thus 10 means "stop", 11 means "+2", 12 means "+1", -1 means "change color" and -2 means "change color +4"
       }
     }
   },
@@ -83,8 +83,18 @@ exports.game = {
     },
     cardtypes: { //card types in each color
       type: "list",
-      prototype: "text",//"number",
-      els: ['+2','+2','+2',1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+      prototype: "string",//"number",
+      els: [1,1,1,2,2,2,3,3,3,4,4,4,5,5,5,6,6,6]//,7,7,7,8,8,8,9,9,9]//[11,11,11,11,11]//[1,2,3,4,5,6,7,8,9,10,11]
+    },
+    usePlus2:{
+      type:"number",
+      value: 1,
+      setting:true
+    },
+    usePlus1:{
+      type:"number",
+      value: 0,
+      setting:true
     },
     cardHeight:0.6, //card height relative to size, realCardHeight = cardHeight*size
     cardWidth:0.4,// card width relative to size, rezlCardWidth = cardWidth*size
@@ -268,6 +278,62 @@ exports.game = {
                 }
               }
             },
+
+            'plus2':{
+              type:'setting',
+              elements:{
+                'plus2':{
+                  type:"label",
+                  text:"'Use +2 cards in game:'+game.usePlus2"
+                },
+                'plus2input':{
+                  show:"player = players.gameowner",
+                  type:"slider",
+                  default:"game.usePlus2",
+                  min:0,
+                  max:1,
+                  hooks:{
+                    change:{
+                      actions:{
+                        '_1':{
+                          type:"set",
+                          target:"game.usePlus2",
+                          source:"element.value"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            'plus1':{
+              type:'setting',
+              elements:{
+                'plus1':{
+                  type:"label",
+                  text:"'Use +1 cards in game:'+game.usePlus1"
+                },
+                'plus1input':{
+                  show:"player = players.gameowner",
+                  type:"slider",
+                  default:"game.usePlus1",
+                  min:0,
+                  max:1,
+                  hooks:{
+                    change:{
+                      actions:{
+                        '_1':{
+                          type:"set",
+                          target:"game.usePlus1",
+                          source:"element.value"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+
             'players2':{
               type:'playerlist'
             },
@@ -366,21 +432,46 @@ exports.game = {
             },
             end:{
               actions:{
+                //first do the punnishment of the revenge
+                '_0':{
+                  type:"alert",
+                  text:"'punishing, target is:'+phase.revenge_target.name"
+                },
                 '_1':{
-                  type:"repeat",
-                  times:"phase.revenge_amount",
+                  type:"each",
+                  list:"players[phase.revenge_type = '+1' && el != phase.revenge_sender || phase.revenge_type = '+2' && el=phase.revenge_target]",
                   actions:{
+                    '_0':{
+                      type:"alert",
+                      text:"'adding '+phase.revenge_amount+' to player:'+el.name"
+                    },
                     '_1':{
-                      type:"add",
-                      list:"phase.revenge_target.hand",
-                      target:"phase.deck.pop"
-                    }
+                      type:"repeat",
+                      times:"phase.revenge_amount",
+                      actions:{
+                        '_1':{
+                          type:"add",
+                          list:"el.hand",
+                          target:"phase.deck.pop"
+                        }
+                      }
+                    },
+                    '_2':{
+                      type:"alert",
+                      text:"'done adding '+phase.revenge_amount+' to player:'+el.name"
+                    },
                   }
                 },
+                //reset revenge variables
                 '_12':{
                   type:"set",
                   target:"phase.revenge_amount",
                   source:"0"
+                },
+                '_13':{
+                  type:"set",
+                  target:"phase.revenge_target",
+                  source:"null"
                 },
                 '_2':{ //restart nextCard timers
                   type:"each",
@@ -409,6 +500,9 @@ exports.game = {
         revenge_amount:{ //how many cards to deal to the looser
           type:"number",
           value:0
+        },
+        revenge_type:{ //the type of card starting the revenge
+          type:"string"
         }
       },
       views:{
@@ -473,7 +567,7 @@ exports.game = {
                 left:"'0'",
                 right:"'0'",
                 bottom:"'0'",
-                opacity:"player = phase.revenge_target ? 1 : 0.3"
+                opacity:"(phase.revenge_type = '+2' && player = phase.revenge_target || phase.revenge_type = '+1' && player != phase.revenge_sender) ? 1 : 0.3"
               }
             }
           },
@@ -679,7 +773,12 @@ exports.game = {
                             type:"if",
                             //condition is based on the color must match, possibly with a color changing card underneath OR the value must match OR it is a color changing card
                             //Furthermore it is required that if the revenge timer is running, one cannot add cards unless it is a + card
-                            condition:"(player.currentCard.value = '+2' || !phase.waitforrevengetimer.isRunning) && (player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0)",
+
+                            //if top card is +2, then the target_player can put down any card of the same color and all players can put down another +2
+                            //if the top card is +1 then all players can put down +1 cards, but nothing else
+                            //otherwise any user can but down cards matching color or number
+                            condition: "(phase.stack.last.value = '+2' && ( player = phase.revenge_target && phase.stack.last.color = player.currentCard.color || player.currentCard.value = '+2') ) || (phase.stack.last.value = '+1' && player.currentCard.value = '+1') || (!phase.waitforrevengetimer.isRunning && (player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value))",
+                            //condition:"(player.currentCard.value = '+2' || !phase.waitforrevengetimer.isRunning) && (player.currentCard.color = phase.stack.last.color || player.currentCard.value = phase.stack.last.value || player.currentCard.value < 0)",
                             actions:{
                               '_1':{//remove the card from the user
                                 type:"remove",
@@ -696,7 +795,101 @@ exports.game = {
                                 target:"player.droppedCards",
                                 source:"player.droppedCards+1"
                               },
-                              '_3':{ //check if this player has removed all but this card
+                              '_251':{
+                                type:"if", //if the revenge is running and we are NOT continuing on the old revenge, end the timer handing out cards etc.
+                                condition:"phase.waitforrevengetimer.isRunning && phase.revenge_target != phase.stack.last.value",
+                                actions:{
+                                  '_0':{
+                                    type:"alert",
+                                    text:"'Ending revenge, old type was:'+phase.revenge_target+' => '+phase.stack.last.value"
+                                  },
+                                  '_1':{
+                                    type:"end",
+                                    target:"phase.waitforrevengetimer"
+                                  }
+                                }
+                              },
+                              '_26':{ //if the card is a +1 card,
+                                type:"if",
+                                condition:"phase.stack.last.value = '+1' && players.count > 1",
+                                actions:{
+                                  '_1':{
+                                    type:"stop", //if already started, will trigger the stop hook
+                                    timer:"phase.waitforrevengetimer"
+                                  },
+                                  '_2':{
+                                    type:"reset",
+                                    timer:"phase.waitforrevengetimer"
+                                  },
+                                  '_2.2':{
+                                    type:"set",
+                                    target:"phase.revenge_target",
+                                    source:"player" //just any player, will not be used
+                                  },
+                                  '_2.3':{
+                                    type:"set",
+                                    target:"phase.revenge_sender",
+                                    source:"player"
+                                  },
+                                  '_2.4':{
+                                    type:"set",
+                                    target:"phase.revenge_type",
+                                    source:"'+1'"
+                                  },
+                                  '_2.5':{
+                                    type:"set",
+                                    target:"phase.revenge_amount",
+                                    source:"phase.revenge_amount+1"
+                                  },
+                                  '_2.6':{
+                                    type:"alert",
+                                    text:"'startet +1 revenge '+phase.revenge_sender.name+' => '+phase.revenge_target.name+ ' with amount '+phase.revenge_amount"
+                                  }
+                                }
+                              }, //end of +1 card
+                              '_27':{ //if the card is a plus+ card,
+                                type:"if",
+                                condition:"phase.stack.last.value = '+2' && players.count > 1",
+                                actions:{
+                                  '_1':{
+                                    type:"stop", //if already started, will trigger the stop hook
+                                    timer:"phase.waitforrevengetimer"
+                                  },
+                                  '_2':{
+                                    type:"reset",
+                                    timer:"phase.waitforrevengetimer"
+                                  },
+                                  '_2.2':{
+                                    type:"set",
+                                    target:"phase.revenge_target", //choose a random target
+                                    source:"players.others.any"//"players[el!=player].any" //does not work if single player
+                                  },
+                                  '_2.2.1':{
+                                    type:"alert",
+                                    text:"'chose player '+phase.revenge_target.name+' for target'"
+                                  },
+                                  '_2.3':{
+                                    type:"set",
+                                    target:"phase.revenge_sender",
+                                    source:"player"
+                                  },
+                                  '_2.4':{
+                                    type:"set",
+                                    target:"phase.revenge_type",
+                                    source:"'+2'"
+                                  },
+                                  '_4':{
+                                    type:"set",
+                                    target:"phase.revenge_amount",
+                                    source:"phase.revenge_amount+2"
+                                  },
+                                  '_4.6':{
+                                    type:"alert",
+                                    text:"'startet +2 revenge '+phase.revenge_sender.name+' => '+phase.revenge_target.name+ ' with amount '+phase.revenge_amount"
+                                  }
+                                }
+                              }, //end of +2 card
+                              '_3':{ //check if this player has removed all but this card, if the player just ended a revenge, he should have picked up the extra cards before this check
                                 type:"if",
                                 condition:"player.hand.count = 0",
                                 actions:{
@@ -725,44 +918,7 @@ exports.game = {
                                   }
                                 }
                               },*/
-                              '_5':{ //if the card is a plus card,
-                                type:"if",
-                                condition:"phase.stack.last.value = '+2' && players.count > 1",
-                                actions:{
-                                  '_1':{
-                                    type:"stop", //if already started, will trigger the stop hook
-                                    timer:"phase.waitforrevengetimer"
-                                  },
-                                  '_2':{
-                                    type:"reset",
-                                    timer:"phase.waitforrevengetimer"
-                                  },
-                                  '_2.2':{
-                                    type:"set",
-                                    target:"phase.revenge_target",
-                                    source:"players.others.any"//"players[el!=player].any" //does not work if single player
-                                  },
-                                  '_2.3':{
-                                    type:"set",
-                                    target:"phase.revenge_sender",
-                                    source:"player"
-                                  },
-                                  '_4':{
-                                    type:"if",
-                                    condition:"phase.stack.last.value='+2'",
-                                    actions:{
-                                      1:{
-                                        type:"set",
-                                        target:"phase.revenge_amount",
-                                        source:"phase.revenge_amount+2"
-                                      }                                    },
-                                    else:{
 
-                                    }
-                                  }
-
-                                }
-                              }, //end of +2 card
                               '_6':{//reset the current card in the players hand by not setting a source
                                 type:"set",
                                 target:"player.currentCard"
@@ -900,8 +1056,53 @@ exports.game = {
 
             '_0':{
               type:"alert",
-              text:"'setting up deck'"
+              text:"'setting up deck:'+game.usePlus2"
             },
+            //change the deck according to settings
+            '_1':{
+              type:"if",
+              condition:"game.usePlus2 > 0",
+              actions:{
+
+                '_1':{
+                  type:"repeat",
+                  times:"3",
+                  actions:{
+                    '_0':{
+                      type:"alert",
+                      text:"'adding +2'"
+                    },
+                    '_1':{
+                      type:"add",
+                      list:"game.cardtypes",
+                      target:"'+2'"
+                    }
+                  }
+                }
+              }
+            },
+            '_2':{
+              type:"if",
+              condition:"game.usePlus1 > 0",
+              actions:{
+                '_0':{
+                  type:"alert",
+                  text:"'adding +1'"
+                },
+                '_':{
+                  type:"repeat",
+                  times:"30",
+                  actions:{
+                    '_1':{
+                      type:"add",
+                      list:"game.cardtypes",
+                      target:"'+1'"
+                    },
+                  }
+                }
+              }
+            },
+
             //add playercards
             color_loop: {
               type:"each",

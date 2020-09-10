@@ -8,6 +8,7 @@ require('js/log.js');
 /*require('js/fastclick.js');*/
 require('js/handlebars-setup.js');
 require('js/client.js');
+require('js/smoothPosUpdater2.js');
 
 
 /*
@@ -25,15 +26,15 @@ require('js/client.js');
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
+ * specific language governing permissio  ns and limitations
  * under the License.
  */
 var app = {
     //debug settings that will take over if in debug mode
     debug: {
-      server: 'http://alphagames.all2day.dk'
+      server: 'https://alphagames.all2day.dk'
     },
-    server: 'http://geogames.all2day.dk',//'http://52.208.48.54:9615',
+    server: 'https://geogames.all2day.dk',//'http://52.208.48.54:9615',
 
     //server: 'http://alphagames.all2day.dk',
     player:null,
@@ -136,7 +137,12 @@ var app = {
           window[k] = v;
         });
 
+        this._posUpdater = smoothPosUpdater;
 
+        if(qs['test_game']){
+          require('js/rawPosUpdater');
+          this._posUpdater = rawPosUpdater;
+        }
 
 
         if(window.cordova && cordova.plugins && cordova.plugins.IsDebug || qs['debug']){
@@ -248,6 +254,8 @@ var app = {
         $('#front').hide();
         //this.startLocationService();
 
+
+
         var g = require(this._currentGame.src,true);
 
         this._client = window._client = new GameClient(g.game,this.getPlayerToken());
@@ -257,6 +265,8 @@ var app = {
         //to start local server: node gameServer 1 9000 scorched_earth
         return;
       }
+
+      this._posUpdater = smoothPosUpdater;
 
 
       this.login();
@@ -309,7 +319,7 @@ var app = {
             'ok':function(){
               this.login();
               return false;
-            }
+            }.bind(this)
           })
 
         }.bind(this),
@@ -512,7 +522,7 @@ var app = {
               token:that.getPlayerToken(),
               name:name,
               //store pos in lat lng on server
-              pos:this._posHist && this._posHist.length? new ol.geom.Point(ol.proj.transform(this._posHist.slice(-1)[0].c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
+              pos:this._posUpdater && this._posUpdater.getLastRawPos() ? new ol.geom.Point(ol.proj.transform(this._posUpdater.getLastRawPos().c, 'EPSG:3857', 'EPSG:4326')).getCoordinates() : null
             },function(data){
               if(data && data.instance_id){
                 this.startGame(game,data.instance_id);
@@ -570,7 +580,9 @@ var app = {
             //moved to be started generally
             //this.startLocationService();
             //reset history
-            this._posHist = this._posHist && this._posHist.length ? this._posHist.slice(-1) :[];
+            this._posUpdater.stop();
+            this._posUpdater.start();
+            //this._posHist = this._posHist && this._posHist.length ? this._posHist.slice(-1) :[];
             this._pingHist = [];
 
             this._client = window._client = new GameClient(g.game,this.getPlayerToken(), instance_id);
@@ -710,169 +722,9 @@ var app = {
         this._geolocation = geolocation;
       } else { //End of no gps, now setup the gps
 
-        this._smoothPosUpdates = function(){
-          this._smoothPosUpdates._run_count = (this._smoothPosUpdates._run_count || 0)+1;
-
-          //calculate best position based on time
-          var delay = 200;
-          var expected_frequency = 1200; //The expected ms between updates
-          var t = new Date().getTime();
-
-          //if just reset
-          if(!this._posHist || !this._posHist.length){
-            this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,app.config.smooth_interval);
-            return;
-          }
-
-          //when there is only one point in history, simply send that
-          if(this._posHist.length == 1){
-            //set the last pos to be the current pos
-            this._lastPos = {
-              c:this._posHist[0].c,
-              t:t
-            };
-          } else {
-
-            //if multiple points define new_pos to be the newest and old_pos to be the next to newest
-            var old_pos = this._posHist[this._posHist.length-2];
-            var new_pos = this._posHist[this._posHist.length-1];
-
-            if(Number.isNaN(new_pos.c[0])){
-              console.log('1new_pos is nan');
-            }
-            if(Number.isNaN(old_pos.c[0])){
-              console.log('1old_pos is nan');
-            }
-            if(Number.isNaN(this._lastPos.c[0])){
-              console.log('1last_pos is nan');
-            }
-
-            //if the current time is before the new pos time (+ delay), the goal is to go towards the new_pos (vector from last position to new position)
-            var delta, delta_length_sq, this_t, f, new_point, method;
-
-            if(new_pos.t == old_pos.t){
-              //if no time has passed simply add the newest pos
-              console.log('no time passed, ignoring');
-              console.log('old_pos:['+old_pos.c[0]+','+old_pos.c[1]+","+old_pos.t+"]");
-              console.log('new_pos:['+new_pos.c[0]+','+new_pos.c[1]+","+new_pos.t+"]");
-
-              //store the new point in last pos
-              this._lastPos = {
-                c:[new_pos.c[0],new_pos.c[1],0],
-                t: t,
-                a: new_pos.a
-              };
-            } else
-            if(t < new_pos.t + delay){
-              method = 'before_new_pos';
-              delta =  [
-                new_pos.c[0]-this._lastPos.c[0], //delta x
-                new_pos.c[1]-this._lastPos.c[1], //delta y
-                new_pos.t +delay - this._lastPos.t //delta time
-              ];
-              delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
-
-              //calculate the time since last pos
-              this_t = t-this._lastPos.t;
-              //calculate a factor based on the amount of time since last pos compared to the time to new_pos
-              f = this_t/delta[2];
-
-              if(Number.isNaN(f)){
-                console.log('got nan before new_pos');
-              }
 
 
-              //calculate a new point using last_pos the vector and the factor
-              new_point = [
-                this._lastPos.c[0] + f*delta[0],
-                this._lastPos.c[1] + f*delta[1],
-                delta_length_sq>0.5 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
-              ];
-
-              //store the new point in last pos
-              this._lastPos = {
-                c:new_point,
-                t: t,
-                a: this._lastPos.a
-              };
-
-            } else {
-              method = 'after_new_pos';
-              //if the time is after the new pos (+ delay) use a vector between the old and new pos as a guide
-              delta =  [new_pos.c[0]-old_pos.c[0],new_pos.c[1]-old_pos.c[1],new_pos.t - old_pos.t];
-
-
-
-              delta_length_sq = delta[0]*delta[0]+delta[1]*delta[1];
-
-
-              //calculate the amount of time after the new pos
-              this_t = t - (new_pos.t +delay);
-
-              //a new position is expected after ~1000ms - delay, thus if larger than this slow down
-              if(this_t + delay > expected_frequency){
-                this_t = (expected_frequency - delay) + Math.sqrt(this_t + delay - expected_frequency);
-              }
-
-
-              //calculate a factor based on the time after new pos compared to the time bewteen the old pos and new pos
-              var f = this_t/delta[2];
-              if(Number.isNaN(f)){
-                console.log('got nan after new_pos');
-              }
-              if(Number.isNaN(new_pos.c[0])){
-                console.log('new_pos is nan');
-              }
-
-              //use the new pos as the base and the vecor as the guide with factor length to calculate the new position
-              new_point = [
-                new_pos.c[0] + f*delta[0],
-                new_pos.c[1] + f*delta[1],
-                delta_length_sq>0.5 ? Math.atan2(delta[1], delta[0])-Math.PI*.5 : this._lastPos.c[2]
-              ];
-
-              //store the new point in the last pos
-              this._lastPos = {
-                c:new_point,
-                t: t,
-                a:new_pos.a
-              };
-
-            }
-
-            if(!this._lastPos || !this._lastPos.c || Number.isNaN(this._lastPos.c[0]) || Number.isNaN(this._lastPos.c[1])){
-              console.log('got bad last pos:'+method);
-
-              console.log('this_t:'+this_t);
-              console.log('delta:['+delta[0]+','+delta[1]+","+delta[2]+"]");
-              console.log('f:'+f);
-            }
-          }
-
-          if(!this._lastPos || !this._lastPos.c || Number.isNaN(this._lastPos.c[0]) || Number.isNaN(this._lastPos.c[1])){
-            console.log('got bad last pos:'+first);
-          }
-
-          //overwrite with compass if available
-          if(this._lastHeading !== undefined){
-            this._lastPos.c[2] = this._lastHeading;
-          }
-
-          //if a client is available, use the position of the last pos and update
-          if(this._client){
-            //console.log('updating client pos', this._lastPos.c);
-            this._client.updatePosition(this._lastPos);
-          }
-
-          if(this._smoothPosUpdates._run_count % 50 == 49){
-            console.log('GPS STAT:',this.calcStatistics());
-          }
-
-          //restart the smooth timer
-          this._smoothPosUpdates.timer_id = setTimeout(this._smoothPosUpdates,app.config.smooth_interval);
-        }.bind(this); // End of smooth updates
-
-
+        this._posUpdater.start(this);
 
         //The actual watch function
         console.log('starting geolocation watch');
@@ -890,35 +742,12 @@ var app = {
 
           console.log('GPS:'+pos_obj.t+'/'+pos_obj.rt+'['+pos_obj.c[0]+','+pos_obj.c[1]+'] a'+pos_obj.a);
 
-          if(!this._posHist){
-            this._posHist = [];
-            this._posHist.push(pos_obj);
-            console.log('starting smoothing');
+          this._posUpdater.updatePos(pos_obj);
 
-            this._smoothPosUpdates(); //fire first time
-          } else
-          if(!this._posHist.length){
-            this._posHist.push(pos_obj);
-          } else {
-            //if matching the one before, ignore it
-            var last_pos = this._posHist[this._posHist.length-1];
-            if(pos_obj.c[0] == last_pos.c[0] && pos_obj.c[1] == last_pos.c[1] && pos_obj.t == last_pos.t){
-              console.log('got location update duplicate, ignoring');
-              var t = new Date().getTime();
-              console.log('current time is:'+t+' and timestamp of pos is:'+pos_obj.t);
-              return;
-            }
-
-            this._posHist.push(pos_obj);
-            if(this._posHist.length >= 100){
-              this._posHist.shift();
-            }
-          }
 
           if(!this._client){
             $('.playerQuality .location').attr('class','location '+app.getPosAccuracyLevel(pos_obj.a));
           }
-
 
           return;
         }.bind(this),
@@ -936,29 +765,42 @@ var app = {
           console.log('getting heading');
           this._compass_watch_id = navigator.compass.watchHeading(function(heading){
             //console.log('heading:'+heading.magneticHeading);
-            this._lastHeading = -heading.magneticHeading*Math.PI/180;
+            let h = -heading.magneticHeading*Math.PI/180;
+            this._postUpdater.updateHeading(h)
+
           }.bind(this), function(e){
             console.log('error while getting compass heading');
           });
         }
       }
 
+
+
       //manual control of position
       that = this;
       if(!window._keyeventhandler){
         console.log('adding window key event handler');
         window._keyeventhandler = $(window).on('keydown',function(e){
-          if(!this._posHist || !this._posHist.length){
+
+          let last_pos_obj = this._posUpdater.getLastRawPos();
+
+          if(!last_pos_obj){
+            last_pos_obj = {
+              c:[1378912.8737958667,7505816.7162987655],
+              t: new Date().getTime(),
+              rt: new Date().getTime(),
+              a:8
+            }
             console.log('no pos hist');
-            return;
+            //return;
             /*
             console.log('fetching pos from client to overwrite it')
             var p = that._client.gs.currentPlayer.pos._value;
             window.pos = [p.x,p.y];*/
           }
-          var pos = this._posHist[this._posHist.length-1].c;
-          if(this._lastHeading === undefined){
-            this._lastHeading = 0;
+          var pos = last_pos_obj.c;
+          if(this._posUpdater._lastHeading === undefined){
+            this._posUpdater._lastHeading = 0;
           }
 
           switch(e.key){
@@ -975,10 +817,10 @@ var app = {
               pos[0]+=1;
               break;
             case '.':
-              this._lastHeading-=0.1;
+              this._posUpdater._lastHeading-=0.1;
               break;
             case ',':
-              this._lastHeading+=0.1;
+              this._posUpdater._lastHeading+=0.1;
               break;
             case ' ':
               if(this._client){
@@ -999,10 +841,12 @@ var app = {
             a:8 //default acuracy
           };
 
+          this._posUpdater.updatePos(pos_obj);
+
           if(!this._posHist){
             this._posHist = [];
             this._posHist.push(pos_obj);
-            this._smoothPosUpdates(); //fire first time
+            //this._smoothPosUpdates(); //fire first time
           } else {
             this._posHist.push(pos_obj);
             if(this._posHist.length >= 10){
@@ -1028,13 +872,13 @@ var app = {
         navigator.geolocation.clearWatch(this._navigator_watchId);
         this._navigator_watchId = null;
       }
-      if(this._smoothPosUpdates && this._smoothPosUpdates.timer_id){
-        clearTimeout(this._smoothPosUpdates.timer_id);
-      }
+
+      this._postUpdater.stop();
+
       if(this._compass_watch_id){
         navigator.compass.clearWatch(this._compass_watch_id);
       }
-      delete(this._posHist);
+      //delete(this._posHist);
     },
 
     /**
@@ -1202,13 +1046,14 @@ var app = {
       }
     },
     calcStatistics : function(){
-      var l = this._posHist.length;
+      let posHist = this._posUpdater.getHist();
+      var l = posHist.length;
       var stat = {
         points: l
       }
 
       if(l){
-        var total_time = this._posHist[l-1].t - this._posHist[0].t;
+        var total_time = posHist[l-1].t - posHist[0].t;
 
         var total_delay =0;
         var total_delay_sq = 0;
@@ -1216,10 +1061,10 @@ var app = {
         var total_accuracy_sq = 0;
 
         for(var i=0;i < l;i++){
-          total_delay+=this._posHist[i].rt - this._posHist[i].t;
-          total_delay_sq += Math.pow(this._posHist[i].rt - this._posHist[i].t,2);
-          total_accuracy+=this._posHist[i].a;
-          total_accuracy_sq += Math.pow(this._posHist[i].a,2);
+          total_delay+=posHist[i].rt - posHist[i].t;
+          total_delay_sq += Math.pow(posHist[i].rt - posHist[i].t,2);
+          total_accuracy+=posHist[i].a;
+          total_accuracy_sq += Math.pow(posHist[i].a,2);
         }
 
         stat.time_total = total_time;

@@ -4,7 +4,7 @@
 
 Hookable.extend('ClientElement',{
   _props:{},
-  _attachedHooks:null,
+  _attachedHooks:null, //the hooks to listen for changes to change this elements
   init:function(obj){
     this._super(obj);
     this._props = {};
@@ -72,6 +72,8 @@ Hookable.extend('ClientElement',{
       gp.r = r.ref;
       var that = this;
 
+
+      //Currently the inf.vars does NOT include pointers to not existing vars. If the reference is to the pointer itself, it should be enough to have it as a pointer var, otherwise we will need to attach a change hook on the pointer var that will update all the hooks when the pointer itself is changed.
       $.each(r.inf.vars,function(k,v){
         var ah = {
           v:v, //the variable
@@ -118,6 +120,7 @@ Hookable.extend('ClientElement',{
     if(gp instanceof GameProperty){ //if first time and reference (r) not set
       //evaluate the string
       //if(name=='pos') debugger;
+
       ScopeRef._setScope(this);
 
       if(gp.s === null || gp.s === undefined){
@@ -126,7 +129,7 @@ Hookable.extend('ClientElement',{
         if($.type(gp.s) !== "object"){
           val = this._evalProp(name,gp,gp.s);
         } else {
-
+          //a multiple, fx css
           val = {};
           var that = this;
           gp.or = {};
@@ -274,6 +277,7 @@ ClientElement.extend('ViewElement',{
     $.each(obj.elements||{},function(k,el){
       var element = ViewElement.fromObject(el);
       element._owner = that;
+      element._name = k;
       els[k] = (element);
     });
     this.elements = {_value:els};//new GameStateList(obj.elements || {},ViewElement);
@@ -1017,6 +1021,13 @@ ViewElement.extend('SliderElement',{
   },
   stopDrag:function(e){
     $(document.body).off('.drag');
+    var old_val = this._val;
+    this._val = Math.round(this._val);
+    this.updateSlider();
+
+    if(old_val != this._val){
+      this.triggerHook('change');
+    }
   },
   handleDrag:function(e){
     var d = e.originalEvent.touches[0].clientX;

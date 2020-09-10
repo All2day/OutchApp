@@ -225,18 +225,21 @@ ScopeRef._prepareScopeRef = function(s /*string*/,type = null, lookup_depth = 0 
 
       //look for 0. level splitters
       for(var i=0;i< s.c.length;i++){
-        if(s.c[i] == '&&'){
-          return new ScopeAnd(
-            ScopeRef._prepareScopeRef(s.c.slice(0,i),BoolVariable),
-            ScopeRef._prepareScopeRef(s.c.slice(i+1),BoolVariable)
-          );
-        }
         if(s.c[i] == '||'){
           return new ScopeOr(
             ScopeRef._prepareScopeRef(s.c.slice(0,i),BoolVariable),
             ScopeRef._prepareScopeRef(s.c.slice(i+1),BoolVariable)
           );
         }
+      }
+      for(var i=0;i< s.c.length;i++){
+        if(s.c[i] == '&&'){
+          return new ScopeAnd(
+            ScopeRef._prepareScopeRef(s.c.slice(0,i),BoolVariable),
+            ScopeRef._prepareScopeRef(s.c.slice(i+1),BoolVariable)
+          );
+        }
+
       }
 
       //look for 1. level splitters
@@ -496,11 +499,11 @@ ScopeRef.extend('LeftRightRef',{
   },
   traverse:function(f){
     this._super(f);
-    if(left){
-      f.traverse(f);
+    if(this.left){
+      this.left.traverse(f);
     }
-    if(right){
-      f.traverse(f);
+    if(this.right){
+      this.right.traverse(f);
     }
   }
 });
@@ -562,7 +565,9 @@ LeftRightRef.extend('ScopeNotEqual',{
 
 LeftRightRef.extend('ScopeAnd',{
   eval:function(scp,inf){
-    return this.left.eval(scp,inf) && this.right.eval(scp,inf);
+    let l = this.left.eval(scp,inf);
+    let r = this.right.eval(scp,inf);
+    return  l && r;
   }
 });
 
@@ -802,7 +807,7 @@ ScopeRef.extend('ScopeRootLookup',{
           scp = ScopeRef._getScopeRoot();
           while(scp && !(scp instanceof ProtoTypeVariable && scp._type == this.ref)){
             console.log('are at '+scp._type+' with name '+scp._name+' and id:'+scp._id);
-            console.log(scp);
+            //console.log(scp);
             scp = scp._owner;
           }
           if(!scp){
@@ -835,9 +840,11 @@ ScopeRef.extend('ScopeRootLookup',{
       case 'el':
         //scope stack lookups for a container with an 'el'
         //TODO:check that it is on purpose, that it does NOT check the root?
-        for(var i=ScopeRef._scp.length-1;i>0;i--){
+        scploop:for(var i=ScopeRef._scp.length-1;i>0;i--){
           if(ScopeRef._scp[i].get('el')){
             scp = ScopeRef._scp[i].get('el');
+            //stop searching
+            break scploop;
           }
         }
         break;
@@ -1061,6 +1068,10 @@ ScopeLookup.extend('ScopeFilter',{
       }
       ScopeRef._popScope();
     });
+
+    //pop the gso?
+    ScopeRef._popScope();
+
     if(ScopeRef._chatty){console.log('ScopeFilter '+new_list._value.length + ' / '+scp._value.length);}
 
     return this.getNext(new_list,inf);

@@ -262,6 +262,31 @@ Action.fromObject = function(obj,name){
    }
  });
 
+ ServerAction.extend('EndAction',{
+   timer:null,
+   init:function(obj){
+     if(!obj.timer){
+       console.log('timer must be defined');
+     }
+     this.timer = ScopeRef._prepareScopeRef(obj.timer,TimerVariable);
+     this.timer._owner =this;
+   },
+   do:function(){
+     //console.log('start action');
+     var timer_var = this.timer.eval();
+     if(timer_var){
+       timer_var.end();
+     } else {
+       debugger;
+       console.log('could not find timer');
+     }
+   },
+   traverseInputs:function(f){
+     f(this.timer);
+   }
+ });
+
+
  ServerAction.extend('CreateAction',{
    prototype:null,
    actions:null,
@@ -459,8 +484,9 @@ Action.extend('RepeatAction',{
   },
   do:function(){
     var times_var = this.times.eval();
-
-    for(var j=0;j<times_var._value;j++){
+    var times = times_var._value === undefined ? times_var : times_var._value;
+    //console.log('repeating', times_var, times_var._value);
+    for(var j=0;j<times;j++){
       for(var i=0;i<this.actions.length;i++){
         this.actions[i].do();
       }

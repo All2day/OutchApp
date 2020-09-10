@@ -69,7 +69,7 @@ Class.extend('GameServer',{
       console.log('phase changed sending to server',this.control_url+'/update');
       $.getJSON(this.control_url+'/update',data,function(r){
         console.log('phase change result')
-        console.log(r);
+        //console.log(r);
       }.bind(this)).fail(function(r){
         console.log('phase change update error',r);
       });

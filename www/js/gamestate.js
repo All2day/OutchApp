@@ -59,6 +59,8 @@ Hookable.extend('Variable',{
     }*/
     return this._value;
   },
+
+  //Look at the variable, and if it is a pointer, follow it until the final value
   _pointerCheck:function(v){
     while(v._p){
       if(v._p == v._id){
@@ -326,11 +328,17 @@ Variable.extend('ListVariable',{
     //check prototype of v
     //TODO: add check for prototype
     if(!v){
+      debugger;
       console.log('not prototype or not the correct type');
       return;
     }
 
     v = this._pointerCheck(v);
+
+    //If v is not already a variable, make it into a variable
+    if(!(v instanceof Variable)){
+      v = Variable.fromObject(v);
+    }
 
     this._value.push(v);
 
@@ -346,6 +354,7 @@ Variable.extend('ListVariable',{
   remove:function(v){
     //check prototype of v
     if(!v){
+
       console.log('not prototype or not the correct type');
       return;
     }
@@ -526,23 +535,27 @@ Variable.extend('TimerVariable',{
     //register this timer on the current phase
     ScopeRef._getGameState().currentPhase.registerTimer(this);
     this._timeout = setTimeout(function(){
-      ScopeRef._getGameState().currentPhase.deregisterTimer(this);
-      if(!that._value){
-        console.error('timer ended when timer not existing, phase ended?'+that._name);
-        return;
-      }
-      console.log('timer timedout:'+that._name);
-
-      clearTimeout(this._secondtimeout);
-      that._value.status = 'ended';
-      that.triggerHook('end');
-      //this happens outside normal tick time, thus trigger manually
-      Hookable._handleTriggerQueue();
+      that.end();
     },missing_time);
 
 
 
     this.triggerHook('change');
+  },
+  end: function(){
+    ScopeRef._getGameState().currentPhase.deregisterTimer(this);
+    if(!this._value){
+      console.error('timer ended when timer not existing, phase ended?'+this._name);
+      return;
+    }
+    console.log('timer timedout or manual trigger:'+this._name);
+
+    clearTimeout(this._timeout);
+    clearTimeout(this._secondtimeout);
+    this._value.status = 'ended';
+    this.triggerHook('end');
+    //this happens outside normal tick time, thus trigger manually
+    Hookable._handleTriggerQueue();
   },
   stop: function(){
     console.log('stopping timer:'+this._name);
@@ -1195,6 +1208,8 @@ ProtoTypeVariable.extend('Player',{
 
     //if the value is already set (not null Player) check for pos
     if(this._value){
+
+      //also added check that it is not a pointer to the variable
       this._updateReferences();
     }
 
@@ -1241,6 +1256,11 @@ ProtoTypeVariable.extend('Player',{
   },
 
   _updateReferences: function(){
+    if(this._p){
+      //console.log('Not updating player references, is pointer');
+      return;
+    }
+
     //to add extra player specific vars create in the _clientVars
     $.each(this._clientVars,function(k,t){
       if(!this[k]){
@@ -1564,7 +1584,7 @@ GameStateObject.extend('GameState',{
       }
       return 0;
     });
-    console.log(temp_array);
+    //console.log(temp_array);
 
     var rank = 0;
     var last_con = undefined;
@@ -1686,7 +1706,7 @@ GameStateObject.extend('GameState',{
   triggerClientHook: function(player_id,id,vars){
     this.currentPlayer = this.players[player_id];
     if(!this.clientHooks[id]){
-      console.log(this.clientHooks);
+      //console.log(this.clientHooks);
       console.log('client hook missing:'+id);
       //TODO: if a clien has not gone through all the same phases as the server it may have a different set of ids for its functions and thus calling will fail. All ids should be forced through somehow
     }
