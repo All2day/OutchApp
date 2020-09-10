@@ -1,4 +1,4 @@
-var http = require('http')
+var https = require('https')
 var url = require('url')
 var fs = require('fs')
 const concat = require('concat-stream');
@@ -26,7 +26,15 @@ Class.extend('GameServer',{
   port: null,
   game_id:null,
   process_id:null,
+  server_options: null,
   init:function(gameobject, game_id, port,control_url, process_id){
+
+    //setup certificates for TLS
+    this.server_options = {
+      key: fs.readFileSync('key.pem'),
+      cert: fs.readFileSync('cert.pem')
+    };
+
     //read the gameobject and create a game state
     this.gs = new GameState(gameobject);
 
@@ -296,8 +304,8 @@ Class.extend('GameServer',{
       this.gs.vars.set('name',data.instance.name);
 
 
-      this.http = http.createServer(this.handleRequest.bind(this));
-      this.http.listen(this.port);
+      this.https = https.createServer(this.server_options,this.handleRequest.bind(this));
+      this.https.listen(this.port);
 
       console.log("listening on port "+this.port);
 
@@ -311,8 +319,8 @@ Class.extend('GameServer',{
     if(!this.control_url){
       console.log('[init] no control url, start directly without info');
       this.serverPing();
-      this.http = http.createServer(this.handleRequest.bind(this));
-      this.http.listen(this.port)
+      this.https = http.createServer(this.server_options,this.handleRequest.bind(this));
+      this.https.listen(this.port)
     }
 
   }
