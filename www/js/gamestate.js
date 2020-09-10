@@ -1311,11 +1311,11 @@ ProtoTypeVariable.extend('Player',{
 
       var speed = 1000*d/dt; //in m/s
 
-      //limit the speed to a max of 5m/s
-      var lim_d = Math.min(5,speed)*dt*0.001;
+      //limit the speed to a max of 7m/s
+      var lim_d = Math.min(7,speed)*dt*0.001;
 
       this.total_distance._value+=lim_d;
-
+      //console.log(this.total_distance._value);
       //statistical analysis of acuraccy
 
 

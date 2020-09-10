@@ -797,15 +797,15 @@ exports.game = {
                               },
                               '_251':{
                                 type:"if", //if the revenge is running and we are NOT continuing on the old revenge, end the timer handing out cards etc.
-                                condition:"phase.waitforrevengetimer.isRunning && phase.revenge_target != phase.stack.last.value",
+                                condition:"phase.waitforrevengetimer.isRunning && phase.revenge_type != phase.stack.last.value",
                                 actions:{
                                   '_0':{
                                     type:"alert",
-                                    text:"'Ending revenge, old type was:'+phase.revenge_target+' => '+phase.stack.last.value"
+                                    text:"'Ending revenge, old type was:'+phase.revenge_type+' => '+phase.stack.last.value"
                                   },
                                   '_1':{
                                     type:"end",
-                                    target:"phase.waitforrevengetimer"
+                                    timer:"phase.waitforrevengetimer"
                                   }
                                 }
                               },
@@ -1091,7 +1091,7 @@ exports.game = {
                 },
                 '_':{
                   type:"repeat",
-                  times:"30",
+                  times:"3",
                   actions:{
                     '_1':{
                       type:"add",
